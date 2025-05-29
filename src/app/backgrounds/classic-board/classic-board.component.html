@@ -1,0 +1,10 @@
+<!-- Damier vert/blanc classique -->
+<div class="classic-board">
+  @for (square of board(); track square.square) {
+  <div
+    class="classic-square"
+    [class.light]="square.isLight"
+    [class.dark]="!square.isLight"
+  ></div>
+  }
+</div>

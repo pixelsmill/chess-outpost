@@ -1,74 +1,13 @@
-.board-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.board-wrapper {
-  display: inline-block;
-  background: transparent;
-  padding: 20px;
-  border-radius: 15px;
-}
-
-.board-with-ranks {
-  display: flex;
-  align-items: flex-start;
-}
-
-.coordinates-left {
-  display: flex;
-  flex-direction: column;
-  margin-right: 10px;
-  padding-top: 5px;
-
-  .coord-number {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 1rem;
-  }
-}
-
-.coordinates-bottom {
-  display: flex;
-  margin-top: 10px;
-  margin-left: 30px;
-
-  .coord-letter {
-    width: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 1rem;
-  }
-}
-
+// Grille transparente pour les pièces et interactions
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 60px);
-  grid-template-rows: repeat(8, 60px);
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
   gap: 0;
-  border: 2px solid #333;
+  background: transparent; // Fond transparent pour laisser voir les backgrounds
+  border: none; // Plus de bordure car gérée par les backgrounds
   position: relative;
-}
-
-// Responsive design
-@media (max-width: 768px) {
-  .board {
-    grid-template-columns: repeat(8, 45px);
-    grid-template-rows: repeat(8, 45px);
-  }
-
-  .coordinates-left .coord-number,
-  .coordinates-bottom .coord-letter {
-    height: 45px;
-    width: 45px;
-    font-size: 0.8rem;
-  }
-}
+  z-index: 10; // Au-dessus des backgrounds
+} 

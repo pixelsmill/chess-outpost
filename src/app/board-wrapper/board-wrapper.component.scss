@@ -1,0 +1,92 @@
+.board-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.board-wrapper {
+  display: inline-block;
+  background: transparent;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.board-with-ranks {
+  display: flex;
+  align-items: flex-start;
+}
+
+.coordinates-left {
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+  padding-top: 5px;
+
+  .coord-number {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+  }
+}
+
+.coordinates-bottom {
+  display: flex;
+  margin-top: 10px;
+  margin-left: 30px;
+
+  .coord-letter {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+  }
+}
+
+// Zone centrale avec système de layers
+.layers {
+  position: relative;
+  display: inline-block;
+  width: 480px;
+  height: 480px;
+
+  // Tous les enfants sont positionnés absolument et superposés
+  ::ng-deep > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  // L'échiquier (dernier enfant) est au-dessus avec z-index plus élevé
+  ::ng-deep > :last-child {
+    z-index: 10;
+  }
+
+  // Les backgrounds (premiers enfants) sont en arrière-plan
+  ::ng-deep > :not(:last-child) {
+    z-index: 1;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .coordinates-left .coord-number,
+  .coordinates-bottom .coord-letter {
+    height: 45px;
+    width: 45px;
+    font-size: 0.8rem;
+  }
+
+  .layers {
+    width: 360px;
+    height: 360px;
+  }
+}
