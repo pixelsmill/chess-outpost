@@ -1,0 +1,192 @@
+.chess-app {
+  min-height: 100vh;
+  background: #2C2C2C;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  h1 {
+    color: white;
+    font-size: 2.5rem;
+    margin: 0 0 20px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .game-status {
+    h2 {
+      margin: 0;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+
+      &.check {
+        background: #ffeb3b;
+        animation: pulse 1s infinite;
+      }
+
+      &.checkmate {
+        background: #f44336;
+        color: white;
+        animation: victory 2s infinite;
+      }
+    }
+  }
+
+  .reset-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    background: #ff6b6b;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #ff5252;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
+  }
+}
+
+.info-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .legend, .game-info {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+
+    h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 1.3rem;
+    }
+  }
+
+  .legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .color-sample {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #333;
+
+        &.white {
+          background: rgba(255, 255, 255, 0.8);
+        }
+
+        &.black {
+          background: rgba(0, 0, 0, 0.8);
+        }
+
+        &.contested {
+          background: rgba(255, 193, 7, 0.8);
+        }
+      }
+    }
+  }
+
+  .legend-explanation {
+    font-style: italic;
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .stat {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+
+      strong {
+        color: #333;
+      }
+
+      code {
+        background: rgba(0, 0, 0, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        word-break: break-all;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes victory {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-2deg); }
+  75% { transform: scale(1.1) rotate(2deg); }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .chess-app {
+    padding: 10px;
+  }
+
+  .header {
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    .controls {
+      flex-direction: column;
+      gap: 15px;
+    }
+  }
+
+  .info-panel {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}

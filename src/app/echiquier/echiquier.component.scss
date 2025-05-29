@@ -1,411 +1,165 @@
-.chess-app {
-  min-height: 100vh;
-  background: #2C2C2C;
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-
-  h1 {
-    color: white;
-    font-size: 2.5rem;
-    margin: 0 0 20px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-  }
-
-  .game-status {
-    h2 {
-      margin: 0;
-      padding: 10px 20px;
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
-      border-radius: 25px;
-      font-size: 1.2rem;
-      transition: all 0.3s ease;
-
-      &.check {
-        background: #ffeb3b;
-        animation: pulse 1s infinite;
-      }
-
-      &.checkmate {
-        background: #f44336;
-        color: white;
-        animation: victory 2s infinite;
-      }
-    }
-  }
-
-  .visualization-controls {
-    text-align: center;
-
-    h3 {
-      color: white;
-      margin: 0 0 10px 0;
-      font-size: 1.1rem;
-    }
-
-    .mode-buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .mode-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-      font-weight: bold;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
-      }
-
-      &.active {
-        background: #4CAF50;
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      }
-    }
-  }
-
-  .reset-btn {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 25px;
-    background: #ff6b6b;
-    color: white;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: #ff5252;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-    }
-  }
-}
-
 .board-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin: 20px 0;
 }
 
 .board-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .board-with-ranks {
   display: flex;
-  align-items: center;
-}
-
-.coordinates-bottom {
-  display: flex;
-  margin-left: 40px; // Aligner avec l'échiquier (largeur des coordonnées de gauche)
-  margin-top: 10px;
-  
-  .coord-letter {
-    width: 80px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-  }
+  align-items: flex-start;
 }
 
 .coordinates-left {
   display: flex;
   flex-direction: column;
-  width: 40px;
-  
+  margin-right: 10px;
+  padding-top: 5px;
+
   .coord-number {
-    height: 80px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
+    color: #333;
+    font-size: 1rem;
+  }
+}
+
+.coordinates-bottom {
+  display: flex;
+  margin-top: 10px;
+  margin-left: 30px;
+
+  .coord-letter {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #333;
+    font-size: 1rem;
   }
 }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 80px);
-  grid-template-rows: repeat(8, 80px);
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
   gap: 0;
-  background: transparent;
-  padding: 0;
+  border: 2px solid #333;
   position: relative;
+}
 
-  .square {
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    overflow: hidden;
+.square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-    &.light {
-      background-color: #EBECD0;
-    }
+  &.light {
+    background-color: #EBECD0;
+  }
 
-    &.dark {
-      background-color: #779556;
-    }
+  &.dark {
+    background-color: #779556;
+  }
 
-    &:hover {
-      filter: brightness(1.1);
-      transform: scale(1.05);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
+  &.selected {
+    box-shadow: inset 0 0 0 3px #ff6b6b;
+    z-index: 2;
+  }
 
-    &.selected {
-      border: 3px solid #4CAF50 !important;
-      box-shadow: inset 0 0 20px rgba(76, 175, 80, 0.3);
-      animation: selected-glow 1s infinite alternate;
-    }
-
-    .piece {
-      font-size: 3rem;
-      z-index: 2;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      transition: all 0.2s ease;
-      
-      &.white {
-        color: #fff;
-      }
-      
-      &.black {
-        color: #333;
-      }
-    }
-
+  &:hover {
     .control-indicator {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      z-index: 3;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-
-      .control-value {
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 2px 6px;
-        border-radius: 10px;
-        font-size: 0.7rem;
-        font-weight: bold;
-        min-width: 25px;
-        text-align: center;
-        
-        &.white-dominance {
-          background: rgba(255, 255, 255, 0.9);
-          color: #333;
-        }
-        
-        &.black-dominance {
-          background: rgba(0, 0, 0, 0.9);
-          color: white;
-        }
-        
-        &.contested {
-          background: rgba(255, 193, 7, 0.9);
-          color: #333;
-        }
-      }
-    }
-
-    // Afficher les chiffres au survol
-    &:hover .control-indicator {
       opacity: 1;
     }
   }
 }
 
-.info-panel {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.piece {
+  font-size: 2.2rem;
+  z-index: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 
-  .legend, .game-info {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  &.white {
+    color: #fff;
+  }
 
-    h3 {
-      margin: 0 0 15px 0;
-      color: #333;
-      font-size: 1.3rem;
+  &.black {
+    color: #000;
+  }
+}
+
+.control-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+
+  .control-value {
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 1px 3px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #333;
+
+    &.white-dominance {
+      color: #fff;
+      background: rgba(0, 0, 0, 0.8);
     }
-  }
 
-  .legend-items {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .color-sample {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid #333;
-
-        &.white {
-          background: rgba(255, 255, 255, 0.8);
-        }
-
-        &.black {
-          background: rgba(0, 0, 0, 0.8);
-        }
-
-        &.contested {
-          background: rgba(255, 193, 7, 0.8);
-        }
-      }
+    &.black-dominance {
+      color: #000;
+      background: rgba(255, 255, 255, 0.9);
     }
-  }
 
-  .legend-explanation {
-    font-style: italic;
-    color: #666;
-    margin: 0;
-    font-size: 0.9rem;
-  }
-
-  .stats {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    .stat {
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.05);
-      border-radius: 8px;
-
-      strong {
-        color: #333;
-      }
-
-      code {
-        background: rgba(0, 0, 0, 0.1);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.8rem;
-        word-break: break-all;
-      }
+    &.contested {
+      color: #000;
+      background: rgba(255, 193, 7, 0.9);
+      animation: pulse-contested 2s infinite;
     }
   }
 }
 
-// Animations
-@keyframes pulse {
+// Animation pour les cases contestées
+@keyframes pulse-contested {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes victory {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(-2deg); }
-  75% { transform: scale(1.1) rotate(2deg); }
-}
-
-@keyframes selected-glow {
-  0% { box-shadow: inset 0 0 20px rgba(76, 175, 80, 0.3); }
-  100% { box-shadow: inset 0 0 30px rgba(76, 175, 80, 0.6); }
-}
-
-@keyframes contested-pulse-inset {
-  0% { 
-    filter: brightness(1);
-    box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.6);
-  }
-  100% { 
-    filter: brightness(1.2);
-    box-shadow: inset 0 0 24px rgba(255, 193, 7, 0.9);
-  }
+  50% { transform: scale(1.1); }
 }
 
 // Responsive design
 @media (max-width: 768px) {
-  .chess-app {
-    padding: 10px;
-  }
-
-  .header {
-    h1 {
-      font-size: 1.8rem;
-    }
-
-    .controls {
-      flex-direction: column;
-      gap: 15px;
-    }
-  }
-
-  .board {
-    grid-template-columns: repeat(8, 60px);
-    grid-template-rows: repeat(8, 60px);
-
-    .square .piece {
-      font-size: 2.2rem;
-    }
-  }
-
-  .info-panel {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-}
-
-@media (max-width: 500px) {
   .board {
     grid-template-columns: repeat(8, 45px);
     grid-template-rows: repeat(8, 45px);
+  }
 
-    .square .piece {
-      font-size: 1.8rem;
-    }
+  .coordinates-left .coord-number,
+  .coordinates-bottom .coord-letter {
+    height: 45px;
+    width: 45px;
+    font-size: 0.8rem;
+  }
+
+  .piece {
+    font-size: 1.8rem;
+  }
+
+  .control-indicator .control-value {
+    font-size: 0.5rem;
   }
 }
