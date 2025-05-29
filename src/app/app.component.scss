@@ -129,17 +129,17 @@
           background: rgba(255, 193, 7, 0.8);
         }
 
-        // Nouveaux styles pour la heatmap
+        // Nouveaux styles pour la heatmap - système simplifié
         &.heatmap-hot {
-          background: linear-gradient(45deg, rgba(255, 69, 0, 0.8), rgba(255, 140, 0, 0.8));
+          background: rgba(255, 69, 0, 0.6);
         }
 
         &.heatmap-cold {
-          background: linear-gradient(45deg, rgba(0, 50, 150, 0.8), rgba(30, 144, 255, 0.8));
+          background: rgba(0, 150, 255, 0.6);
         }
 
         &.heatmap-contested {
-          background: rgba(255, 215, 0, 0.8);
+          background: rgba(128, 0, 128, 0.6);
           animation: pulse-sample 2s infinite;
         }
 

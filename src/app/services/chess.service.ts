@@ -230,39 +230,26 @@ export class ChessService {
       };
     }
 
-    // Calculer l'intensité maximale pour normaliser l'opacité
-    const maxIntensity = Math.max(control.whiteControl, control.blackControl);
-    const totalControl = control.whiteControl + control.blackControl;
-
-    // Opacité basée sur l'intensité (0.3 à 0.9)
-    const baseOpacity = 0.3 + (maxIntensity / 8) * 0.6; // Normalisation sur 8 pièces max
-    const opacity = Math.min(Math.max(baseOpacity, 0.3), 0.9);
+    // Calculer l'opacité basée sur l'intensité du contrôle
+    const maxControl = Math.max(control.whiteControl, control.blackControl);
+    const opacity = Math.min(0.2 + (maxControl * 0.15), 0.8); // Opacité de 0.2 à 0.8
 
     if (control.netControl > 0) {
-      // Contrôle blanc dominant - zones chaudes rouges/oranges
-      const intensity = Math.abs(control.netControl);
-      if (intensity >= 3) {
-        return { 'background-color': `rgba(255, 69, 0, ${opacity})` }; // Rouge-orange intense
-      } else if (intensity >= 2) {
-        return { 'background-color': `rgba(255, 140, 0, ${opacity})` }; // Orange
-      } else {
-        return { 'background-color': `rgba(255, 200, 100, ${opacity})` }; // Orange clair
-      }
-    } else if (control.netControl < 0) {
-      // Contrôle noir dominant - zones froides bleues
-      const intensity = Math.abs(control.netControl);
-      if (intensity >= 3) {
-        return { 'background-color': `rgba(0, 50, 150, ${opacity})` }; // Bleu foncé
-      } else if (intensity >= 2) {
-        return { 'background-color': `rgba(30, 144, 255, ${opacity})` }; // Bleu dodger
-      } else {
-        return { 'background-color': `rgba(135, 206, 250, ${opacity})` }; // Bleu clair
-      }
-    } else if (control.whiteControl > 0 && control.blackControl > 0) {
-      // Case contestée - zones neutres jaunes/dorées
-      const contestedOpacity = 0.4 + (totalControl / 10) * 0.5;
+      // Contrôle blanc dominant - couleur du feu (orange-rouge) avec opacité variable
       return {
-        'background-color': `rgba(255, 215, 0, ${Math.min(contestedOpacity, 0.8)})`, // Doré
+        'background-color': `rgba(255, 69, 0, ${opacity})` // Orange-rouge feu
+      };
+    } else if (control.netControl < 0) {
+      // Contrôle noir dominant - couleur de l'eau (bleu cyan) avec opacité variable
+      return {
+        'background-color': `rgba(0, 150, 255, ${opacity})` // Bleu cyan eau
+      };
+    } else if (control.whiteControl > 0 && control.blackControl > 0) {
+      // Case contestée - violet avec opacité basée sur l'intensité totale
+      const totalControl = control.whiteControl + control.blackControl;
+      const contestedOpacity = Math.min(0.3 + (totalControl * 0.1), 0.7);
+      return {
+        'background-color': `rgba(128, 0, 128, ${contestedOpacity})`, // Violet
         'animation': 'pulse-heatmap 2s infinite'
       };
     }
