@@ -21,6 +21,13 @@ export interface HeatmapSquare extends ChessSquare {
   control: SquareControl;
 }
 
+export interface GameNavigation {
+  currentMove: number;
+  totalMoves: number;
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -295,5 +302,121 @@ export class ChessService {
     }
 
     return tooltip;
+  }
+
+  // === GESTION PGN ET NAVIGATION ===
+
+  loadPgnIntoChess(chess: Chess, pgnText: string): boolean {
+    try {
+      // Réinitialiser l'échiquier
+      chess.reset();
+
+      // Nettoyer et corriger le PGN
+      let cleanedPgn = this.cleanPgn(pgnText);
+
+      // Charger le PGN
+      chess.loadPgn(cleanedPgn);
+
+      return true;
+    } catch (error) {
+      console.error('Erreur lors du chargement du PGN:', error);
+      return false;
+    }
+  }
+
+  private cleanPgn(pgnText: string): string {
+    // Séparer les en-têtes des coups
+    const lines = pgnText.split('\n');
+    const headerLines: string[] = [];
+    const moveLines: string[] = [];
+
+    let inHeaders = true;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      if (trimmedLine === '') {
+        if (inHeaders) {
+          inHeaders = false;
+        }
+        continue;
+      }
+
+      if (inHeaders && trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
+        headerLines.push(trimmedLine);
+      } else {
+        inHeaders = false;
+        if (trimmedLine) {
+          moveLines.push(trimmedLine);
+        }
+      }
+    }
+
+    // Reconstruire la section des coups
+    let movesText = moveLines.join(' ').trim();
+
+    // Supprimer les doubles espaces
+    movesText = movesText.replace(/\s+/g, ' ');
+
+    // Corriger le premier coup s'il manque "1."
+    if (movesText && !movesText.match(/^1\./)) {
+      // Vérifier si ça commence par un coup (lettre minuscule ou majuscule)
+      if (movesText.match(/^[a-zA-Z]/)) {
+        movesText = '1. ' + movesText;
+      }
+    }
+
+    // Reconstruire le PGN complet
+    const result = [...headerLines, '', movesText].join('\n');
+
+    console.log('PGN nettoyé:', result);
+    return result;
+  }
+
+  getGameNavigation(chess: Chess): GameNavigation {
+    const history = chess.history();
+    const totalMoves = history.length;
+
+    // Pour déterminer la position courante, on regarde l'historique
+    const currentMove = totalMoves;
+
+    return {
+      currentMove,
+      totalMoves,
+      canGoBack: currentMove > 0,
+      canGoForward: false // On est toujours à la fin après chargement
+    };
+  }
+
+  goToMove(chess: Chess, moveNumber: number): boolean {
+    try {
+      const history = chess.history();
+      const totalMoves = history.length;
+
+      if (moveNumber < 0 || moveNumber > totalMoves) {
+        return false;
+      }
+
+      // Sauvegarder le PGN complet
+      const fullPgn = chess.pgn();
+
+      // Réinitialiser et rejouer jusqu'au coup voulu
+      chess.reset();
+
+      if (moveNumber > 0) {
+        // Rejouer les coups un par un jusqu'à la position désirée
+        const moves = history.slice(0, moveNumber);
+        chess.loadPgn(moves.map((move, index) => {
+          const moveNum = Math.floor(index / 2) + 1;
+          const isWhite = index % 2 === 0;
+          return isWhite ? `${moveNum}. ${move}` : move;
+        }).join(' '));
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la navigation:', error);
+      return false;
+    }
   }
 }

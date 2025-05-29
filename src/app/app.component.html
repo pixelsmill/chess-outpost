@@ -10,13 +10,18 @@
   <!-- Conteneur des échiquiers côte à côte -->
   <div class="boards-container">
     <!-- Échiquier de jeu -->
-    <app-echiquier (positionChange)="onPositionChange($event)"></app-echiquier>
+    <app-echiquier
+      [externalPosition]="currentPosition()"
+      [disableClicks]="isNavigationMode()"
+      (positionChange)="onPositionChange($event)"
+    >
+    </app-echiquier>
 
     <!-- Heatmap de contrôle -->
     <app-heatmap [position]="currentPosition()"></app-heatmap>
 
-    <!-- Disabled Carte topographique -->
-    <!-- <app-topographic [position]="currentPosition()"></app-topographic> -->
+    <!-- Carte topographique -->
+    <app-topographic [position]="currentPosition()"></app-topographic>
   </div>
 
   <!-- Conteneur des contrôles -->
@@ -28,7 +33,73 @@
     </div>
 
     <button (click)="resetGame()" class="reset-btn">🔄 Nouvelle partie</button>
+
+    <button (click)="togglePgnInput()" class="pgn-btn">
+      📋 {{ showPgnInput ? "Masquer PGN" : "Charger PGN" }}
+    </button>
   </div>
+
+  <!-- Interface de chargement PGN -->
+  @if (showPgnInput) {
+  <div class="pgn-input-container">
+    <h3>📋 Charger une partie PGN</h3>
+    <textarea
+      [(ngModel)]="pgnText"
+      placeholder="Collez votre PGN ici...&#10;&#10;Exemple:&#10;1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
+      class="pgn-textarea"
+      rows="6"
+    >
+    </textarea>
+    <div class="pgn-actions">
+      <button (click)="loadPgn()" class="load-btn">✅ Charger la partie</button>
+      <button (click)="togglePgnInput()" class="cancel-btn">❌ Annuler</button>
+    </div>
+  </div>
+  }
+
+  <!-- Contrôles de navigation -->
+  @if (isNavigationMode()) {
+  <div class="navigation-controls">
+    <h3>🎮 Navigation dans la partie</h3>
+    <div class="move-info">
+      {{ getCurrentMoveDisplay() }}
+    </div>
+    <div class="nav-buttons">
+      <button
+        (click)="goToStart()"
+        [disabled]="!canGoBack"
+        class="nav-btn"
+        title="Aller au début"
+      >
+        ⏮️
+      </button>
+      <button
+        (click)="goToPrevious()"
+        [disabled]="!canGoBack"
+        class="nav-btn"
+        title="Coup précédent"
+      >
+        ⏪
+      </button>
+      <button
+        (click)="goToNext()"
+        [disabled]="!canGoForward"
+        class="nav-btn"
+        title="Coup suivant"
+      >
+        ⏩
+      </button>
+      <button
+        (click)="goToEnd()"
+        [disabled]="!canGoForward"
+        class="nav-btn"
+        title="Aller à la fin"
+      >
+        ⏭️
+      </button>
+    </div>
+  </div>
+  }
 
   <!-- Panneau d'informations -->
   <div class="info-panel">
@@ -41,7 +112,7 @@
         </div>
         <div class="stat">
           <strong>Nombre de coups :</strong>
-          {{ moveCount }}
+          {{ getCurrentMoveDisplay() }}
         </div>
         @if (selectedSquare) {
         <div class="stat">

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, signal, computed, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess, Square } from 'chess.js';
 import { ChessService, ChessSquare } from '../services/chess.service';
@@ -11,7 +11,10 @@ import { SquareComponent } from '../square/square.component';
   templateUrl: './echiquier.component.html',
   styleUrl: './echiquier.component.scss'
 })
-export class EchiquierComponent implements OnInit {
+export class EchiquierComponent implements OnInit, OnChanges {
+  @Input() externalPosition?: string; // Position venant du parent (navigation PGN)
+  @Input() disableClicks = false; // Désactiver les clics pendant la navigation
+
   chess = new Chess();
 
   // Signaux pour la réactivité
@@ -33,7 +36,25 @@ export class EchiquierComponent implements OnInit {
     this.updatePosition();
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    // Synchroniser avec la position externe (navigation PGN)
+    if (changes['externalPosition'] && this.externalPosition) {
+      try {
+        this.chess.load(this.externalPosition);
+        this.position.set(this.externalPosition);
+        this.selectedSquare.set(null); // Désélectionner lors de la navigation
+      } catch (error) {
+        console.error('Erreur lors du chargement de la position externe:', error);
+      }
+    }
+  }
+
   onSquareClick(square: string) {
+    // Ne pas permettre les clics si on est en mode navigation
+    if (this.disableClicks) {
+      return;
+    }
+
     const currentSelected = this.selectedSquare();
 
     if (currentSelected === square) {
