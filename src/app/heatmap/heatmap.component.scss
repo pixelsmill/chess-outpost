@@ -6,22 +6,9 @@
 
 .board-wrapper {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.95);
+  background: transparent;
   padding: 20px;
   border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.board-header {
-  text-align: center;
-  margin-bottom: 15px;
-  
-  h3 {
-    color: #333;
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
 }
 
 .board-with-ranks {
@@ -41,7 +28,7 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #333;
+    color: white;
     font-size: 1rem;
   }
 }
@@ -57,7 +44,7 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #333;
+    color: white;
     font-size: 1rem;
   }
 }
@@ -67,7 +54,7 @@
   grid-template-columns: repeat(8, 60px);
   grid-template-rows: repeat(8, 60px);
   gap: 0;
-  border: 2px solid #333;
+  background: white;
   position: relative;
 }
 
@@ -76,34 +63,38 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 
-  &.light {
-    background-color: #EBECD0;
-  }
+  // Plus de couleurs d'échiquier - fond neutre par défaut
+  background-color: #f8f8f8;
 
-  &.dark {
-    background-color: #779556;
+  // Effet de survol plus subtil pour la heatmap
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
   }
 }
 
 .piece {
   font-size: 2.2rem;
-  z-index: 1;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 5;
 
   &.white {
     color: #fff;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
   }
 
   &.black {
     color: #000;
+    text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.8);
   }
 
-  // Style spécial pour la heatmap - pièces plus transparentes
+  // Style pour la heatmap - pièces bien visibles sur les zones colorées
   &.heatmap-piece {
-    opacity: 0.6;
-    font-size: 1.8rem;
+    opacity: 0.9;
+    font-size: 2rem;
   }
 }
 
@@ -111,46 +102,57 @@
   position: absolute;
   top: 2px;
   right: 2px;
-  z-index: 3;
-  transition: opacity 0.2s ease;
+  z-index: 6;
+  transition: opacity 0.3s ease;
 
-  // Dans la heatmap, les indicateurs sont toujours visibles
-  &.visible {
-    opacity: 1 !important;
-  }
+  // Dans la heatmap, les indicateurs sont cachés par défaut
+  opacity: 0;
 
   .control-value {
     font-size: 0.7rem;
     font-weight: bold;
     padding: 2px 4px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #333;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
     &.white-dominance {
-      color: #fff;
-      background: rgba(0, 0, 0, 0.85);
-      border-color: #fff;
+      background: rgba(139, 0, 0, 0.9);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     &.black-dominance {
-      color: #000;
-      background: rgba(255, 255, 255, 0.95);
-      border-color: #000;
+      background: rgba(0, 0, 139, 0.9);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     &.contested {
-      color: #000;
-      background: rgba(255, 193, 7, 0.95);
-      border-color: #ff6b00;
-      animation: pulse-contested 2s infinite;
+      background: rgba(184, 134, 11, 0.9);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
+      animation: pulse-heatmap 2s infinite;
       font-weight: 900;
     }
   }
 }
 
-// Animation pour les cases contestées
+// Animation pour les zones de heatmap
+@keyframes pulse-heatmap {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+// Animation pour les cases contestées (ancienne, on garde pour compatibilité)
 @keyframes pulse-contested {
   0%, 100% { 
     transform: scale(1);
@@ -180,12 +182,12 @@
     font-size: 1.8rem;
     
     &.heatmap-piece {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
     }
   }
 
   .control-indicator .control-value {
-    font-size: 0.5rem;
-    padding: 1px 2px;
+    font-size: 0.6rem;
+    padding: 1px 3px;
   }
 }

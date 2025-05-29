@@ -89,14 +89,13 @@
   margin: 0 auto;
 
   .legend, .game-info {
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 
     h3 {
       margin: 0 0 15px 0;
-      color: #333;
+      color: white;
       font-size: 1.3rem;
     }
   }
@@ -129,13 +128,32 @@
         &.contested {
           background: rgba(255, 193, 7, 0.8);
         }
+
+        // Nouveaux styles pour la heatmap
+        &.heatmap-hot {
+          background: linear-gradient(45deg, rgba(255, 69, 0, 0.8), rgba(255, 140, 0, 0.8));
+        }
+
+        &.heatmap-cold {
+          background: linear-gradient(45deg, rgba(0, 50, 150, 0.8), rgba(30, 144, 255, 0.8));
+        }
+
+        &.heatmap-contested {
+          background: rgba(255, 215, 0, 0.8);
+          animation: pulse-sample 2s infinite;
+        }
+
+        &.heatmap-neutral {
+          background: rgba(200, 200, 200, 0.3);
+          border-color: #999;
+        }
       }
     }
   }
 
   .legend-explanation {
     font-style: italic;
-    color: #666;
+    color: rgba(255, 255, 255, 0.8);
     margin: 0;
     font-size: 0.9rem;
     line-height: 1.4;
@@ -148,20 +166,21 @@
 
     .stat {
       padding: 10px;
-      background: rgba(0, 0, 0, 0.05);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
 
       strong {
-        color: #333;
+        color: white;
       }
 
       code {
-        background: rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.2);
         padding: 2px 6px;
         border-radius: 4px;
         font-family: 'Courier New', monospace;
         font-size: 0.8rem;
         word-break: break-all;
+        color: white;
       }
     }
   }
@@ -177,6 +196,17 @@
   0%, 100% { transform: scale(1) rotate(0deg); }
   25% { transform: scale(1.1) rotate(-2deg); }
   75% { transform: scale(1.1) rotate(2deg); }
+}
+
+@keyframes pulse-sample {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 // Responsive design

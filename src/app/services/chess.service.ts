@@ -124,7 +124,8 @@ export class ChessService {
         const pieceSquare = `${file}${rank}` as Square;
         const piece = chess.get(pieceSquare);
 
-        if (piece && this.isSquareAttackedByPiece(chess, pieceSquare, square, piece)) {
+        // Une pièce ne peut pas s'attaquer elle-même !
+        if (piece && pieceSquare !== square && this.isSquareAttackedByPiece(chess, pieceSquare, square, piece)) {
           if (piece.color === 'w') {
             whiteControl++;
           } else {
@@ -222,42 +223,47 @@ export class ChessService {
   // === STYLES POUR LA HEATMAP ===
 
   getSquareControlStyle(control: SquareControl): any {
-    // Calculer la différence absolue pour l'épaisseur
-    const controlDifference = Math.abs(control.netControl);
-
-    // Pas de contrôle = pas de bordure
-    if (controlDifference === 0 && control.whiteControl === 0 && control.blackControl === 0) {
-      return {};
+    // Pas de contrôle = couleur neutre très légère
+    if (control.whiteControl === 0 && control.blackControl === 0) {
+      return {
+        'background-color': 'rgba(200, 200, 200, 0.1)'
+      };
     }
 
-    // Déterminer l'épaisseur (2px à 8px selon l'intensité)
-    const borderWidth = Math.min(Math.max(controlDifference * 2, 2), 8);
+    // Calculer l'intensité maximale pour normaliser l'opacité
+    const maxIntensity = Math.max(control.whiteControl, control.blackControl);
+    const totalControl = control.whiteControl + control.blackControl;
+
+    // Opacité basée sur l'intensité (0.3 à 0.9)
+    const baseOpacity = 0.3 + (maxIntensity / 8) * 0.6; // Normalisation sur 8 pièces max
+    const opacity = Math.min(Math.max(baseOpacity, 0.3), 0.9);
 
     if (control.netControl > 0) {
-      // Contrôle blanc dominant
-      return {
-        'border': `${borderWidth}px solid rgb(255, 255, 255)`,
-        'box-shadow': `inset 0 0 ${borderWidth * 4}px rgba(255, 255, 255, 0.6)`,
-        'transform': `scale(${1 + controlDifference * 0.02})`,
-        'z-index': controlDifference + 10
-      };
+      // Contrôle blanc dominant - zones chaudes rouges/oranges
+      const intensity = Math.abs(control.netControl);
+      if (intensity >= 3) {
+        return { 'background-color': `rgba(255, 69, 0, ${opacity})` }; // Rouge-orange intense
+      } else if (intensity >= 2) {
+        return { 'background-color': `rgba(255, 140, 0, ${opacity})` }; // Orange
+      } else {
+        return { 'background-color': `rgba(255, 200, 100, ${opacity})` }; // Orange clair
+      }
     } else if (control.netControl < 0) {
-      // Contrôle noir dominant
-      return {
-        'border': `${borderWidth}px solid rgb(20, 20, 20)`,
-        'box-shadow': `inset 0 0 ${borderWidth * 4}px rgba(20, 20, 20, 0.7)`,
-        'transform': `scale(${1 + controlDifference * 0.02})`,
-        'z-index': controlDifference + 10
-      };
+      // Contrôle noir dominant - zones froides bleues
+      const intensity = Math.abs(control.netControl);
+      if (intensity >= 3) {
+        return { 'background-color': `rgba(0, 50, 150, ${opacity})` }; // Bleu foncé
+      } else if (intensity >= 2) {
+        return { 'background-color': `rgba(30, 144, 255, ${opacity})` }; // Bleu dodger
+      } else {
+        return { 'background-color': `rgba(135, 206, 250, ${opacity})` }; // Bleu clair
+      }
     } else if (control.whiteControl > 0 && control.blackControl > 0) {
-      // Case contestée (égalité)
-      const contestedWidth = Math.min(Math.max(control.whiteControl * 2, 3), 6);
+      // Case contestée - zones neutres jaunes/dorées
+      const contestedOpacity = 0.4 + (totalControl / 10) * 0.5;
       return {
-        'border': `${contestedWidth}px solid rgb(255, 193, 7)`,
-        'box-shadow': `inset 0 0 ${contestedWidth * 5}px rgba(255, 193, 7, 0.6)`,
-        'transform': `scale(${1 + control.whiteControl * 0.03})`,
-        'z-index': control.whiteControl + 15,
-        'animation': 'pulse-contested 2s infinite'
+        'background-color': `rgba(255, 215, 0, ${Math.min(contestedOpacity, 0.8)})`, // Doré
+        'animation': 'pulse-heatmap 2s infinite'
       };
     }
 

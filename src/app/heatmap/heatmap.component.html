@@ -1,10 +1,6 @@
 <!-- Heatmap de contrôle -->
 <div class="board-container">
   <div class="board-wrapper">
-    <div class="board-header">
-      <h3>🔥 Heatmap de Contrôle</h3>
-    </div>
-
     <div class="board-with-ranks">
       <!-- Coordonnées de gauche (chiffres) -->
       <div class="coordinates-left">
@@ -40,8 +36,8 @@
           </span>
           }
 
-          <!-- Indicateur de contrôle (toujours visible) -->
-          <div class="control-indicator visible">
+          <!-- Indicateur de contrôle (affiché au survol) -->
+          <div class="control-indicator">
             @if (square.control.whiteControl > 0 || square.control.blackControl
             > 0) {
             <span
