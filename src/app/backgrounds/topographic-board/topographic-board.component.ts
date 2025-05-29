@@ -41,8 +41,11 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
       this.chess.load(this.position);
     }
 
-    // Nettoyer le canvas
+    // Nettoyer le canvas avec transparence totale
     this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+    // S'assurer que le canvas a un fond transparent
+    this.ctx.globalCompositeOperation = 'source-over';
 
     // Générer la grille de contrôle de base (8x8)
     const baseGrids = this.generateBaseControlGrid();
@@ -50,7 +53,7 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
     // Créer une grille haute résolution par interpolation
     const highResGrids = this.interpolateGrids(baseGrids);
 
-    // Dessiner le fond avec dégradés fluides
+    // Dessiner le fond avec dégradés fluides et alpha
     this.drawSmoothBackground(highResGrids);
   }
 
@@ -186,52 +189,35 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
   }
 
   private getColorForValueWithConflict(netValue: number, whiteValue: number, blackValue: number): { r: number, g: number, b: number, a: number } {
-    // Détecter les zones de conflit (comme dans la heatmap)
+    // Détecter les zones de conflit (exactement comme dans la heatmap)
     if (whiteValue > 0.5 && blackValue > 0.5) {
-      // Zone contestée - couleur violette comme dans la heatmap
+      // Zone contestée - couleur violette avec alpha léger
       const totalControl = whiteValue + blackValue;
-      const contestedOpacity = Math.min(100 + (totalControl * 20), 200);
+      const contestedOpacity = Math.min(80 + (totalControl * 15), 120); // Alpha plus léger
       return { r: 128, g: 0, b: 128, a: contestedOpacity }; // Violet
     }
 
-    // Appliquer des seuils pour créer des zones de couleur unie
-    let level: number;
+    // Calculer l'intensité basée sur les valeurs de contrôle (comme la heatmap)
+    const intensity = Math.abs(netValue);
+    let alpha = 0;
 
-    if (netValue >= 3) level = 4;      // Très fort contrôle
-    else if (netValue >= 2) level = 3;  // Fort contrôle
-    else if (netValue >= 1) level = 2;  // Contrôle modéré
-    else if (netValue > 0) level = 1;   // Faible contrôle
-    else if (netValue === 0) level = 0; // Neutre
-    else if (netValue > -1) level = -1; // Faible contrôle opposé
-    else if (netValue >= -2) level = -2; // Contrôle modéré opposé
-    else if (netValue >= -3) level = -3; // Fort contrôle opposé
-    else level = -4;                 // Très fort contrôle opposé
+    // Alpha progressif basé sur l'intensité (comme la heatmap)
+    if (intensity > 3) alpha = 140;       // Fort contrôle 
+    else if (intensity > 2) alpha = 110;  // Contrôle modéré-fort
+    else if (intensity > 1) alpha = 80;   // Contrôle modéré
+    else if (intensity > 0) alpha = 50;   // Faible contrôle
+    else alpha = 15;                      // Zone quasi-neutre
 
-    // Couleurs par paliers pour les blancs (feu) - même couleur que heatmap (255, 69, 0)
-    if (level > 0) {
-      const baseR = 255, baseG = 69, baseB = 0;
-      switch (level) {
-        case 4: return { r: baseR, g: baseG, b: baseB, a: 220 };    // Intensité maximale
-        case 3: return { r: baseR, g: baseG + 30, b: baseB, a: 180 }; // Légèrement plus orange
-        case 2: return { r: baseR, g: baseG + 60, b: baseB + 30, a: 140 }; // Plus orange
-        case 1: return { r: baseR, g: baseG + 100, b: baseB + 80, a: 100 }; // Orange clair
-        default: return { r: 240, g: 240, b: 240, a: 30 };
-      }
-    }
-    // Couleurs par paliers pour les noirs (eau) - même couleur que heatmap (0, 150, 255)
-    else if (level < 0) {
-      const baseR = 0, baseG = 150, baseB = 255;
-      switch (level) {
-        case -4: return { r: baseR, g: baseG - 50, b: baseB - 50, a: 220 }; // Bleu plus foncé
-        case -3: return { r: baseR + 20, g: baseG - 30, b: baseB - 30, a: 180 }; // Bleu moyen foncé
-        case -2: return { r: baseR + 40, g: baseG - 10, b: baseB - 10, a: 140 }; // Bleu moyen
-        case -1: return { r: baseR + 80, g: baseG + 20, b: baseB, a: 100 }; // Bleu clair
-        default: return { r: 240, g: 240, b: 240, a: 30 };
-      }
-    }
-    // Zone neutre
-    else {
-      return { r: 240, g: 240, b: 240, a: 30 };
+    // Utiliser exactement les mêmes couleurs que la heatmap
+    if (netValue > 0) {
+      // Zones blanches - couleur rouge-orange (255, 69, 0) comme la heatmap
+      return { r: 255, g: 69, b: 0, a: alpha };
+    } else if (netValue < 0) {
+      // Zones noires - couleur bleu (0, 150, 255) comme la heatmap  
+      return { r: 0, g: 150, b: 255, a: alpha };
+    } else {
+      // Zone neutre - transparent
+      return { r: 0, g: 0, b: 0, a: 0 };
     }
   }
 }
