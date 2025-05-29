@@ -14,8 +14,15 @@
         <div class="coord-number">1</div>
       </div>
 
-      <!-- Canvas topographique -->
-      <canvas #topoCanvas class="topo-canvas"></canvas>
+      <!-- Canvas topographique + Cases avec pièces en superposition -->
+      <div class="topo-board-container">
+        <canvas #topoCanvas class="topo-canvas"></canvas>
+        <div class="board">
+          @for (square of board(); track square.square) {
+          <app-square [square]="square" type="topographic"></app-square>
+          }
+        </div>
+      </div>
     </div>
 
     <!-- Coordonnées du bas (lettres) -->

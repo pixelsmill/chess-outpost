@@ -12,7 +12,7 @@ import { ChessService, ChessSquare, HeatmapSquare, SquareControl } from '../serv
 export class SquareComponent {
   @Input() square!: ChessSquare | HeatmapSquare;
   @Input() isSelected: boolean = false;
-  @Input() type: 'chess' | 'heatmap' = 'chess';
+  @Input() type: 'chess' | 'heatmap' | 'topographic' = 'chess';
   @Input() showControlNumbers: boolean = false;
 
   @Output() squareClick = new EventEmitter<string>();

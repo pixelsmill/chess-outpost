@@ -6,6 +6,7 @@
   [class.has-piece]="square.piece"
   [class.chess-square]="type === 'chess'"
   [class.heatmap-square]="type === 'heatmap'"
+  [class.topographic-square]="type === 'topographic'"
   [style]="getSquareControlStyle()"
   [title]="getSquareTooltip()"
   (click)="onSquareClick()"
@@ -17,6 +18,7 @@
     [src]="getPieceSymbol()"
     [alt]="getPieceAltText()"
     [class.heatmap-piece]="type === 'heatmap'"
+    [class.topographic-piece]="type === 'topographic'"
   />
   }
 

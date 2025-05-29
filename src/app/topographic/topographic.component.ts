@@ -1,7 +1,8 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess } from 'chess.js';
-import { ChessService } from '../services/chess.service';
+import { ChessService, HeatmapSquare } from '../services/chess.service';
+import { SquareComponent } from '../square/square.component';
 
 interface ContourPoint {
   x: number;
@@ -12,7 +13,7 @@ interface ContourPoint {
 @Component({
   selector: 'app-topographic',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SquareComponent],
   templateUrl: './topographic.component.html',
   styleUrl: './topographic.component.scss'
 })
@@ -25,13 +26,23 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   private canvasWidth = 480;
   private canvasHeight = 480;
   private resolution = 960; // Grille haute résolution pour interpolation pixel par pixel
-  private pieceImages: { [key: string]: HTMLImageElement } = {};
-  private imagesLoaded = 0;
-  private totalImages = 12;
 
-  constructor(private chessService: ChessService) {
-    this.loadPieceImages();
-  }
+  // Signal pour forcer la réactivité
+  private positionSignal = signal(this.position);
+
+  // Tableau des cases avec pièces (comme la heatmap)
+  board = computed(() => {
+    const currentPosition = this.positionSignal();
+
+    // Charger la position dans l'instance Chess
+    if (currentPosition) {
+      this.chess.load(currentPosition);
+    }
+
+    return this.generateTopographicBoard();
+  });
+
+  constructor(private chessService: ChessService) { }
 
   ngAfterViewInit() {
     const canvas = this.canvasRef.nativeElement;
@@ -42,9 +53,42 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['position'] && this.ctx) {
-      this.updateTopography();
+    if (changes['position']) {
+      this.positionSignal.set(changes['position'].currentValue);
+      if (this.ctx) {
+        this.updateTopography();
+      }
     }
+  }
+
+  private generateTopographicBoard(): HeatmapSquare[] {
+    const squares: HeatmapSquare[] = [];
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+    for (let rank = 8; rank >= 1; rank--) {
+      for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+        const file = files[fileIndex];
+        const square = `${file}${rank}`;
+        const piece = this.chess.get(square as any);
+        const isLight = (fileIndex + rank) % 2 === 0;
+
+        squares.push({
+          file,
+          rank,
+          square,
+          piece,
+          isLight,
+          control: {
+            square,
+            netControl: 0,
+            whiteControl: 0,
+            blackControl: 0
+          } // Pas besoin de contrôle pour l'affichage, juste les pièces
+        });
+      }
+    }
+
+    return squares;
   }
 
   private updateTopography() {
@@ -61,11 +105,8 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     // Créer une grille haute résolution par interpolation
     const highResGrids = this.interpolateGrids(baseGrids);
 
-    // Dessiner le fond avec dégradés fluides
+    // Dessiner le fond avec dégradés fluides (sans les pièces)
     this.drawSmoothBackground(highResGrids);
-
-    // Dessiner les pièces d'échecs
-    this.drawChessPieces();
   }
 
   private generateBaseControlGrid(): { netControl: number[][], whiteControl: number[][], blackControl: number[][] } {
@@ -259,47 +300,5 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     else {
       return { r: 240, g: 240, b: 240, a: 30 };
     }
-  }
-
-  private drawChessPieces() {
-    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    const cellSize = this.canvasWidth / 8;
-
-    for (let rank = 8; rank >= 1; rank--) {
-      for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
-        const square = `${files[fileIndex]}${rank}`;
-        const piece = this.chess.get(square as any);
-
-        if (piece) {
-          const pieceKey = `${piece.color}${piece.type}`;
-          const img = this.pieceImages[pieceKey];
-
-          if (img && img.complete) {
-            const x = fileIndex * cellSize;
-            const y = (8 - rank) * cellSize;
-            const size = cellSize * 0.8; // 80% de la taille de la case
-            const offset = cellSize * 0.1; // Centrer l'image
-
-            this.ctx.drawImage(img, x + offset, y + offset, size, size);
-          }
-        }
-      }
-    }
-  }
-
-  private loadPieceImages() {
-    const pieces = ['wp', 'wr', 'wn', 'wb', 'wq', 'wk', 'bp', 'br', 'bn', 'bb', 'bq', 'bk'];
-
-    pieces.forEach(piece => {
-      const img = new Image();
-      img.onload = () => {
-        this.imagesLoaded++;
-        if (this.imagesLoaded === this.totalImages && this.ctx) {
-          this.updateTopography(); // Redessiner quand toutes les images sont chargées
-        }
-      };
-      img.src = `/assets/pieces/${piece}.png`;
-      this.pieceImages[piece] = img;
-    });
   }
 }

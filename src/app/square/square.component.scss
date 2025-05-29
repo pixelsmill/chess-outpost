@@ -42,6 +42,21 @@
       z-index: 10;
     }
   }
+
+  // Styles pour la topographie
+  &.topographic-square {
+    background-color: transparent !important; // Complètement transparent pour voir le canvas
+
+    // S'assurer que même les classes light/dark ne modifient pas le fond
+    &.light, &.dark {
+      background-color: transparent !important;
+    }
+
+    &:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+  }
 }
 
 .piece-image {
@@ -57,6 +72,14 @@
     opacity: 0.9;
     width: 80%;
     height: 80%;
+  }
+
+  // Style spécifique pour la topographie
+  &.topographic-piece {
+    opacity: 1;
+    width: 85%;
+    height: 85%;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); // Ombre pour mieux voir les pièces
   }
 }
 
