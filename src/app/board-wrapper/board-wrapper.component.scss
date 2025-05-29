@@ -56,6 +56,16 @@
   width: 480px;
   height: 480px;
 
+  // Couche de fond (z-index le plus bas)
+  .background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; // Fond le plus bas
+  }
+
   // Tous les enfants sont positionnés absolument et superposés
   ::ng-deep > * {
     position: absolute;

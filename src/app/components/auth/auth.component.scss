@@ -1,0 +1,119 @@
+.auth-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .user-name {
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+  }
+}
+
+.login-section {
+  display: flex;
+  align-items: center;
+  color: white;
+  gap: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &.btn-google {
+    background: rgba(255, 255, 255, 0.9);
+    color: #3c4043;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    &:hover:not(:disabled) {
+      background: white;
+      transform: translateY(-1px);
+    }
+    
+    .google-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  
+  &.btn-logout {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #4285f4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(254, 215, 215, 0.95);
+  border: 1px solid rgba(254, 178, 178, 0.7);
+  border-radius: 6px;
+  color: #c53030;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 1000;
+  
+  p {
+    margin: 0;
+  }
+} 

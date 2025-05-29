@@ -12,12 +12,13 @@ import { ChessService } from '../../services/chess.service';
 })
 export class TopographicBoardComponent implements OnChanges, AfterViewInit {
   @Input() position: string = '';
+  @Input() orientation: 'white' | 'black' = 'white'; // Orientation de l'échiquier
   @ViewChild('topoCanvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private chess = new Chess();
   private ctx!: CanvasRenderingContext2D;
-  private canvasWidth = 480;
-  private canvasHeight = 480;
+  public canvasWidth = 480;
+  public canvasHeight = 480;
   private resolution = 960; // Grille haute résolution pour interpolation pixel par pixel
 
   constructor(private chessService: ChessService) { }
@@ -189,9 +190,15 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
   }
 
   private getColorForValueWithConflict(netValue: number, whiteValue: number, blackValue: number): { r: number, g: number, b: number, a: number } {
-    // Détecter les zones de conflit (exactement comme dans la heatmap)
-    if (whiteValue > 0.5 && blackValue > 0.5) {
-      // Zone contestée - couleur violette avec alpha léger
+    // Si aucun contrôle significatif, rendre complètement transparent
+    if (whiteValue < 0.1 && blackValue < 0.1) {
+      return { r: 0, g: 0, b: 0, a: 0 };
+    }
+
+    // Détecter les zones de conflit : seulement quand il y a réellement égalité (netValue proche de 0)
+    // ET que les deux camps ont un contrôle significatif
+    if (Math.abs(netValue) < 0.5 && whiteValue > 0.5 && blackValue > 0.5) {
+      // Zone réellement contestée - couleur violette avec alpha léger
       const totalControl = whiteValue + blackValue;
       const contestedOpacity = Math.min(80 + (totalControl * 15), 120); // Alpha plus léger
       return { r: 128, g: 0, b: 128, a: contestedOpacity }; // Violet
@@ -205,8 +212,14 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
     if (intensity > 3) alpha = 140;       // Fort contrôle 
     else if (intensity > 2) alpha = 110;  // Contrôle modéré-fort
     else if (intensity > 1) alpha = 80;   // Contrôle modéré
-    else if (intensity > 0) alpha = 50;   // Faible contrôle
-    else alpha = 15;                      // Zone quasi-neutre
+    else if (intensity > 0.5) alpha = 50; // Contrôle faible-modéré
+    else if (intensity > 0.1) alpha = 25; // Très faible contrôle
+    else alpha = 0;                       // Aucun contrôle - transparent
+
+    // Si alpha est 0, retourner transparent
+    if (alpha === 0) {
+      return { r: 0, g: 0, b: 0, a: 0 };
+    }
 
     // Utiliser exactement les mêmes couleurs que la heatmap
     if (netValue > 0) {
@@ -216,7 +229,7 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
       // Zones noires - couleur bleu (0, 150, 255) comme la heatmap  
       return { r: 0, g: 150, b: 255, a: alpha };
     } else {
-      // Zone neutre - transparent
+      // Zone parfaitement neutre - transparent
       return { r: 0, g: 0, b: 0, a: 0 };
     }
   }

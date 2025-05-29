@@ -2,7 +2,7 @@
   <!-- Interface de chargement PGN -->
   @if (showPgnInput() && !isNavigationMode()) {
   <div class="pgn-input-container">
-    <h3>📋 Charger une partie PGN</h3>
+    <h3>Charger une partie PGN</h3>
     <textarea
       [(ngModel)]="pgnText"
       placeholder="Collez votre PGN ici...&#10;&#10;Exemple:&#10;1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
@@ -11,108 +11,158 @@
     >
     </textarea>
     <div class="pgn-actions">
-      <button (click)="loadPgn()" class="load-btn">✅ Charger la partie</button>
-      <button routerLink="/" class="cancel-btn">❌ Retour à l'accueil</button>
+      <button (click)="loadPgn()" class="load-btn">Charger la partie</button>
+      <button routerLink="/" class="cancel-btn">Retour à l'accueil</button>
     </div>
   </div>
   }
 
-  <!-- Mode analyse avec nouveau système -->
+  <!-- Mode analyse avec layout horizontal -->
   @if (isNavigationMode()) {
+  <div class="analyze-layout">
+    <!-- Section échiquier à gauche -->
+    <div class="board-section">
+      <div class="game-board">
+        <!-- Échiquier avec background dynamique -->
+        <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
+          <!-- Background classique -->
+          @if (selectedBackground() === 'classic') {
+          <app-classic-board [position]="currentPosition()"></app-classic-board>
+          }
 
-  <!-- Boutons de sélection du background -->
-  <div class="background-selector">
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'classic'"
-      (click)="setBackground('classic')"
-    >
-      Échiquier Classique
-    </button>
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'heatmap'"
-      (click)="setBackground('heatmap')"
-    >
-      Contrôle Territorial
-    </button>
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'topographic'"
-      (click)="setBackground('topographic')"
-    >
-      Vue Topographique
-    </button>
-  </div>
+          <!-- Background heatmap -->
+          @if (selectedBackground() === 'heatmap') {
+          <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
+          }
 
-  <!-- Échiquier unique avec background dynamique -->
-  <div class="board-container">
-    <app-board-wrapper>
-      <!-- Background classique -->
-      @if (selectedBackground() === 'classic') {
-      <app-classic-board [position]="currentPosition()"></app-classic-board>
-      }
+          <!-- Background topographique -->
+          @if (selectedBackground() === 'topographic') {
+          <app-topographic-board
+            [position]="currentPosition()"
+          ></app-topographic-board>
+          }
 
-      <!-- Background heatmap -->
-      @if (selectedBackground() === 'heatmap') {
-      <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
-      }
-
-      <!-- Background topographique -->
-      @if (selectedBackground() === 'topographic') {
-      <app-topographic-board
-        [position]="currentPosition()"
-      ></app-topographic-board>
-      }
-
-      <!-- Grille de pièces par-dessus (DISABLED en mode analyse) -->
-      <app-echiquier
-        [externalPosition]="currentPosition()"
-        [disableClicks]="true"
-        (positionChange)="onPositionChange($event)"
-      ></app-echiquier>
-    </app-board-wrapper>
-  </div>
-
-  <!-- Contrôles de navigation en bas -->
-  <div class="navigation-controls">
-    <h3>🎮 Navigation dans la partie</h3>
-    <div class="move-info">
-      {{ getCurrentMoveDisplay() }}
+          <!-- Grille de pièces par-dessus (DISABLED en mode analyse) -->
+          <app-echiquier
+            [externalPosition]="currentPosition()"
+            [disableClicks]="true"
+            (positionChange)="onPositionChange($event)"
+          ></app-echiquier>
+        </app-board-wrapper>
+      </div>
     </div>
-    <div class="nav-buttons">
-      <button
-        (click)="goToStart()"
-        [disabled]="!canGoBack"
-        class="nav-btn-control"
-        title="Aller au début"
-      >
-        ⏮️
-      </button>
-      <button
-        (click)="goToPrevious()"
-        [disabled]="!canGoBack"
-        class="nav-btn-control"
-        title="Coup précédent"
-      >
-        ⏪
-      </button>
-      <button
-        (click)="goToNext()"
-        [disabled]="!canGoForward"
-        class="nav-btn-control"
-        title="Coup suivant"
-      >
-        ⏩
-      </button>
-      <button
-        (click)="goToEnd()"
-        [disabled]="!canGoForward"
-        class="nav-btn-control"
-        title="Aller à la fin"
-      >
-        ⏭️
-      </button>
+
+    <!-- Panneau vertical côté droit -->
+    <div class="side-panel">
+      <div class="panel-content">
+        <!-- Navigation et statut -->
+        <div class="navigation-card">
+          <h3>Navigation dans la partie</h3>
+          <div class="move-info">
+            {{ getCurrentMoveDisplay() }}
+          </div>
+          <div class="nav-buttons">
+            <button
+              (click)="goToStart()"
+              [disabled]="!canGoBack"
+              class="nav-btn-control"
+              title="Aller au début"
+            >
+              ⏮️
+            </button>
+            <button
+              (click)="goToPrevious()"
+              [disabled]="!canGoBack"
+              class="nav-btn-control"
+              title="Coup précédent"
+            >
+              ⏪
+            </button>
+            <button
+              (click)="goToNext()"
+              [disabled]="!canGoForward"
+              class="nav-btn-control"
+              title="Coup suivant"
+            >
+              ⏩
+            </button>
+            <button
+              (click)="goToEnd()"
+              [disabled]="!canGoForward"
+              class="nav-btn-control"
+              title="Aller à la fin"
+            >
+              ⏭️
+            </button>
+          </div>
+        </div>
+
+        <!-- Sélecteur de type d'affichage -->
+        <div class="background-selector-vertical">
+          <h3>Type d'affichage</h3>
+          <div class="bg-buttons">
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'classic'"
+              (click)="setBackground('classic')"
+            >
+              Classique
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'heatmap'"
+              (click)="setBackground('heatmap')"
+            >
+              Territorial
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'topographic'"
+              (click)="setBackground('topographic')"
+            >
+              Topographique
+            </button>
+          </div>
+        </div>
+
+        <!-- Contrôle de luminosité -->
+        <div class="brightness-control">
+          <h3>Luminosité de l'échiquier</h3>
+          <div class="brightness-slider-container">
+            <div class="brightness-labels">
+              <span class="label-dark">🌑</span>
+              <span class="brightness-value">{{ brightness() }}%</span>
+              <span class="label-light">☀️</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              [value]="brightness()"
+              (input)="setBrightness($any($event.target).value)"
+              class="brightness-slider"
+            />
+          </div>
+        </div>
+
+        <!-- Informations sur l'analyse -->
+        <div class="analyze-info-card">
+          <h3>Informations d'analyse</h3>
+          <div class="info-item">
+            <span class="label">Mode</span>
+            <span class="value">Analyse PGN</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Position</span>
+            <span class="value">{{ getCurrentMoveDisplay() }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Navigation</span>
+            <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
+          </div>
+          <button routerLink="/" class="back-home-btn">Nouvelle analyse</button>
+        </div>
+      </div>
     </div>
   </div>
   }

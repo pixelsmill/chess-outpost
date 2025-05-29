@@ -1,63 +1,113 @@
 <div class="play-content">
-  <!-- Boutons de sélection du background -->
-  <div class="background-selector">
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'classic'"
-      (click)="setBackground('classic')"
-    >
-      Échiquier Classique
-    </button>
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'heatmap'"
-      (click)="setBackground('heatmap')"
-    >
-      Contrôle Territorial
-    </button>
-    <button
-      class="bg-btn"
-      [class.active]="selectedBackground() === 'topographic'"
-      (click)="setBackground('topographic')"
-    >
-      Vue Topographique
-    </button>
-  </div>
+  <!-- Layout principal avec échiquier à gauche et panneau à droite -->
+  <div class="play-layout">
+    <!-- Section échiquier à gauche -->
+    <div class="board-section">
+      <div class="game-board">
+        <!-- Échiquier avec background dynamique -->
+        <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
+          <!-- Background classique -->
+          @if (selectedBackground() === 'classic') {
+          <app-classic-board [position]="currentPosition()"></app-classic-board>
+          }
 
-  <!-- Échiquier unique avec background dynamique -->
-  <div class="board-container">
-    <app-board-wrapper>
-      <!-- Background classique -->
-      @if (selectedBackground() === 'classic') {
-      <app-classic-board [position]="currentPosition()"></app-classic-board>
-      }
+          <!-- Background heatmap -->
+          @if (selectedBackground() === 'heatmap') {
+          <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
+          }
 
-      <!-- Background heatmap -->
-      @if (selectedBackground() === 'heatmap') {
-      <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
-      }
+          <!-- Background topographique -->
+          @if (selectedBackground() === 'topographic') {
+          <app-topographic-board
+            [position]="currentPosition()"
+          ></app-topographic-board>
+          }
 
-      <!-- Background topographique -->
-      @if (selectedBackground() === 'topographic') {
-      <app-topographic-board
-        [position]="currentPosition()"
-      ></app-topographic-board>
-      }
+          <!-- Grille de pièces par-dessus -->
+          <app-echiquier
+            [externalPosition]="currentPosition()"
+            [disableClicks]="false"
+            (positionChange)="onPositionChange($event)"
+          ></app-echiquier>
+        </app-board-wrapper>
+      </div>
+    </div>
 
-      <!-- Grille de pièces par-dessus -->
-      <app-echiquier
-        [externalPosition]="currentPosition()"
-        [disableClicks]="false"
-        (positionChange)="onPositionChange($event)"
-      ></app-echiquier>
-    </app-board-wrapper>
-  </div>
+    <!-- Panneau vertical côté droit -->
+    <div class="side-panel">
+      <div class="panel-content">
+        <!-- Statut de la partie -->
+        <div class="game-status-card">
+          <h3>Statut de la partie</h3>
+          <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
+            {{ gameStatus }}
+          </h2>
+          <button (click)="resetGame()" class="reset-btn">
+            Nouvelle partie
+          </button>
+        </div>
 
-  <!-- Contrôles en bas -->
-  <div class="game-status-section">
-    <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
-      {{ gameStatus }}
-    </h2>
-    <button (click)="resetGame()" class="reset-btn">Reset</button>
+        <!-- Sélecteur de type d'affichage -->
+        <div class="background-selector-vertical">
+          <h3>Type d'affichage</h3>
+          <div class="bg-buttons">
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'classic'"
+              (click)="setBackground('classic')"
+            >
+              Classique
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'heatmap'"
+              (click)="setBackground('heatmap')"
+            >
+              Territorial
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'topographic'"
+              (click)="setBackground('topographic')"
+            >
+              Topographique
+            </button>
+          </div>
+        </div>
+
+        <!-- Contrôle de luminosité -->
+        <div class="brightness-control">
+          <h3>Luminosité de l'échiquier</h3>
+          <div class="brightness-slider-container">
+            <div class="brightness-labels">
+              <span class="label-dark">🌑</span>
+              <span class="brightness-value">{{ brightness() }}%</span>
+              <span class="label-light">☀️</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              [value]="brightness()"
+              (input)="setBrightness($any($event.target).value)"
+              class="brightness-slider"
+            />
+          </div>
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="game-info-card">
+          <h3>Informations</h3>
+          <div class="info-item">
+            <span class="label">Mode</span>
+            <span class="value">Jeu libre</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Difficulté</span>
+            <span class="value">Humain vs Humain</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

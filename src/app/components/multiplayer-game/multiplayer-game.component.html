@@ -1,0 +1,212 @@
+<div class="multiplayer-game-container">
+  <!-- Layout principal avec échiquier à gauche et bandeau à droite -->
+  <div class="game-layout">
+    <!-- Échiquier -->
+    <div class="board-section">
+      <div class="loading-message" *ngIf="!currentGame">
+        <h3>Chargement de la partie...</h3>
+      </div>
+
+      <div *ngIf="currentGame" class="game-board">
+        <!-- Échiquier avec background dynamique -->
+        <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
+          <!-- Background classique -->
+          @if (selectedBackground() === 'classic') {
+          <app-classic-board
+            [position]="currentPosition()"
+            [orientation]="getBoardOrientation()"
+          ></app-classic-board>
+          }
+
+          <!-- Background heatmap -->
+          @if (selectedBackground() === 'heatmap') {
+          <app-heatmap-board
+            [position]="currentPosition()"
+            [orientation]="getBoardOrientation()"
+          ></app-heatmap-board>
+          }
+
+          <!-- Background topographique -->
+          @if (selectedBackground() === 'topographic') {
+          <app-topographic-board
+            [position]="currentPosition()"
+            [orientation]="getBoardOrientation()"
+          ></app-topographic-board>
+          }
+
+          <!-- Grille de pièces par-dessus -->
+          <app-echiquier
+            [externalPosition]="currentPosition()"
+            [disableClicks]="!isPlayerTurn() || isGameFinished()"
+            [isMultiplayer]="true"
+            [orientation]="getBoardOrientation()"
+            (moveChange)="onMoveChange($event)"
+          ></app-echiquier>
+        </app-board-wrapper>
+      </div>
+    </div>
+
+    <!-- Bandeau vertical côté droit -->
+    <div class="side-panel">
+      <!-- Informations des joueurs - layout vertical -->
+      <div class="players-info-vertical">
+        <!-- Adversaire -->
+        <div class="player-card" *ngIf="getOpponentInfo() as opponent">
+          <img
+            [src]="opponent.photoURL || '/assets/default-avatar.png'"
+            [alt]="opponent.displayName"
+            class="player-avatar"
+          />
+          <div class="player-details">
+            <h4>{{ opponent.displayName }}</h4>
+            <div class="player-color">
+              <span class="color-indicator" [class]="opponent.color"></span>
+              {{ opponent.color === "white" ? "Blancs" : "Noirs" }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Joueur actuel -->
+        <div
+          class="player-card current"
+          *ngIf="getCurrentPlayerInfo() as player"
+        >
+          <img
+            [src]="
+              authService.getCurrentUser()?.photoURL ||
+              '/assets/default-avatar.png'
+            "
+            [alt]="player.displayName"
+            class="player-avatar"
+          />
+          <div class="player-details">
+            <h4>{{ player.displayName }} (Vous)</h4>
+            <div class="player-color">
+              <span class="color-indicator" [class]="player.color"></span>
+              {{ player.color === "white" ? "Blancs" : "Noirs" }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Sélecteur de type d'affichage -->
+        <div class="background-selector-vertical">
+          <h3>Type d'affichage</h3>
+          <div class="bg-buttons">
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'classic'"
+              (click)="setBackground('classic')"
+            >
+              Classique
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'heatmap'"
+              (click)="setBackground('heatmap')"
+            >
+              Territorial
+            </button>
+            <button
+              class="bg-btn-vertical"
+              [class.active]="selectedBackground() === 'topographic'"
+              (click)="setBackground('topographic')"
+            >
+              Topographique
+            </button>
+          </div>
+        </div>
+
+        <!-- Contrôle de luminosité -->
+        <div class="brightness-control">
+          <h3>Luminosité de l'échiquier</h3>
+          <div class="brightness-slider-container">
+            <div class="brightness-labels">
+              <span class="label-dark">🌑</span>
+              <span class="brightness-value">{{ brightness() }}%</span>
+              <span class="label-light">☀️</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              [value]="brightness()"
+              (input)="setBrightness($any($event.target).value)"
+              class="brightness-slider"
+            />
+          </div>
+        </div>
+
+        <!-- Statut de la partie -->
+        <div class="game-status-vertical">
+          <h2
+            [class.your-turn]="isPlayerTurn()"
+            [class.finished]="isGameFinished()"
+          >
+            {{ getGameStatus() }}
+          </h2>
+
+          <!-- Compteur de redirection -->
+          <div class="redirect-countdown" *ngIf="redirectCountdown > 0">
+            <p>Retour au lobby dans {{ redirectCountdown }}s</p>
+            <div class="countdown-bar">
+              <div
+                class="countdown-progress"
+                [style.width.%]="(5 - redirectCountdown) * 20"
+              ></div>
+            </div>
+          </div>
+
+          <div class="turn-indicator" *ngIf="!isGameFinished()">
+            <span
+              class="turn-dot"
+              [class.active]="isPlayerTurn()"
+              [class]="getCurrentPlayerInfo()?.color"
+            ></span>
+          </div>
+
+          <!-- Bouton abandon dans le bandeau -->
+          <button
+            class="btn-resign-small"
+            (click)="resignGame()"
+            [disabled]="isGameFinished() || isResigning"
+            *ngIf="!isGameFinished()"
+            title="Abandonner la partie"
+          >
+            {{ isResigning ? "..." : "Abandonner" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contrôles en bas -->
+  <div class="game-controls">
+    <!-- Bouton retour au lobby seulement quand la partie est terminée -->
+    <button
+      class="btn btn-back"
+      (click)="backToLobby()"
+      [disabled]="isResigning"
+      *ngIf="isGameFinished()"
+    >
+      ← Retour au Lobby
+    </button>
+
+    <!-- Bouton nouvelle partie quand terminée -->
+    <button
+      class="btn btn-new-game"
+      (click)="backToLobby()"
+      *ngIf="isGameFinished()"
+    >
+      Nouvelle Partie
+    </button>
+
+    <!-- Bouton annuler redirection -->
+    <button
+      class="btn btn-cancel-redirect"
+      (click)="cancelRedirect()"
+      *ngIf="redirectCountdown > 0"
+    >
+      Rester sur cette page
+    </button>
+  </div>
+</div>

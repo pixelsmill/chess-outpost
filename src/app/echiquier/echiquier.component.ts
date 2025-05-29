@@ -14,6 +14,8 @@ import { SquareComponent } from '../square/square.component';
 export class EchiquierComponent implements OnInit, OnChanges {
   @Input() externalPosition?: string; // Position venant du parent (navigation PGN)
   @Input() disableClicks = false; // Désactiver les clics pendant la navigation
+  @Input() isMultiplayer = false; // Mode multijoueur - ne pas jouer localement
+  @Input() orientation: 'white' | 'black' = 'white'; // Orientation de l'échiquier
 
   chess = new Chess();
 
@@ -24,10 +26,20 @@ export class EchiquierComponent implements OnInit, OnChanges {
   // Événement pour notifier les changements de position
   @Output() positionChange = new EventEmitter<string>();
 
+  // Événement pour notifier les coups joués (pour le multijoueur)
+  @Output() moveChange = new EventEmitter<{ from: string, to: string, promotion?: string }>();
+
   // Tableau de l'échiquier via le service
   board = computed(() => {
     const currentPosition = this.position();
-    return this.chessService.generateChessBoard(this.chess);
+    const boardSquares = this.chessService.generateChessBoard(this.chess);
+
+    // Si orientation black, inverser l'ordre des cases
+    if (this.orientation === 'black') {
+      return boardSquares.reverse();
+    }
+
+    return boardSquares;
   });
 
   constructor(private chessService: ChessService) { }
@@ -65,20 +77,42 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
     if (currentSelected) {
       // Tentative de mouvement
-      try {
-        const move = this.chess.move({
-          from: currentSelected as Square,
-          to: square as Square,
-          promotion: 'q' // Auto-promotion en reine
-        });
-
-        if (move) {
-          this.updatePosition();
+      if (this.isMultiplayer) {
+        // En mode multijoueur : juste émettre le coup, ne pas le jouer localement
+        // La position sera mise à jour via Firebase
+        const piece = this.chess.get(currentSelected as Square);
+        if (piece && piece.color === this.chess.turn()) {
+          this.moveChange.emit({
+            from: currentSelected,
+            to: square,
+            promotion: 'q' // Auto-promotion en reine
+          });
           this.selectedSquare.set(null);
         }
-      } catch (error) {
-        // Mouvement invalide, sélectionner la nouvelle case
-        this.selectedSquare.set(square);
+      } else {
+        // Mode local : jouer le coup normalement
+        try {
+          const move = this.chess.move({
+            from: currentSelected as Square,
+            to: square as Square,
+            promotion: 'q' // Auto-promotion en reine
+          });
+
+          if (move) {
+            // Émettre le coup joué pour le multijoueur
+            this.moveChange.emit({
+              from: move.from,
+              to: move.to,
+              promotion: move.promotion
+            });
+
+            this.updatePosition();
+            this.selectedSquare.set(null);
+          }
+        } catch (error) {
+          // Mouvement invalide, sélectionner la nouvelle case
+          this.selectedSquare.set(square);
+        }
       }
     } else {
       // Sélectionner une nouvelle case

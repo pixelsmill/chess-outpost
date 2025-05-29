@@ -1,14 +1,32 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { User } from '@angular/fire/auth';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
+  user$: Observable<User | null> = this.authService.user$;
+
+  navigateToPlay() {
+    this.router.navigate(['/play']);
+  }
+
+  navigateToMultiplayer() {
+    this.router.navigate(['/multiplayer']);
+  }
+
+  navigateToAnalyze() {
+    this.router.navigate(['/analyze']);
+  }
 }

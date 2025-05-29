@@ -1,2 +1,8 @@
-<!-- Canvas topographique en arrière-plan -->
-<canvas #topoCanvas class="topo-canvas"></canvas>
+<!-- Canvas avec carte topographique du contrôle d'échiquier -->
+<canvas
+  #topoCanvas
+  class="topographic-canvas"
+  [class.black-orientation]="orientation === 'black'"
+  [width]="canvasWidth"
+  [height]="canvasHeight"
+></canvas>

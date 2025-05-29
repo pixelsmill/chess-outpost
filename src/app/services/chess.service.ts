@@ -255,38 +255,40 @@ export class ChessService {
   // === STYLES POUR LA HEATMAP ===
 
   getSquareControlStyle(control: SquareControl): any {
-    // Pas de contrôle = couleur neutre très légère
+    // Pas de contrôle = couleur neutre avec un damier léger
     if (control.whiteControl === 0 && control.blackControl === 0) {
       return {
-        'background-color': 'rgba(200, 200, 200, 0.1)'
+        backgroundColor: 'rgba(120, 120, 120, 0.3)' // Gris plus visible
       };
     }
 
     // Calculer l'opacité basée sur l'intensité du contrôle
     const maxControl = Math.max(control.whiteControl, control.blackControl);
-    const opacity = Math.min(0.2 + (maxControl * 0.15), 0.8); // Opacité de 0.2 à 0.8
+    const opacity = Math.min(0.3 + (maxControl * 0.15), 0.8); // Opacité de 0.3 à 0.8
 
     if (control.netControl > 0) {
       // Contrôle blanc dominant - couleur du feu (orange-rouge) avec opacité variable
       return {
-        'background-color': `rgba(255, 69, 0, ${opacity})` // Orange-rouge feu
+        backgroundColor: `rgba(255, 69, 0, ${opacity})` // Orange-rouge feu
       };
     } else if (control.netControl < 0) {
       // Contrôle noir dominant - couleur de l'eau (bleu cyan) avec opacité variable
       return {
-        'background-color': `rgba(0, 150, 255, ${opacity})` // Bleu cyan eau
+        backgroundColor: `rgba(0, 150, 255, ${opacity})` // Bleu cyan eau
       };
     } else if (control.whiteControl > 0 && control.blackControl > 0) {
       // Case contestée - violet avec opacité basée sur l'intensité totale
       const totalControl = control.whiteControl + control.blackControl;
-      const contestedOpacity = Math.min(0.3 + (totalControl * 0.1), 0.7);
+      const contestedOpacity = Math.min(0.4 + (totalControl * 0.1), 0.8);
       return {
-        'background-color': `rgba(128, 0, 128, ${contestedOpacity})`, // Violet
-        'animation': 'pulse-heatmap 2s infinite'
+        backgroundColor: `rgba(128, 0, 128, ${contestedOpacity})`, // Violet
+        animation: 'pulse-heatmap 2s infinite'
       };
     }
 
-    return {};
+    return {
+      backgroundColor: 'rgba(120, 120, 120, 0.2)' // Fallback gris
+    };
   }
 
   // === TOOLTIPS ===

@@ -12,6 +12,7 @@ import { ChessService, HeatmapSquare, SquareControl } from '../../services/chess
 })
 export class HeatmapBoardComponent implements OnChanges {
   @Input() position: string = '';
+  @Input() orientation: 'white' | 'black' = 'white'; // Orientation de l'échiquier
 
   private chess = new Chess();
 

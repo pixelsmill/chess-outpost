@@ -3,17 +3,37 @@
   <nav class="main-navigation">
     <div class="nav-header">
       <h1>
-        <span routerLink="/" class="app-title">🏰 ChessOutpost</span>
+        <span routerLink="/" class="app-title">ChessOutpost</span>
       </h1>
     </div>
 
-    <div class="nav-menu">
-      <button routerLink="/play" class="nav-btn" routerLinkActive="active">
-        Jouer
-      </button>
-      <button routerLink="/analyze" class="nav-btn" routerLinkActive="active">
-        Analyser
-      </button>
+    <!-- Menu de navigation (uniquement si connecté) -->
+    <div *ngIf="user$ | async" class="nav-menu">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a routerLink="/play" routerLinkActive="active" class="nav-link"
+            >Solo</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            routerLink="/multiplayer"
+            routerLinkActive="active"
+            class="nav-link"
+            >Multijoueur</a
+          >
+        </li>
+        <li class="nav-item">
+          <a routerLink="/analyze" routerLinkActive="active" class="nav-link"
+            >Analyse</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <!-- Section d'authentification -->
+    <div class="nav-auth">
+      <app-auth></app-auth>
     </div>
   </nav>
 

@@ -5,9 +5,12 @@
   width: 100%;
   height: 100%;
   border: 2px solid #333;
-  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+  &.black-orientation {
+    transform: rotate(180deg);
+  }
 }
 
 .classic-square {

@@ -1,10 +1,14 @@
 <!-- Cases colorées selon contrôle territorial -->
-<div class="heatmap-board">
+<div class="heatmap-board" [class.black-orientation]="orientation === 'black'">
   @for (square of board(); track square.square) {
   <div
     class="heatmap-square"
-    [style]="getSquareControlStyle(square.control)"
+    [style.background-color]="
+      getSquareControlStyle(square.control).backgroundColor
+    "
     [title]="getSquareTooltip(square)"
-  ></div>
+  >
+    <!-- Case transparente pour le contrôle territorial -->
+  </div>
   }
 </div>

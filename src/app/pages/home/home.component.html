@@ -1,31 +1,57 @@
-<div class="home-content">
-  <div class="welcome-section">
-    <h2>🏰 Bienvenue dans ChessOutpost</h2>
-    <p>
-      Visualisez le contrôle territorial aux échecs avec des cartes de chaleur
-      interactives
-    </p>
-  </div>
-
-  <div class="mode-selection">
-    <div class="mode-card" routerLink="/play">
-      <div class="mode-icon">🎮</div>
-      <h3>Jouer une partie</h3>
-      <p>
-        Jouez aux échecs en temps réel et observez l'évolution du contrôle
-        territorial
-      </p>
-      <button class="mode-btn">Commencer à jouer</button>
+<div class="home-container">
+  <!-- Section pour les utilisateurs connectés -->
+  <div *ngIf="user$ | async as user" class="dashboard">
+    <div class="welcome-section">
+      <h2>Chess Outpost</h2>
+      <div class="user-info">
+        <img
+          [src]="user.photoURL"
+          [alt]="user.displayName"
+          class="user-avatar"
+        />
+        <span>Bienvenue, {{ user.displayName }}</span>
+      </div>
     </div>
 
-    <div class="mode-card" routerLink="/analyze">
-      <div class="mode-icon">📊</div>
-      <h3>Analyser une partie</h3>
+    <div class="main-menu">
+      <nav class="menu-nav">
+        <ul class="menu-list">
+          <li class="menu-item">
+            <a (click)="navigateToPlay()" class="menu-link">
+              <span class="menu-number">1</span>
+              <span class="menu-text">Solo</span>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a (click)="navigateToMultiplayer()" class="menu-link">
+              <span class="menu-number">2</span>
+              <span class="menu-text">Multijoueur</span>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a (click)="navigateToAnalyze()" class="menu-link">
+              <span class="menu-number">3</span>
+              <span class="menu-text">Analyse</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Section pour les utilisateurs non connectés -->
+  <div *ngIf="!(user$ | async)" class="landing">
+    <div class="hero">
+      <h1>Chess Outpost</h1>
+      <p class="subtitle">Plateforme d'échecs minimaliste</p>
+      <p class="description">Connectez-vous pour accéder aux modes de jeu.</p>
+    </div>
+
+    <div class="login-hint">
       <p>
-        Chargez un PGN et naviguez coup par coup pour analyser le contrôle
-        territorial
+        Utilisez la connexion Google dans la barre de navigation pour commencer
+        à jouer.
       </p>
-      <button class="mode-btn">Analyser un PGN</button>
     </div>
   </div>
 </div>

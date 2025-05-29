@@ -1,5 +1,5 @@
-<!-- Damier vert/blanc classique -->
-<div class="classic-board">
+<!-- Damier des cases classiques -->
+<div class="classic-board" [class.black-orientation]="orientation === 'black'">
   @for (square of board(); track square.square) {
   <div
     class="classic-square"

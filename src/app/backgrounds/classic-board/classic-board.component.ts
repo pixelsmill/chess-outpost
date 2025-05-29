@@ -12,6 +12,7 @@ import { ChessService, ChessSquare } from '../../services/chess.service';
 })
 export class ClassicBoardComponent implements OnChanges {
   @Input() position: string = '';
+  @Input() orientation: 'white' | 'black' = 'white'; // Orientation de l'échiquier
 
   private chess = new Chess();
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-board-wrapper',
@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './board-wrapper.component.scss'
 })
 export class BoardWrapperComponent {
-
+  @Input() backgroundColor: string = 'rgb(255, 255, 255)'; // Couleur de fond de l'échiquier
 }

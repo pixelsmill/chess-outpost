@@ -16,6 +16,11 @@
 
       <!-- Zone centrale avec layers superposées -->
       <div class="layers">
+        <!-- Couche de fond avec couleur de luminosité -->
+        <div
+          class="background-layer"
+          [style.background-color]="backgroundColor"
+        ></div>
         <ng-content></ng-content>
       </div>
     </div>

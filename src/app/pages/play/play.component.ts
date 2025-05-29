@@ -31,6 +31,9 @@ export class PlayComponent {
   // Signal pour le background sélectionné
   selectedBackground = signal<BackgroundType>('classic');
 
+  // Signal pour la luminosité de l'échiquier (0 = noir, 100 = blanc)
+  brightness = signal(50);
+
   get gameStatus(): string {
     return this.echiquierComponent?.getGameStatus() || 'Tour des Blancs';
   }
@@ -45,6 +48,17 @@ export class PlayComponent {
 
   setBackground(background: BackgroundType): void {
     this.selectedBackground.set(background);
+  }
+
+  setBrightness(value: number): void {
+    this.brightness.set(value);
+  }
+
+  getBoardBackgroundColor(): string {
+    const brightnessValue = this.brightness();
+    // Convertir la valeur 0-100 en couleur RGB (0,0,0) à (255,255,255)
+    const rgbValue = Math.round((brightnessValue / 100) * 255);
+    return `rgb(${rgbValue}, ${rgbValue}, ${rgbValue})`;
   }
 
   onPositionChange(newPosition: string): void {
