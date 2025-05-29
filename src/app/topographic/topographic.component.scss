@@ -1,0 +1,68 @@
+.topo-canvas {
+  display: block;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.board-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.board-wrapper {
+  display: inline-block;
+  background: transparent;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.board-with-ranks {
+  display: flex;
+  align-items: flex-start;
+}
+
+.coordinates-left {
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+  padding-top: 5px;
+
+  .coord-number {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+  }
+}
+
+.coordinates-bottom {
+  display: flex;
+  margin-top: 10px;
+  margin-left: 30px;
+
+  .coord-letter {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .coordinates-left .coord-number,
+  .coordinates-bottom .coord-letter {
+    height: 45px;
+    width: 45px;
+    font-size: 0.8rem;
+  }
+} 

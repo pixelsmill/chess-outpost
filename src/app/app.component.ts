@@ -1,10 +1,13 @@
-import { Component, ViewChild, signal } from '@angular/core';
+import { Component, ViewChild, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { EchiquierComponent } from './echiquier/echiquier.component';
 import { HeatmapComponent } from './heatmap/heatmap.component';
+import { TopographicComponent } from './topographic/topographic.component';
 
 @Component({
   selector: 'app-root',
-  imports: [EchiquierComponent, HeatmapComponent],
+  standalone: true,
+  imports: [CommonModule, EchiquierComponent, HeatmapComponent, TopographicComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
