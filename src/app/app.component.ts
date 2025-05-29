@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { EchiquierComponent } from './echiquier/echiquier.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [EchiquierComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

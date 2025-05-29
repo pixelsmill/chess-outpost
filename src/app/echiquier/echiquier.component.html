@@ -1,0 +1,141 @@
+<div class="chess-app">
+  <!-- En-tête avec contrôles -->
+  <div class="header">
+    <h1>🏆 HotPawn - Visualisation du Contrôle des Cases</h1>
+    <div class="controls">
+      <div class="game-status">
+        <h2 [class.checkmate]="isGameOver()" [class.check]="chess.isCheck()">
+          {{ getGameStatus() }}
+        </h2>
+      </div>
+
+      <button (click)="resetGame()" class="reset-btn">
+        🔄 Nouvelle partie
+      </button>
+    </div>
+  </div>
+
+  <!-- Échiquier principal -->
+  <div class="board-container">
+    <div class="board-wrapper">
+      <div class="board-with-ranks">
+        <!-- Coordonnées de gauche (chiffres) -->
+        <div class="coordinates-left">
+          <div class="coord-number">8</div>
+          <div class="coord-number">7</div>
+          <div class="coord-number">6</div>
+          <div class="coord-number">5</div>
+          <div class="coord-number">4</div>
+          <div class="coord-number">3</div>
+          <div class="coord-number">2</div>
+          <div class="coord-number">1</div>
+        </div>
+
+        <!-- Échiquier -->
+        <div class="board">
+          @for (square of board(); track square.square) {
+          <div
+            class="square"
+            [class.light]="square.isLight"
+            [class.dark]="!square.isLight"
+            [class.selected]="isSquareSelected(square.square)"
+            [class.has-piece]="square.piece"
+            [style]="getSquareControlStyle(square.control)"
+            (click)="onSquareClick(square.square)"
+            [title]="getSquareTooltip(square)"
+          >
+            <!-- Pièce -->
+            @if (square.piece) {
+            <span
+              class="piece"
+              [class.white]="square.piece.color === 'w'"
+              [class.black]="square.piece.color === 'b'"
+            >
+              {{ getPieceSymbol(square.piece) }}
+            </span>
+            }
+
+            <!-- Indicateur de contrôle -->
+            <div class="control-indicator">
+              @if (square.control.whiteControl > 0 ||
+              square.control.blackControl > 0) {
+              <span
+                class="control-value"
+                [class.white-dominance]="square.control.netControl > 0"
+                [class.black-dominance]="square.control.netControl < 0"
+                [class.contested]="
+                  square.control.netControl === 0 &&
+                  square.control.whiteControl > 0
+                "
+              >
+                {{ square.control.whiteControl }}:{{
+                  square.control.blackControl
+                }}
+              </span>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Coordonnées du bas (lettres) -->
+      <div class="coordinates-bottom">
+        <div class="coord-letter">a</div>
+        <div class="coord-letter">b</div>
+        <div class="coord-letter">c</div>
+        <div class="coord-letter">d</div>
+        <div class="coord-letter">e</div>
+        <div class="coord-letter">f</div>
+        <div class="coord-letter">g</div>
+        <div class="coord-letter">h</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau d'informations -->
+  <div class="info-panel">
+    <div class="legend">
+      <h3>🎯 Légende du contrôle des cases</h3>
+      <div class="legend-items">
+        <div class="legend-item white-control">
+          <div class="color-sample white"></div>
+          <span>Contrôle blanc</span>
+        </div>
+        <div class="legend-item black-control">
+          <div class="color-sample black"></div>
+          <span>Contrôle noir</span>
+        </div>
+        <div class="legend-item contested">
+          <div class="color-sample contested"></div>
+          <span>Case contestée</span>
+        </div>
+      </div>
+      <p class="legend-explanation">
+        Les nombres indiquent le nombre de pièces qui attaquent chaque case
+        (Blanc:Noir). L'intensité de la couleur représente la dominance du
+        contrôle.
+      </p>
+    </div>
+
+    <div class="game-info">
+      <h3>📊 Informations de la partie</h3>
+      <div class="stats">
+        <div class="stat">
+          <strong>Position FEN :</strong>
+          <code>{{ position() }}</code>
+        </div>
+        <div class="stat">
+          <strong>Nombre de coups :</strong>
+          {{ chess.history().length }}
+        </div>
+        @if (selectedSquare()) {
+        <div class="stat">
+          <strong>Case sélectionnée :</strong>
+          {{ selectedSquare() }}
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
