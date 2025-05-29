@@ -156,32 +156,44 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   }
 
   private getColorForValue(value: number): { r: number, g: number, b: number, a: number } {
-    const intensity = Math.min(Math.abs(value) / 6, 1); // Normalisation
+    // Appliquer des seuils pour créer des zones de couleur unie
+    let level: number;
 
-    if (value > 0) {
-      // Zones de contrôle blanc : rouge-orange
-      return {
-        r: 255,
-        g: Math.floor(255 - intensity * 100), // 255 -> 155
-        b: Math.floor(255 - intensity * 200), // 255 -> 55
-        a: Math.floor(100 + intensity * 100)  // Opacité 100-200
-      };
-    } else if (value < 0) {
-      // Zones de contrôle noir : bleu
-      return {
-        r: Math.floor(200 - intensity * 150), // 200 -> 50
-        g: Math.floor(220 - intensity * 70),  // 220 -> 150
-        b: 255,
-        a: Math.floor(100 + intensity * 100)  // Opacité 100-200
-      };
-    } else {
-      // Zone neutre
-      return {
-        r: 240,
-        g: 240,
-        b: 240,
-        a: 50
-      };
+    if (value >= 3) level = 4;      // Très fort contrôle
+    else if (value >= 2) level = 3;  // Fort contrôle
+    else if (value >= 1) level = 2;  // Contrôle modéré
+    else if (value > 0) level = 1;   // Faible contrôle
+    else if (value === 0) level = 0; // Neutre
+    else if (value > -1) level = -1; // Faible contrôle opposé
+    else if (value >= -2) level = -2; // Contrôle modéré opposé
+    else if (value >= -3) level = -3; // Fort contrôle opposé
+    else level = -4;                 // Très fort contrôle opposé
+
+    // Couleurs par paliers pour les blancs (feu) - même couleur que heatmap (255, 69, 0)
+    if (level > 0) {
+      const baseR = 255, baseG = 69, baseB = 0;
+      switch (level) {
+        case 4: return { r: baseR, g: baseG, b: baseB, a: 220 };    // Intensité maximale
+        case 3: return { r: baseR, g: baseG + 30, b: baseB, a: 180 }; // Légèrement plus orange
+        case 2: return { r: baseR, g: baseG + 60, b: baseB + 30, a: 140 }; // Plus orange
+        case 1: return { r: baseR, g: baseG + 100, b: baseB + 80, a: 100 }; // Orange clair
+        default: return { r: 240, g: 240, b: 240, a: 30 };
+      }
+    }
+    // Couleurs par paliers pour les noirs (eau) - même couleur que heatmap (0, 150, 255)
+    else if (level < 0) {
+      const baseR = 0, baseG = 150, baseB = 255;
+      switch (level) {
+        case -4: return { r: baseR, g: baseG - 50, b: baseB - 50, a: 220 }; // Bleu plus foncé
+        case -3: return { r: baseR + 20, g: baseG - 30, b: baseB - 30, a: 180 }; // Bleu moyen foncé
+        case -2: return { r: baseR + 40, g: baseG - 10, b: baseB - 10, a: 140 }; // Bleu moyen
+        case -1: return { r: baseR + 80, g: baseG + 20, b: baseB, a: 100 }; // Bleu clair
+        default: return { r: 240, g: 240, b: 240, a: 30 };
+      }
+    }
+    // Zone neutre
+    else {
+      return { r: 240, g: 240, b: 240, a: 30 };
     }
   }
 
