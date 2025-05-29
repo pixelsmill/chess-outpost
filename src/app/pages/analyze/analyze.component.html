@@ -1,0 +1,77 @@
+<div class="analyze-content">
+  <!-- Interface de chargement PGN -->
+  @if (showPgnInput() && !isNavigationMode()) {
+  <div class="pgn-input-container">
+    <h3>📋 Charger une partie PGN</h3>
+    <textarea
+      [(ngModel)]="pgnText"
+      placeholder="Collez votre PGN ici...&#10;&#10;Exemple:&#10;1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
+      class="pgn-textarea"
+      rows="8"
+    >
+    </textarea>
+    <div class="pgn-actions">
+      <button (click)="loadPgn()" class="load-btn">✅ Charger la partie</button>
+      <button routerLink="/" class="cancel-btn">❌ Retour à l'accueil</button>
+    </div>
+  </div>
+  }
+
+  <!-- Échiquiers en mode analyse -->
+  @if (isNavigationMode()) {
+  <div class="boards-container">
+    <app-echiquier
+      [externalPosition]="currentPosition()"
+      [disableClicks]="true"
+      (positionChange)="onPositionChange($event)"
+    >
+    </app-echiquier>
+
+    <app-heatmap [position]="currentPosition()"></app-heatmap>
+
+    <app-topographic [position]="currentPosition()"></app-topographic>
+  </div>
+
+  <!-- Contrôles de navigation en bas -->
+  <div class="navigation-controls">
+    <h3>🎮 Navigation dans la partie</h3>
+    <div class="move-info">
+      {{ getCurrentMoveDisplay() }}
+    </div>
+    <div class="nav-buttons">
+      <button
+        (click)="goToStart()"
+        [disabled]="!canGoBack"
+        class="nav-btn-control"
+        title="Aller au début"
+      >
+        ⏮️
+      </button>
+      <button
+        (click)="goToPrevious()"
+        [disabled]="!canGoBack"
+        class="nav-btn-control"
+        title="Coup précédent"
+      >
+        ⏪
+      </button>
+      <button
+        (click)="goToNext()"
+        [disabled]="!canGoForward"
+        class="nav-btn-control"
+        title="Coup suivant"
+      >
+        ⏩
+      </button>
+      <button
+        (click)="goToEnd()"
+        [disabled]="!canGoForward"
+        class="nav-btn-control"
+        title="Aller à la fin"
+      >
+        ⏭️
+      </button>
+    </div>
+  </div>
+  }
+</div>

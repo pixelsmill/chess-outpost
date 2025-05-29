@@ -3,185 +3,20 @@
   <nav class="main-navigation">
     <div class="nav-header">
       <h1>
-        <span class="unicode_knight_in_a_square">
-          <img src="/assets/pieces/wn.png" alt="ChessOutpost" />
-        </span>
-        <span>ChessOutpost</span>
+        <span routerLink="/" class="app-title">🏰 ChessOutpost</span>
       </h1>
     </div>
 
     <div class="nav-menu">
-      <button
-        (click)="goToHome()"
-        class="nav-btn"
-        [class.active]="currentMode() === 'home'"
-      >
-        🏠 Accueil
+      <button routerLink="/play" class="nav-btn" routerLinkActive="active">
+        Jouer
       </button>
-      <button
-        (click)="goToPlay()"
-        class="nav-btn"
-        [class.active]="currentMode() === 'play'"
-      >
-        🎮 Jouer
-      </button>
-      <button
-        (click)="goToAnalyze()"
-        class="nav-btn"
-        [class.active]="currentMode() === 'analyze'"
-      >
-        📊 Analyser
+      <button routerLink="/analyze" class="nav-btn" routerLinkActive="active">
+        Analyser
       </button>
     </div>
   </nav>
 
-  <!-- Mode Accueil -->
-  @if (currentMode() === 'home') {
-  <div class="home-content">
-    <div class="welcome-section">
-      <h2>🏰 Bienvenue dans ChessOutpost</h2>
-      <p>
-        Visualisez le contrôle territorial aux échecs avec des cartes de chaleur
-        interactives
-      </p>
-    </div>
-
-    <div class="mode-selection">
-      <div class="mode-card" (click)="goToPlay()">
-        <div class="mode-icon">🎮</div>
-        <h3>Jouer une partie</h3>
-        <p>
-          Jouez aux échecs en temps réel et observez l'évolution du contrôle
-          territorial
-        </p>
-        <button class="mode-btn">Commencer à jouer</button>
-      </div>
-
-      <div class="mode-card" (click)="goToAnalyze()">
-        <div class="mode-icon">📊</div>
-        <h3>Analyser une partie</h3>
-        <p>
-          Chargez un PGN et naviguez coup par coup pour analyser le contrôle
-          territorial
-        </p>
-        <button class="mode-btn">Analyser un PGN</button>
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- Mode Jouer -->
-  @if (currentMode() === 'play') {
-  <div class="play-content">
-    <!-- Statut du jeu -->
-    <div class="game-status-section">
-      <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
-        {{ gameStatus }}
-      </h2>
-      <button (click)="resetGame()" class="reset-btn">
-        🔄 Nouvelle partie
-      </button>
-    </div>
-
-    <!-- Échiquiers côte à côte -->
-    <div class="boards-container">
-      <app-echiquier
-        [externalPosition]="currentPosition()"
-        [disableClicks]="false"
-        (positionChange)="onPositionChange($event)"
-      >
-      </app-echiquier>
-
-      <app-heatmap [position]="currentPosition()"></app-heatmap>
-      <app-topographic [position]="currentPosition()"></app-topographic>
-    </div>
-  </div>
-  }
-
-  <!-- Mode Analyser -->
-  @if (currentMode() === 'analyze') {
-  <div class="analyze-content">
-    <!-- Interface de chargement PGN -->
-    @if (showPgnInput() && !isNavigationMode()) {
-    <div class="pgn-input-container">
-      <h3>📋 Charger une partie PGN</h3>
-      <textarea
-        [(ngModel)]="pgnText"
-        placeholder="Collez votre PGN ici...&#10;&#10;Exemple:&#10;1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
-        class="pgn-textarea"
-        rows="8"
-      >
-      </textarea>
-      <div class="pgn-actions">
-        <button (click)="loadPgn()" class="load-btn">
-          ✅ Charger la partie
-        </button>
-        <button (click)="goToHome()" class="cancel-btn">
-          ❌ Retour à l'accueil
-        </button>
-      </div>
-    </div>
-    }
-
-    <!-- Contrôles de navigation -->
-    @if (isNavigationMode()) {
-    <div class="navigation-controls">
-      <h3>🎮 Navigation dans la partie</h3>
-      <div class="move-info">
-        {{ getCurrentMoveDisplay() }}
-      </div>
-      <div class="nav-buttons">
-        <button
-          (click)="goToStart()"
-          [disabled]="!canGoBack"
-          class="nav-btn-control"
-          title="Aller au début"
-        >
-          ⏮️
-        </button>
-        <button
-          (click)="goToPrevious()"
-          [disabled]="!canGoBack"
-          class="nav-btn-control"
-          title="Coup précédent"
-        >
-          ⏪
-        </button>
-        <button
-          (click)="goToNext()"
-          [disabled]="!canGoForward"
-          class="nav-btn-control"
-          title="Coup suivant"
-        >
-          ⏩
-        </button>
-        <button
-          (click)="goToEnd()"
-          [disabled]="!canGoForward"
-          class="nav-btn-control"
-          title="Aller à la fin"
-        >
-          ⏭️
-        </button>
-      </div>
-      <button (click)="goToHome()" class="back-home-btn">
-        🏠 Retour à l'accueil
-      </button>
-    </div>
-
-    <!-- Échiquiers en mode analyse -->
-    <div class="boards-container">
-      <app-echiquier
-        [externalPosition]="currentPosition()"
-        [disableClicks]="true"
-        (positionChange)="onPositionChange($event)"
-      >
-      </app-echiquier>
-
-      <app-heatmap [position]="currentPosition()"></app-heatmap>
-      <app-topographic [position]="currentPosition()"></app-topographic>
-    </div>
-    }
-  </div>
-  }
+  <!-- Contenu dynamique via router -->
+  <router-outlet></router-outlet>
 </div>

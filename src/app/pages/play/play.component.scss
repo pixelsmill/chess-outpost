@@ -1,0 +1,85 @@
+.play-content {
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+
+  .boards-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .game-status-section {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 500px;
+    width: 100%;
+
+    h2 {
+      margin: 0 0 20px 0;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+      display: inline-block;
+
+      &.check {
+        background: #ffeb3b;
+        animation: pulse 1s infinite;
+      }
+
+      &.checkmate {
+        background: #f44336;
+        color: white;
+        animation: victory 2s infinite;
+      }
+    }
+
+    .reset-btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: #ff6b6b;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #ff5252;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes victory {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-2deg); }
+  75% { transform: scale(1.1) rotate(2deg); }
+}
+
+@media (max-width: 1200px) {
+  .play-content .boards-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+}

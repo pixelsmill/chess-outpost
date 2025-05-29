@@ -1,0 +1,23 @@
+<div class="play-content">
+  <!-- Échiquiers en haut -->
+  <div class="boards-container">
+    <app-echiquier
+      [externalPosition]="currentPosition()"
+      [disableClicks]="false"
+      (positionChange)="onPositionChange($event)"
+    >
+    </app-echiquier>
+
+    <app-heatmap [position]="currentPosition()"></app-heatmap>
+
+    <app-topographic [position]="currentPosition()"></app-topographic>
+  </div>
+
+  <!-- Contrôles en bas -->
+  <div class="game-status-section">
+    <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
+      {{ gameStatus }}
+    </h2>
+    <button (click)="resetGame()" class="reset-btn">Reset</button>
+  </div>
+</div>
