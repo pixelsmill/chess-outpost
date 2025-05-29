@@ -25,8 +25,13 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   private canvasWidth = 480;
   private canvasHeight = 480;
   private resolution = 960; // Grille haute résolution pour interpolation pixel par pixel
+  private pieceImages: { [key: string]: HTMLImageElement } = {};
+  private imagesLoaded = 0;
+  private totalImages = 12;
 
-  constructor(private chessService: ChessService) { }
+  constructor(private chessService: ChessService) {
+    this.loadPieceImages();
+  }
 
   ngAfterViewInit() {
     const canvas = this.canvasRef.nativeElement;
@@ -260,29 +265,41 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const cellSize = this.canvasWidth / 8;
 
-    this.ctx.font = `${cellSize * 0.5}px serif`;
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-
     for (let rank = 8; rank >= 1; rank--) {
       for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
         const square = `${files[fileIndex]}${rank}`;
         const piece = this.chess.get(square as any);
 
         if (piece) {
-          const symbol = this.chessService.getPieceSymbol(piece);
-          const x = fileIndex * cellSize + cellSize / 2;
-          const y = (8 - rank) * cellSize + cellSize / 2;
+          const pieceKey = `${piece.color}${piece.type}`;
+          const img = this.pieceImages[pieceKey];
 
-          // Ombre portée
-          this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-          this.ctx.fillText(symbol, x + 2, y + 2);
+          if (img && img.complete) {
+            const x = fileIndex * cellSize;
+            const y = (8 - rank) * cellSize;
+            const size = cellSize * 0.8; // 80% de la taille de la case
+            const offset = cellSize * 0.1; // Centrer l'image
 
-          // Pièce
-          this.ctx.fillStyle = piece.color === 'w' ? '#fff' : '#000';
-          this.ctx.fillText(symbol, x, y);
+            this.ctx.drawImage(img, x + offset, y + offset, size, size);
+          }
         }
       }
     }
+  }
+
+  private loadPieceImages() {
+    const pieces = ['wp', 'wr', 'wn', 'wb', 'wq', 'wk', 'bp', 'br', 'bn', 'bb', 'bq', 'bk'];
+
+    pieces.forEach(piece => {
+      const img = new Image();
+      img.onload = () => {
+        this.imagesLoaded++;
+        if (this.imagesLoaded === this.totalImages && this.ctx) {
+          this.updateTopography(); // Redessiner quand toutes les images sont chargées
+        }
+      };
+      img.src = `/assets/pieces/${piece}.png`;
+      this.pieceImages[piece] = img;
+    });
   }
 }

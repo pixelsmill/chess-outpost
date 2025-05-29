@@ -27,6 +27,17 @@ export class SquareComponent {
     return this.chessService.getPieceSymbol(this.square.piece);
   }
 
+  getPieceColor(): string {
+    return this.square.piece ? this.square.piece.color : '';
+  }
+
+  getPieceAltText(): string {
+    if (!this.square.piece) return '';
+    const color = this.square.piece.color === 'w' ? 'Blanc' : 'Noir';
+    const type = this.chessService.getPieceTypeName(this.square.piece.type);
+    return `${color} ${type}`;
+  }
+
   getSquareTooltip(): string {
     if (this.type === 'heatmap' && 'control' in this.square) {
       return this.chessService.getHeatmapSquareTooltip(this.square as HeatmapSquare);

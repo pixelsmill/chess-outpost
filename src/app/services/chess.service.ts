@@ -40,16 +40,41 @@ export class ChessService {
   getPieceSymbol(piece: any): string {
     if (!piece) return '';
 
+    // Retourner le chemin absolu vers l'image de la pièce (convention Angular standard)
+    return `/assets/pieces/${piece.color}${piece.type}.png`;
+  }
+
+  getPieceUnicode(piece: any): string {
+    if (!piece) return '';
+
     const symbols: { [key: string]: string } = {
-      'p': piece.color === 'w' ? '♙' : '♟',
-      'r': piece.color === 'w' ? '♖' : '♜',
-      'n': piece.color === 'w' ? '♘' : '♞',
-      'b': piece.color === 'w' ? '♗' : '♝',
-      'q': piece.color === 'w' ? '♕' : '♛',
-      'k': piece.color === 'w' ? '♔' : '♚'
+      'p': '♟',
+      'r': '♜',
+      'n': '♞',
+      'b': '♝',
+      'q': '♛',
+      'k': '♚'
     };
 
     return symbols[piece.type as string] || '';
+  }
+
+  getPieceWithColor(piece: any): { symbol: string, color: string } {
+    if (!piece) return { symbol: '', color: '' };
+
+    const symbols: { [key: string]: string } = {
+      'p': '♟',
+      'r': '♜',
+      'n': '♞',
+      'b': '♝',
+      'q': '♛',
+      'k': '♚'
+    };
+
+    return {
+      symbol: symbols[piece.type as string] || '',
+      color: piece.color
+    };
   }
 
   getPieceTypeName(type: string): string {

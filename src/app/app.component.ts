@@ -5,6 +5,7 @@ import { EchiquierComponent } from './echiquier/echiquier.component';
 import { HeatmapComponent } from './heatmap/heatmap.component';
 import { TopographicComponent } from './topographic/topographic.component';
 import { ChessService, GameNavigation } from './services/chess.service';
+import { Chess } from 'chess.js';
 
 @Component({
   selector: 'app-root',
@@ -14,23 +15,48 @@ import { ChessService, GameNavigation } from './services/chess.service';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'hotpawn';
+  title = 'chessoutpost';
 
   @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;
+
+  // Navigation entre les modes
+  currentMode = signal<'home' | 'play' | 'analyze'>('home');
 
   // Signal pour synchroniser la position entre les deux composants
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
   // Gestion PGN et navigation
   pgnText = '';
-  showPgnInput = false;
+  showPgnInput = signal(false);
   gameHistory: string[] = [];
   currentMoveIndex = signal(-1);
   isNavigationMode = signal(false);
 
+  // Instance Chess locale pour le chargement PGN
+  private localChess = new Chess();
+
   constructor(private chessService: ChessService) { }
 
   get gameStatus(): string {
+    if (this.isNavigationMode()) {
+      // En mode navigation, utiliser l'instance locale
+      if (this.localChess.isCheckmate()) {
+        return `Échec et mat ! ${this.localChess.turn() === 'w' ? 'Noirs' : 'Blancs'} gagnent`;
+      }
+      if (this.localChess.isStalemate()) {
+        return 'Pat - Match nul';
+      }
+      if (this.localChess.isDraw()) {
+        return 'Match nul';
+      }
+      if (this.localChess.isCheck()) {
+        const turn = this.localChess.turn() === 'w' ? 'Blancs' : 'Noirs';
+        return `Échec au roi ${turn}`;
+      }
+      const turn = this.localChess.turn() === 'w' ? 'Blancs' : 'Noirs';
+      return `Tour des ${turn}`;
+    }
+
     return this.echiquierComponent?.getGameStatus() || 'Tour des Blancs';
   }
 
@@ -54,10 +80,16 @@ export class AppComponent {
   }
 
   get isGameOver(): boolean {
+    if (this.isNavigationMode()) {
+      return this.localChess.isGameOver();
+    }
     return this.echiquierComponent?.isGameOver() || false;
   }
 
   get isCheck(): boolean {
+    if (this.isNavigationMode()) {
+      return this.localChess.isCheck();
+    }
     return this.echiquierComponent?.chess.isCheck() || false;
   }
 
@@ -76,7 +108,14 @@ export class AppComponent {
   }
 
   resetGame(): void {
+    // Réinitialiser le composant échiquier s'il existe
     this.echiquierComponent?.resetGame();
+
+    // Réinitialiser l'instance locale
+    this.localChess.reset();
+    this.currentPosition.set(this.localChess.fen());
+
+    // Réinitialiser l'état de navigation
     this.isNavigationMode.set(false);
     this.currentMoveIndex.set(-1);
     this.gameHistory = [];
@@ -84,46 +123,18 @@ export class AppComponent {
 
   // === GESTION PGN ===
 
-  togglePgnInput(): void {
-    this.showPgnInput = !this.showPgnInput;
-
-    // Pré-remplir avec la partie Immortelle si le textarea est vide
-    if (this.showPgnInput && !this.pgnText.trim()) {
-      this.pgnText = `[Event "London 'Immortal game'"]
-[Site "London"]
-[Date "1851.06.21"]
-[Round "?"]
-[White "Anderssen, Adolf"]
-[Black "Kieseritzky, Lionel Adalbert BF"]
-[Result "1-0"]
-[ECO "C33"]
-[PlyCount "45"]
-[EventDate "1851.06.21"]
-[EventType "game"]
-[EventRounds "1"]
-[EventCountry "ENG"]
-[Source "ChessBase"]
-[SourceDate "1999.07.01"]
-
-e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8.
-Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15.
-Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
-Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
-    }
-  }
-
   loadPgn(): void {
     if (!this.pgnText.trim()) {
       alert('Veuillez entrer un PGN valide');
       return;
     }
 
-    const chess = this.echiquierComponent.chess;
-    const success = this.chessService.loadPgnIntoChess(chess, this.pgnText);
+    // Utiliser l'instance Chess locale pour le chargement
+    const success = this.chessService.loadPgnIntoChess(this.localChess, this.pgnText);
 
     if (success) {
       // Sauvegarder l'historique complet
-      this.gameHistory = chess.history();
+      this.gameHistory = this.localChess.history();
 
       // Revenir au début de la partie
       this.goToStart();
@@ -132,7 +143,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       this.isNavigationMode.set(true);
 
       // Masquer l'input PGN
-      this.showPgnInput = false;
+      this.showPgnInput.set(false);
 
       alert('PGN chargé avec succès!');
     } else {
@@ -145,10 +156,9 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   goToStart(): void {
     if (!this.isNavigationMode()) return;
 
-    const chess = this.echiquierComponent.chess;
-    chess.reset();
+    this.localChess.reset();
     this.currentMoveIndex.set(-1);
-    this.currentPosition.set(chess.fen());
+    this.currentPosition.set(this.localChess.fen());
   }
 
   goToPrevious(): void {
@@ -174,13 +184,12 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   private goToMoveIndex(moveIndex: number): void {
     if (moveIndex < -1 || moveIndex >= this.gameHistory.length) return;
 
-    const chess = this.echiquierComponent.chess;
-    chess.reset();
+    this.localChess.reset();
 
     // Rejouer les coups jusqu'à l'index voulu
     for (let i = 0; i <= moveIndex; i++) {
       try {
-        chess.move(this.gameHistory[i]);
+        this.localChess.move(this.gameHistory[i]);
       } catch (error) {
         console.error('Erreur lors de la navigation:', error);
         return;
@@ -188,7 +197,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
     }
 
     this.currentMoveIndex.set(moveIndex);
-    this.currentPosition.set(chess.fen());
+    this.currentPosition.set(this.localChess.fen());
   }
 
   getCurrentMoveDisplay(): string {
@@ -204,5 +213,53 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
     }
 
     return `Coup ${current}/${total}`;
+  }
+
+  // === NAVIGATION ENTRE LES MODES ===
+
+  goToHome(): void {
+    this.currentMode.set('home');
+    this.resetToInitialState();
+  }
+
+  goToPlay(): void {
+    this.currentMode.set('play');
+    this.resetToInitialState();
+  }
+
+  goToAnalyze(): void {
+    this.currentMode.set('analyze');
+    this.showPgnInput.set(true);
+    this.isNavigationMode.set(false);
+
+    // Pré-remplir avec la partie Immortelle si le textarea est vide
+    if (!this.pgnText.trim()) {
+      this.pgnText = `[Event "London 'Immortal game'"]
+[Site "London"]
+[Date "1851.06.21"]
+[Round "?"]
+[White "Anderssen, Adolf"]
+[Black "Kieseritzky, Lionel Adalbert BF"]
+[Result "1-0"]
+[ECO "C33"]
+[PlyCount "45"]
+[EventDate "1851.06.21"]
+[EventType "game"]
+[EventRounds "1"]
+[EventCountry "ENG"]
+[Source "ChessBase"]
+[SourceDate "1999.07.01"]
+
+e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8.
+Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15.
+Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
+Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
+    }
+  }
+
+  private resetToInitialState(): void {
+    this.resetGame();
+    this.showPgnInput.set(false);
+    this.isNavigationMode.set(false);
   }
 }

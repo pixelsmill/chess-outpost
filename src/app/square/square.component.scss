@@ -44,25 +44,19 @@
   }
 }
 
-.piece {
-  font-size: 2.2rem;
+.piece-image {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
   z-index: 5;
   transition: all 0.2s ease;
-
-  &.white {
-    color: #fff;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
-  }
-
-  &.black {
-    color: #000;
-    text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.8);
-  }
+  pointer-events: none; // Empêcher l'image d'intercepter les clics
 
   // Style spécifique pour la heatmap
   &.heatmap-piece {
     opacity: 0.9;
-    font-size: 2rem;
+    width: 80%;
+    height: 80%;
   }
 }
 
@@ -130,12 +124,9 @@
     height: 45px;
   }
 
-  .piece {
-    font-size: 1.8rem;
-    
-    &.heatmap-piece {
-      font-size: 1.5rem;
-    }
+  .piece-image {
+    width: 70%;
+    height: 70%;
   }
 
   .control-indicator .control-value {

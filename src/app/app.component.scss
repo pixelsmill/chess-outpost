@@ -1,52 +1,176 @@
 .chess-app {
   min-height: 100vh;
   background: #2C2C2C;
-  padding: 20px;
   font-family: 'Arial', sans-serif;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 30px;
+// Navigation principale
+.main-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 
-  h1 {
-    color: white;
-    font-size: 2.5rem;
-    margin: 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    .letter-spacing-small {
-      letter-spacing: -0.3em;
+  .nav-header {
+    h1 {
+      color: white;
+      font-size: 2rem;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      
+      .letter-spacing-small {
+        letter-spacing: -0.3em;
+      }
+      .red-pawn {
+        // orange
+        color: #ffa500;
+        letter-spacing: -0.25em;
+      }
     }
-    .red-pawn {
-      color: #31a5f7;
-      letter-spacing: -0.25em;
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 20px;
+
+    .nav-btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      &.active {
+        background: #4CAF50;
+        border-color: #4CAF50;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+      }
     }
   }
 }
 
-// Conteneur des contrôles (maintenant indépendant)
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 30px;
+// Mode Accueil
+.home-content {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 
-  .game-status {
+  .welcome-section {
+    text-align: center;
+    margin-bottom: 60px;
+
     h2 {
-      margin: 0;
+      color: white;
+      font-size: 2.5rem;
+      margin: 0 0 20px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+  }
+
+  .mode-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+
+    .mode-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .mode-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+      }
+
+      h3 {
+        color: white;
+        font-size: 1.5rem;
+        margin: 0 0 15px 0;
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.5;
+        margin-bottom: 25px;
+      }
+
+      .mode-btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: #45a049;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// Mode Jouer
+.play-content {
+  padding: 30px 20px;
+
+  .game-status-section {
+    text-align: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    h2 {
+      margin: 0 0 20px 0;
       padding: 10px 20px;
       background: rgba(255, 255, 255, 0.9);
       color: #333;
       border-radius: 25px;
       font-size: 1.2rem;
       transition: all 0.3s ease;
+      display: inline-block;
 
       &.check {
         background: #ffeb3b;
@@ -59,46 +183,33 @@
         animation: victory 2s infinite;
       }
     }
-  }
 
-  .reset-btn {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 25px;
-    background: #ff6b6b;
-    color: white;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
+    .reset-btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: #ff6b6b;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
 
-    &:hover {
-      background: #ff5252;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-    }
-  }
-
-  .pgn-btn {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 25px;
-    background: #4CAF50;
-    color: white;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: #45a049;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+      &:hover {
+        background: #ff5252;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+      }
     }
   }
 }
 
-// Nouveau conteneur pour les échiquiers côte à côte
+// Mode Analyser
+.analyze-content {
+  padding: 30px 20px;
+}
+
+// Conteneur des échiquiers côte à côte
 .boards-container {
   display: flex;
   justify-content: center;
@@ -290,7 +401,7 @@
 
   .pgn-textarea {
     width: 100%;
-    min-height: 120px;
+    min-height: 150px;
     padding: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
@@ -388,8 +499,9 @@
     display: flex;
     gap: 15px;
     justify-content: center;
+    margin-bottom: 20px;
 
-    .nav-btn {
+    .nav-btn-control {
       width: 50px;
       height: 50px;
       border: none;
@@ -419,6 +531,24 @@
           box-shadow: none;
         }
       }
+    }
+  }
+
+  .back-home-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    background: #757575;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #616161;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(117, 117, 117, 0.4);
     }
   }
 }

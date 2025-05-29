@@ -12,14 +12,12 @@
 >
   <!-- Pièce -->
   @if (square.piece) {
-  <span
-    class="piece"
-    [class.white]="square.piece.color === 'w'"
-    [class.black]="square.piece.color === 'b'"
+  <img
+    class="piece-image"
+    [src]="getPieceSymbol()"
+    [alt]="getPieceAltText()"
     [class.heatmap-piece]="type === 'heatmap'"
-  >
-    {{ getPieceSymbol() }}
-  </span>
+  />
   }
 
   <!-- Indicateur de contrôle (pour heatmap uniquement) -->
