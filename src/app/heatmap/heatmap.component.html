@@ -17,45 +17,7 @@
       <!-- Échiquier heatmap -->
       <div class="board">
         @for (square of board(); track square.square) {
-        <div
-          class="square"
-          [class.light]="square.isLight"
-          [class.dark]="!square.isLight"
-          [class.has-piece]="square.piece"
-          [style]="getSquareControlStyle(square.control)"
-          [title]="getSquareTooltip(square)"
-        >
-          <!-- Pièce (semi-transparente pour voir la heatmap) -->
-          @if (square.piece) {
-          <span
-            class="piece heatmap-piece"
-            [class.white]="square.piece.color === 'w'"
-            [class.black]="square.piece.color === 'b'"
-          >
-            {{ getPieceSymbol(square.piece) }}
-          </span>
-          }
-
-          <!-- Indicateur de contrôle (affiché au survol) -->
-          <div class="control-indicator">
-            @if (square.control.whiteControl > 0 || square.control.blackControl
-            > 0) {
-            <span
-              class="control-value"
-              [class.white-dominance]="square.control.netControl > 0"
-              [class.black-dominance]="square.control.netControl < 0"
-              [class.contested]="
-                square.control.netControl === 0 &&
-                square.control.whiteControl > 0
-              "
-            >
-              {{ square.control.whiteControl }}:{{
-                square.control.blackControl
-              }}
-            </span>
-            }
-          </div>
-        </div>
+        <app-square [square]="square" type="heatmap"></app-square>
         }
       </div>
     </div>

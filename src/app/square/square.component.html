@@ -1,0 +1,38 @@
+<div
+  class="square"
+  [class.light]="square.isLight"
+  [class.dark]="!square.isLight"
+  [class.selected]="isSelected"
+  [class.has-piece]="square.piece"
+  [class.chess-square]="type === 'chess'"
+  [class.heatmap-square]="type === 'heatmap'"
+  [style]="getSquareControlStyle()"
+  [title]="getSquareTooltip()"
+  (click)="onSquareClick()"
+>
+  <!-- Pièce -->
+  @if (square.piece) {
+  <span
+    class="piece"
+    [class.white]="square.piece.color === 'w'"
+    [class.black]="square.piece.color === 'b'"
+    [class.heatmap-piece]="type === 'heatmap'"
+  >
+    {{ getPieceSymbol() }}
+  </span>
+  }
+
+  <!-- Indicateur de contrôle (pour heatmap uniquement) -->
+  @if (type === 'heatmap' && hasControlNumbers()) {
+  <div class="control-indicator">
+    <span
+      class="control-value"
+      [class.white-dominance]="isWhiteDominance()"
+      [class.black-dominance]="isBlackDominance()"
+      [class.contested]="isContested()"
+    >
+      {{ getControl()!.whiteControl }}:{{ getControl()!.blackControl }}
+    </span>
+  </div>
+  }
+</div>

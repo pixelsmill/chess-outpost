@@ -17,26 +17,12 @@
       <!-- Échiquier -->
       <div class="board">
         @for (square of board(); track square.square) {
-        <div
-          class="square"
-          [class.light]="square.isLight"
-          [class.dark]="!square.isLight"
-          [class.selected]="isSquareSelected(square.square)"
-          [class.has-piece]="square.piece"
-          (click)="onSquareClick(square.square)"
-          [title]="getSquareTooltip(square)"
-        >
-          <!-- Pièce -->
-          @if (square.piece) {
-          <span
-            class="piece"
-            [class.white]="square.piece.color === 'w'"
-            [class.black]="square.piece.color === 'b'"
-          >
-            {{ getPieceSymbol(square.piece) }}
-          </span>
-          }
-        </div>
+        <app-square
+          [square]="square"
+          [isSelected]="isSquareSelected(square.square)"
+          type="chess"
+          (squareClick)="onSquareClick($event)"
+        ></app-square>
         }
       </div>
     </div>

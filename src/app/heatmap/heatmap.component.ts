@@ -2,11 +2,12 @@ import { Component, Input, signal, computed, OnChanges, SimpleChanges } from '@a
 import { CommonModule } from '@angular/common';
 import { Chess } from 'chess.js';
 import { ChessService, SquareControl, HeatmapSquare } from '../services/chess.service';
+import { SquareComponent } from '../square/square.component';
 
 @Component({
   selector: 'app-heatmap',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SquareComponent],
   templateUrl: './heatmap.component.html',
   styleUrl: './heatmap.component.scss'
 })

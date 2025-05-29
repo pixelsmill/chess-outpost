@@ -2,11 +2,12 @@ import { Component, OnInit, signal, computed, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { Chess, Square } from 'chess.js';
 import { ChessService, ChessSquare } from '../services/chess.service';
+import { SquareComponent } from '../square/square.component';
 
 @Component({
   selector: 'app-echiquier',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SquareComponent],
   templateUrl: './echiquier.component.html',
   styleUrl: './echiquier.component.scss'
 })

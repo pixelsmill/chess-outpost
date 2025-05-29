@@ -58,49 +58,6 @@
   position: relative;
 }
 
-.square {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &.light {
-    background-color: #EBECD0;
-  }
-
-  &.dark {
-    background-color: #779556;
-  }
-
-  &.selected {
-    box-shadow: inset 0 0 0 3px #ff6b6b;
-    z-index: 2;
-  }
-
-  &:hover {
-    filter: brightness(1.1);
-    transform: scale(1.02);
-  }
-}
-
-.piece {
-  font-size: 2.2rem;
-  z-index: 1;
-  transition: all 0.2s ease;
-
-  &.white {
-    color: #fff;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
-  }
-
-  &.black {
-    color: #000;
-    text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.8);
-  }
-}
-
 // Responsive design
 @media (max-width: 768px) {
   .board {
@@ -113,9 +70,5 @@
     height: 45px;
     width: 45px;
     font-size: 0.8rem;
-  }
-
-  .piece {
-    font-size: 1.8rem;
   }
 }
