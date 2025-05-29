@@ -1,18 +1,10 @@
 <div class="chess-app">
   <!-- En-tête avec contrôles -->
   <div class="header">
-    <h1>🏆 HotPawn</h1>
-    <div class="controls">
-      <div class="game-status">
-        <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
-          {{ gameStatus }}
-        </h2>
-      </div>
-
-      <button (click)="resetGame()" class="reset-btn">
-        🔄 Nouvelle partie
-      </button>
-    </div>
+    <h1>
+      <span>Red</span><span class="letter-spacing-small">P</span
+      ><span class="red-pawn">♟</span>wn
+    </h1>
   </div>
 
   <!-- Conteneur des échiquiers côte à côte -->
@@ -23,8 +15,19 @@
     <!-- Heatmap de contrôle -->
     <app-heatmap [position]="currentPosition()"></app-heatmap>
 
-    <!-- Carte topographique -->
-    <app-topographic [position]="currentPosition()"></app-topographic>
+    <!-- Disabled Carte topographique -->
+    <!-- <app-topographic [position]="currentPosition()"></app-topographic> -->
+  </div>
+
+  <!-- Conteneur des contrôles -->
+  <div class="controls">
+    <div class="game-status">
+      <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
+        {{ gameStatus }}
+      </h2>
+    </div>
+
+    <button (click)="resetGame()" class="reset-btn">🔄 Nouvelle partie</button>
   </div>
 
   <!-- Panneau d'informations -->
