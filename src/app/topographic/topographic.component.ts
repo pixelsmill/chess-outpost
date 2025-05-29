@@ -24,7 +24,7 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   private ctx!: CanvasRenderingContext2D;
   private canvasWidth = 480;
   private canvasHeight = 480;
-  private resolution = 96; // Grille haute résolution pour interpolation
+  private resolution = 960; // Grille haute résolution pour interpolation pixel par pixel
 
   constructor(private chessService: ChessService) { }
 
@@ -51,84 +51,132 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     // Générer la grille de contrôle de base (8x8)
-    const baseGrid = this.generateBaseControlGrid();
+    const baseGrids = this.generateBaseControlGrid();
 
     // Créer une grille haute résolution par interpolation
-    const highResGrid = this.interpolateGrid(baseGrid);
+    const highResGrids = this.interpolateGrids(baseGrids);
 
     // Dessiner le fond avec dégradés fluides
-    this.drawSmoothBackground(highResGrid);
+    this.drawSmoothBackground(highResGrids);
 
     // Dessiner les pièces d'échecs
     this.drawChessPieces();
   }
 
-  private generateBaseControlGrid(): number[][] {
-    const grid: number[][] = [];
+  private generateBaseControlGrid(): { netControl: number[][], whiteControl: number[][], blackControl: number[][] } {
+    const netGrid: number[][] = [];
+    const whiteGrid: number[][] = [];
+    const blackGrid: number[][] = [];
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     for (let rank = 8; rank >= 1; rank--) {
-      const row: number[] = [];
+      const netRow: number[] = [];
+      const whiteRow: number[] = [];
+      const blackRow: number[] = [];
       for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
         const square = `${files[fileIndex]}${rank}`;
         const control = this.chessService.calculateSquareControl(this.chess, square);
 
-        // Convertir en valeur continue
-        let value = control.netControl;
         // Amplifier pour avoir de meilleurs contrastes
-        value = value * 1.5;
+        const netValue = control.netControl * 1.5;
 
-        row.push(value);
+        netRow.push(netValue);
+        whiteRow.push(control.whiteControl);
+        blackRow.push(control.blackControl);
       }
-      grid.push(row);
+      netGrid.push(netRow);
+      whiteGrid.push(whiteRow);
+      blackGrid.push(blackRow);
     }
 
-    return grid;
+    return { netControl: netGrid, whiteControl: whiteGrid, blackControl: blackGrid };
   }
 
-  private interpolateGrid(baseGrid: number[][]): number[][] {
-    const interpolated: number[][] = [];
+  private interpolateGrids(baseGrids: { netControl: number[][], whiteControl: number[][], blackControl: number[][] }): { netControl: number[][], whiteControl: number[][], blackControl: number[][] } {
+    const interpolatedNet: number[][] = [];
+    const interpolatedWhite: number[][] = [];
+    const interpolatedBlack: number[][] = [];
     const scale = this.resolution / 8;
 
     for (let y = 0; y < this.resolution; y++) {
-      const row: number[] = [];
+      const netRow: number[] = [];
+      const whiteRow: number[] = [];
+      const blackRow: number[] = [];
       for (let x = 0; x < this.resolution; x++) {
         // Position dans la grille 8x8 avec centrage sur les cases
         const gx = (x + 0.5) / scale - 0.5;
         const gy = (y + 0.5) / scale - 0.5;
 
-        // Interpolation bilinéaire
-        const value = this.bilinearInterpolation(baseGrid, gx, gy);
-        row.push(value);
+        // Interpolation bicubique pour chaque type de contrôle
+        const netValue = this.bicubicInterpolation(baseGrids.netControl, gx, gy);
+        const whiteValue = this.bicubicInterpolation(baseGrids.whiteControl, gx, gy);
+        const blackValue = this.bicubicInterpolation(baseGrids.blackControl, gx, gy);
+
+        netRow.push(netValue);
+        whiteRow.push(whiteValue);
+        blackRow.push(blackValue);
       }
-      interpolated.push(row);
+      interpolatedNet.push(netRow);
+      interpolatedWhite.push(whiteRow);
+      interpolatedBlack.push(blackRow);
     }
 
-    return interpolated;
+    return { netControl: interpolatedNet, whiteControl: interpolatedWhite, blackControl: interpolatedBlack };
   }
 
-  private bilinearInterpolation(grid: number[][], x: number, y: number): number {
-    const x0 = Math.floor(x);
-    const x1 = Math.min(x0 + 1, 7);
-    const y0 = Math.floor(y);
-    const y1 = Math.min(y0 + 1, 7);
+  private bicubicInterpolation(grid: number[][], x: number, y: number): number {
+    const x1 = Math.floor(x);
+    const y1 = Math.floor(y);
 
-    const fx = x - x0;
-    const fy = y - y0;
+    const fx = x - x1;
+    const fy = y - y1;
 
-    const v00 = grid[y0]?.[x0] ?? 0;
-    const v10 = grid[y0]?.[x1] ?? 0;
-    const v01 = grid[y1]?.[x0] ?? 0;
-    const v11 = grid[y1]?.[x1] ?? 0;
+    // Récupérer les 16 points de la grille 4x4
+    const points: number[] = [];
+    for (let j = -1; j <= 2; j++) {
+      for (let i = -1; i <= 2; i++) {
+        const xi = Math.max(0, Math.min(7, x1 + i));
+        const yi = Math.max(0, Math.min(7, y1 + j));
+        points.push(grid[yi]?.[xi] ?? 0);
+      }
+    }
 
-    // Interpolation bilinéaire
-    const v0 = v00 * (1 - fx) + v10 * fx;
-    const v1 = v01 * (1 - fx) + v11 * fx;
+    // Interpolation bicubique avec splines de Catmull-Rom
+    const p = [];
+    for (let j = 0; j < 4; j++) {
+      const p0 = points[j * 4 + 0];
+      const p1 = points[j * 4 + 1];
+      const p2 = points[j * 4 + 2];
+      const p3 = points[j * 4 + 3];
+      p[j] = this.cubicInterpolate(p0, p1, p2, p3, fx);
+    }
 
-    return v0 * (1 - fy) + v1 * fy;
+    return this.cubicInterpolate(p[0], p[1], p[2], p[3], fy);
   }
 
-  private drawSmoothBackground(grid: number[][]) {
+  private cubicInterpolate(p0: number, p1: number, p2: number, p3: number, t: number): number {
+    // Interpolation cubique de Catmull-Rom
+    const a0 = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
+    const a1 = p0 - 2.5 * p1 + 2 * p2 - 0.5 * p3;
+    const a2 = -0.5 * p0 + 0.5 * p2;
+    const a3 = p1;
+
+    return a0 * t * t * t + a1 * t * t + a2 * t + a3;
+  }
+
+  private bicubicWeight(t: number): number {
+    // Cette méthode n'est plus utilisée avec la nouvelle implémentation
+    const absT = Math.abs(t);
+    if (absT <= 1) {
+      return 1 - 2 * absT * absT + absT * absT * absT;
+    } else if (absT < 2) {
+      return 4 - 8 * absT + 5 * absT * absT - absT * absT * absT;
+    } else {
+      return 0;
+    }
+  }
+
+  private drawSmoothBackground(grids: { netControl: number[][], whiteControl: number[][], blackControl: number[][] }) {
     const imageData = this.ctx.createImageData(this.canvasWidth, this.canvasHeight);
     const data = imageData.data;
 
@@ -141,8 +189,11 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
         const gridX = Math.min(Math.floor(gx), this.resolution - 1);
         const gridY = Math.min(Math.floor(gy), this.resolution - 1);
 
-        const value = grid[gridY]?.[gridX] ?? 0;
-        const color = this.getColorForValue(value);
+        const netValue = grids.netControl[gridY]?.[gridX] ?? 0;
+        const whiteValue = grids.whiteControl[gridY]?.[gridX] ?? 0;
+        const blackValue = grids.blackControl[gridY]?.[gridX] ?? 0;
+
+        const color = this.getColorForValueWithConflict(netValue, whiteValue, blackValue);
 
         const index = (y * this.canvasWidth + x) * 4;
         data[index] = color.r;     // Rouge
@@ -155,18 +206,26 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     this.ctx.putImageData(imageData, 0, 0);
   }
 
-  private getColorForValue(value: number): { r: number, g: number, b: number, a: number } {
+  private getColorForValueWithConflict(netValue: number, whiteValue: number, blackValue: number): { r: number, g: number, b: number, a: number } {
+    // Détecter les zones de conflit (comme dans la heatmap)
+    if (whiteValue > 0.5 && blackValue > 0.5) {
+      // Zone contestée - couleur violette comme dans la heatmap
+      const totalControl = whiteValue + blackValue;
+      const contestedOpacity = Math.min(100 + (totalControl * 20), 200);
+      return { r: 128, g: 0, b: 128, a: contestedOpacity }; // Violet
+    }
+
     // Appliquer des seuils pour créer des zones de couleur unie
     let level: number;
 
-    if (value >= 3) level = 4;      // Très fort contrôle
-    else if (value >= 2) level = 3;  // Fort contrôle
-    else if (value >= 1) level = 2;  // Contrôle modéré
-    else if (value > 0) level = 1;   // Faible contrôle
-    else if (value === 0) level = 0; // Neutre
-    else if (value > -1) level = -1; // Faible contrôle opposé
-    else if (value >= -2) level = -2; // Contrôle modéré opposé
-    else if (value >= -3) level = -3; // Fort contrôle opposé
+    if (netValue >= 3) level = 4;      // Très fort contrôle
+    else if (netValue >= 2) level = 3;  // Fort contrôle
+    else if (netValue >= 1) level = 2;  // Contrôle modéré
+    else if (netValue > 0) level = 1;   // Faible contrôle
+    else if (netValue === 0) level = 0; // Neutre
+    else if (netValue > -1) level = -1; // Faible contrôle opposé
+    else if (netValue >= -2) level = -2; // Contrôle modéré opposé
+    else if (netValue >= -3) level = -3; // Fort contrôle opposé
     else level = -4;                 // Très fort contrôle opposé
 
     // Couleurs par paliers pour les blancs (feu) - même couleur que heatmap (255, 69, 0)
