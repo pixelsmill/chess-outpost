@@ -1,7 +1,7 @@
 <div class="chess-app">
   <!-- En-tête avec contrôles -->
   <div class="header">
-    <h1>🏆 HotPawn - Visualisation du Contrôle des Cases</h1>
+    <h1>🏆 HotPawn - Échiquier & Heatmap de Contrôle</h1>
     <div class="controls">
       <div class="game-status">
         <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
@@ -15,8 +15,14 @@
     </div>
   </div>
 
-  <!-- Échiquier -->
-  <app-echiquier></app-echiquier>
+  <!-- Conteneur des échiquiers côte à côte -->
+  <div class="boards-container">
+    <!-- Échiquier de jeu -->
+    <app-echiquier (positionChange)="onPositionChange($event)"></app-echiquier>
+
+    <!-- Heatmap de contrôle -->
+    <app-heatmap [position]="currentPosition()"></app-heatmap>
+  </div>
 
   <!-- Panneau d'informations -->
   <div class="info-panel">
@@ -37,9 +43,9 @@
         </div>
       </div>
       <p class="legend-explanation">
-        Les nombres indiquent le nombre de pièces qui attaquent chaque case
-        (Blanc:Noir). L'intensité de la couleur représente la dominance du
-        contrôle.
+        <strong>Échiquier gauche :</strong> Jeu interactif classique.<br />
+        <strong>Heatmap droite :</strong> Visualisation du contrôle des cases
+        avec bordures colorées et nombres (Blanc:Noir).
       </p>
     </div>
 

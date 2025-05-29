@@ -1,9 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, signal } from '@angular/core';
 import { EchiquierComponent } from './echiquier/echiquier.component';
+import { HeatmapComponent } from './heatmap/heatmap.component';
 
 @Component({
   selector: 'app-root',
-  imports: [EchiquierComponent],
+  imports: [EchiquierComponent, HeatmapComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -12,12 +13,15 @@ export class AppComponent {
 
   @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;
 
+  // Signal pour synchroniser la position entre les deux composants
+  currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
   get gameStatus(): string {
     return this.echiquierComponent?.getGameStatus() || 'Tour des Blancs';
   }
 
   get position(): string {
-    return this.echiquierComponent?.position() || 'Position initiale';
+    return this.currentPosition();
   }
 
   get moveCount(): number {
@@ -34,6 +38,10 @@ export class AppComponent {
 
   get isCheck(): boolean {
     return this.echiquierComponent?.chess.isCheck() || false;
+  }
+
+  onPositionChange(newPosition: string): void {
+    this.currentPosition.set(newPosition);
   }
 
   resetGame(): void {

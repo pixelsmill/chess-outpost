@@ -1,8 +1,8 @@
-<!-- Échiquier de jeu -->
+<!-- Heatmap de contrôle -->
 <div class="board-container">
   <div class="board-wrapper">
     <div class="board-header">
-      <h3>♚ Échiquier de Jeu</h3>
+      <h3>🔥 Heatmap de Contrôle</h3>
     </div>
 
     <div class="board-with-ranks">
@@ -18,28 +18,47 @@
         <div class="coord-number">1</div>
       </div>
 
-      <!-- Échiquier -->
+      <!-- Échiquier heatmap -->
       <div class="board">
         @for (square of board(); track square.square) {
         <div
           class="square"
           [class.light]="square.isLight"
           [class.dark]="!square.isLight"
-          [class.selected]="isSquareSelected(square.square)"
           [class.has-piece]="square.piece"
-          (click)="onSquareClick(square.square)"
+          [style]="getSquareControlStyle(square.control)"
           [title]="getSquareTooltip(square)"
         >
-          <!-- Pièce -->
+          <!-- Pièce (semi-transparente pour voir la heatmap) -->
           @if (square.piece) {
           <span
-            class="piece"
+            class="piece heatmap-piece"
             [class.white]="square.piece.color === 'w'"
             [class.black]="square.piece.color === 'b'"
           >
             {{ getPieceSymbol(square.piece) }}
           </span>
           }
+
+          <!-- Indicateur de contrôle (toujours visible) -->
+          <div class="control-indicator visible">
+            @if (square.control.whiteControl > 0 || square.control.blackControl
+            > 0) {
+            <span
+              class="control-value"
+              [class.white-dominance]="square.control.netControl > 0"
+              [class.black-dominance]="square.control.netControl < 0"
+              [class.contested]="
+                square.control.netControl === 0 &&
+                square.control.whiteControl > 0
+              "
+            >
+              {{ square.control.whiteControl }}:{{
+                square.control.blackControl
+              }}
+            </span>
+            }
+          </div>
         </div>
         }
       </div>
