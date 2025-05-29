@@ -100,27 +100,4 @@
     </div>
   </div>
   }
-
-  <!-- Panneau d'informations -->
-  <div class="info-panel">
-    <div class="game-info">
-      <h3>📊 Informations de la partie</h3>
-      <div class="stats">
-        <div class="stat">
-          <strong>Position FEN :</strong>
-          <code>{{ position }}</code>
-        </div>
-        <div class="stat">
-          <strong>Nombre de coups :</strong>
-          {{ getCurrentMoveDisplay() }}
-        </div>
-        @if (selectedSquare) {
-        <div class="stat">
-          <strong>Case sélectionnée :</strong>
-          {{ selectedSquare }}
-        </div>
-        }
-      </div>
-    </div>
-  </div>
 </div>
