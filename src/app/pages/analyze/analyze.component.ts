@@ -3,15 +3,28 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
-import { HeatmapComponent } from '../../heatmap/heatmap.component';
-import { TopographicComponent } from '../../topographic/topographic.component';
+import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
+import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
+import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
+import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
 import { ChessService } from '../../services/chess.service';
 import { Chess } from 'chess.js';
+
+type BackgroundType = 'classic' | 'heatmap' | 'topographic';
 
 @Component({
   selector: 'app-analyze',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, EchiquierComponent, HeatmapComponent, TopographicComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    EchiquierComponent,
+    BoardWrapperComponent,
+    ClassicBoardComponent,
+    HeatmapBoardComponent,
+    TopographicBoardComponent
+  ],
   templateUrl: './analyze.component.html',
   styleUrl: './analyze.component.scss'
 })
@@ -19,6 +32,9 @@ export class AnalyzeComponent implements OnInit {
 
   // Signal pour synchroniser la position
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
+  // Signal pour le background sélectionné (comme dans play)
+  selectedBackground = signal<BackgroundType>('classic');
 
   // Gestion PGN et navigation
   pgnText = '';
@@ -62,6 +78,11 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   get canGoForward(): boolean {
     return this.isNavigationMode() && this.currentMoveIndex() < this.gameHistory.length - 1;
+  }
+
+  // Nouvelle méthode pour changer de background
+  setBackground(background: BackgroundType): void {
+    this.selectedBackground.set(background);
   }
 
   onPositionChange(newPosition: string): void {

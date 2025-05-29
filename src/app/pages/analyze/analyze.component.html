@@ -17,19 +17,61 @@
   </div>
   }
 
-  <!-- Échiquiers en mode analyse -->
+  <!-- Mode analyse avec nouveau système -->
   @if (isNavigationMode()) {
-  <div class="boards-container">
-    <app-echiquier
-      [externalPosition]="currentPosition()"
-      [disableClicks]="true"
-      (positionChange)="onPositionChange($event)"
+
+  <!-- Boutons de sélection du background -->
+  <div class="background-selector">
+    <button
+      class="bg-btn"
+      [class.active]="selectedBackground() === 'classic'"
+      (click)="setBackground('classic')"
     >
-    </app-echiquier>
+      Échiquier Classique
+    </button>
+    <button
+      class="bg-btn"
+      [class.active]="selectedBackground() === 'heatmap'"
+      (click)="setBackground('heatmap')"
+    >
+      Contrôle Territorial
+    </button>
+    <button
+      class="bg-btn"
+      [class.active]="selectedBackground() === 'topographic'"
+      (click)="setBackground('topographic')"
+    >
+      Vue Topographique
+    </button>
+  </div>
 
-    <app-heatmap [position]="currentPosition()"></app-heatmap>
+  <!-- Échiquier unique avec background dynamique -->
+  <div class="board-container">
+    <app-board-wrapper>
+      <!-- Background classique -->
+      @if (selectedBackground() === 'classic') {
+      <app-classic-board [position]="currentPosition()"></app-classic-board>
+      }
 
-    <app-topographic [position]="currentPosition()"></app-topographic>
+      <!-- Background heatmap -->
+      @if (selectedBackground() === 'heatmap') {
+      <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
+      }
+
+      <!-- Background topographique -->
+      @if (selectedBackground() === 'topographic') {
+      <app-topographic-board
+        [position]="currentPosition()"
+      ></app-topographic-board>
+      }
+
+      <!-- Grille de pièces par-dessus (DISABLED en mode analyse) -->
+      <app-echiquier
+        [externalPosition]="currentPosition()"
+        [disableClicks]="true"
+        (positionChange)="onPositionChange($event)"
+      ></app-echiquier>
+    </app-board-wrapper>
   </div>
 
   <!-- Contrôles de navigation en bas -->
