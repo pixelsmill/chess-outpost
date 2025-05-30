@@ -1,14 +1,27 @@
 <div class="chess-app">
   <!-- Navigation principale -->
   <nav class="main-navigation">
+    <!-- Bouton burger (visible seulement sur mobile) -->
+    <button
+      class="burger-menu"
+      (click)="toggleMobileMenu()"
+      [class.open]="isMobileMenuOpen"
+    >
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+
     <div class="nav-header">
       <h1>
-        <span routerLink="/" class="app-title">Outpost</span>
+        <span routerLink="/" class="app-title" (click)="closeMobileMenu()"
+          >Outpost</span
+        >
       </h1>
     </div>
 
-    <!-- Menu de navigation (toujours affiché) -->
-    <div class="nav-menu">
+    <!-- Menu desktop (masqué sur mobile) -->
+    <div class="nav-menu desktop-menu">
       <ul class="nav-list">
         <li class="nav-item">
           <a routerLink="/analyze" routerLinkActive="active" class="nav-link"
@@ -28,6 +41,34 @@
       <app-auth></app-auth>
     </div>
   </nav>
+
+  <!-- Menu mobile (visible seulement quand ouvert) -->
+  <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+    <ul class="mobile-nav-list">
+      <li class="mobile-nav-item">
+        <a
+          routerLink="/analyze"
+          routerLinkActive="active"
+          class="mobile-nav-link"
+          (click)="closeMobileMenu()"
+        >
+          <span class="mobile-nav-icon">📊</span>
+          <span class="mobile-nav-text">Analyse</span>
+        </a>
+      </li>
+      <li class="mobile-nav-item">
+        <a
+          routerLink="/play"
+          routerLinkActive="active"
+          class="mobile-nav-link"
+          (click)="closeMobileMenu()"
+        >
+          <span class="mobile-nav-icon">⚔️</span>
+          <span class="mobile-nav-text">Jouer</span>
+        </a>
+      </li>
+    </ul>
+  </div>
 
   <div class="body">
     <!-- Contenu dynamique via router -->

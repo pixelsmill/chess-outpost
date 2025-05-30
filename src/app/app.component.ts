@@ -15,8 +15,21 @@ export class AppComponent implements OnInit {
   title = 'chessoutpost';
   private authRedirectService = inject(AuthRedirectService);
 
+  // État du menu mobile
+  isMobileMenuOpen = false;
+
   ngOnInit() {
     // Initialise la surveillance des changements d'authentification
     this.authRedirectService.initializeAuthRedirect();
+  }
+
+  // Basculer l'état du menu mobile
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  // Fermer le menu mobile (utile quand on clique sur un lien)
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
   }
 }

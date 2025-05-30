@@ -21,6 +21,7 @@
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
 
   .nav-header {
     h1 {
@@ -44,6 +45,10 @@
   }
 
   .nav-menu {
+    &.desktop-menu {
+      display: flex;
+    }
+
     .nav-list {
       list-style: none;
       padding: 0;
@@ -78,6 +83,43 @@
     }
   }
 
+  // Bouton burger (masqué par défaut)
+  .burger-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+
+    .burger-line {
+      width: 100%;
+      height: 3px;
+      background: white;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+
+    &.open {
+      .burger-line:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+      }
+      
+      .burger-line:nth-child(2) {
+        opacity: 0;
+      }
+      
+      .burger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+      }
+    }
+  }
+
   .nav-auth {
     position: relative;
     
@@ -94,9 +136,131 @@
   }
 }
 
+// Menu mobile (masqué par défaut)
+.mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+
+  &.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .mobile-nav-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .mobile-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem 2rem;
+        color: white;
+        text-decoration: none;
+        font-weight: 300;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        &.active {
+          background: rgba(255, 255, 255, 0.1);
+          border-left: 4px solid #4CAF50;
+        }
+
+        .mobile-nav-icon {
+          font-size: 1.2rem;
+        }
+
+        .mobile-nav-text {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}
+
 .body {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .main-navigation {
+    padding: 15px 20px;
+    gap: 1rem;
+
+    .nav-header {
+      order: 2;
+      flex: 1;
+      text-align: center;
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    // Masquer le menu desktop sur mobile
+    .nav-menu.desktop-menu {
+      display: none;
+    }
+
+    // Afficher le bouton burger sur mobile (à gauche)
+    .burger-menu {
+      display: flex;
+      order: 1;
+    }
+
+    // Ajuster l'authentification sur mobile (à droite)
+    .nav-auth {
+      order: 3;
+    }
+  }
+
+  // Menu mobile positionné correctement
+  .mobile-menu {
+    position: fixed;
+    top: 78px; // Hauteur approximative du bandeau mobile
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-navigation {
+    padding: 10px 15px;
+
+    .nav-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .mobile-menu .mobile-nav-list .mobile-nav-item .mobile-nav-link {
+    padding: 1.2rem 1.5rem;
+  }
 }
