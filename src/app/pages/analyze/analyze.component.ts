@@ -41,8 +41,8 @@ export class AnalyzeComponent implements OnInit {
   // Signal pour le background sélectionné
   selectedBackground = signal<BackgroundType>('classic');
 
-  // Signal pour la luminosité de l'échiquier (0 = noir, 100 = blanc)
-  brightness = signal(50);
+  // Signal pour la luminosité de l'échiquier fixée à 25%
+  brightness = signal(25);
 
   // Gestion PGN et navigation (mode PGN)
   pgnText = '';
@@ -133,10 +133,6 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   setBackground(background: BackgroundType): void {
     this.selectedBackground.set(background);
-  }
-
-  setBrightness(value: number): void {
-    this.brightness.set(value);
   }
 
   getBoardBackgroundColor(): string {

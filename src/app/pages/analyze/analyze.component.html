@@ -192,24 +192,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Contrôle de luminosité (commun aux deux modes) -->
-      <div class="brightness-control">
-        <h3>Luminosité de l'échiquier</h3>
-        <div class="brightness-slider-container">
-          <div class="brightness-labels">
-            <span class="brightness-value">{{ brightness() }}%</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            [value]="brightness()"
-            (input)="setBrightness($any($event.target).value)"
-            class="brightness-slider"
-          />
-        </div>
-      </div>
     </div>
   </div>
 </div>

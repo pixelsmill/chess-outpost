@@ -45,7 +45,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     // Signaux pour l'échiquier
     selectedBackground = signal<BackgroundType>('classic');
-    brightness = signal<number>(50);
+    brightness = signal<number>(25);
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
     // Données utilisateur et multijoueur
@@ -99,10 +99,6 @@ export class PlayComponent implements OnInit, OnDestroy {
      */
     setBackground(background: BackgroundType): void {
         this.selectedBackground.set(background);
-    }
-
-    setBrightness(value: number): void {
-        this.brightness.set(value);
     }
 
     getBoardBackgroundColor(): string {
