@@ -26,8 +26,31 @@ export class MultiplayerService {
     private gameUnsubscribe: (() => void) | null = null;
     private challengesUnsubscribe: (() => void) | null = null;
     private presenceRef: any = null;
+    private heartbeatInterval: any = null;
+    private isInitialized = false;
 
     constructor() {
+        console.log('🏗️ MultiplayerService constructor called');
+
+        // Écouter les changements d'authentification
+        this.authService.user$.subscribe(user => {
+            console.log('🏗️ Auth state changed:', user ? user.displayName : 'Not logged in');
+            if (user && !this.isInitialized) {
+                console.log('🏗️ Initializing multiplayer service for user:', user.displayName);
+                this.initializeForUser();
+            } else if (!user && this.isInitialized) {
+                console.log('🏗️ User logged out, cleaning up multiplayer service');
+                this.cleanup();
+            }
+        });
+    }
+
+    /**
+     * Initialiser le service pour un utilisateur connecté
+     */
+    private initializeForUser(): void {
+        console.log('🏗️ initializeForUser called');
+        this.isInitialized = true;
         this.initializePresence();
         this.listenToOnlinePlayers();
         this.listenToChallenges();
@@ -35,11 +58,56 @@ export class MultiplayerService {
     }
 
     /**
+     * Nettoyer le service lors de la déconnexion
+     */
+    private cleanup(): void {
+        console.log('🏗️ cleanup called');
+        this.isInitialized = false;
+
+        // Arrêter le heartbeat
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+
+        // Nettoyer les listeners
+        if (this.playersUnsubscribe) {
+            this.playersUnsubscribe();
+            this.playersUnsubscribe = null;
+        }
+
+        if (this.gameUnsubscribe) {
+            this.gameUnsubscribe();
+            this.gameUnsubscribe = null;
+        }
+
+        if (this.challengesUnsubscribe) {
+            this.challengesUnsubscribe();
+            this.challengesUnsubscribe = null;
+        }
+
+        // Supprimer la présence
+        if (this.presenceRef) {
+            set(this.presenceRef, null);
+            this.presenceRef = null;
+        }
+
+        // Réinitialiser les sujets
+        this.onlinePlayersSubject.next([]);
+        this.challengesSubject.next([]);
+        this.currentGameSubject.next(null);
+    }
+
+    /**
      * Initialiser la présence
      */
     private initializePresence(): void {
+        console.log('🔗 initializePresence called');
         const currentUser = this.authService.getCurrentUser();
-        if (!currentUser) return;
+        if (!currentUser) {
+            console.log('🔗 No user found, skipping presence initialization');
+            return;
+        }
 
         const playerData: any = {
             uid: currentUser.uid,
@@ -53,11 +121,17 @@ export class MultiplayerService {
         }
 
         this.presenceRef = ref(this.database, `onlinePlayers/${currentUser.uid}`);
-        set(this.presenceRef, playerData);
+        console.log('🔗 Setting presence for user:', currentUser.displayName);
+        set(this.presenceRef, playerData).then(() => {
+            console.log('🔗 Presence set successfully');
+        }).catch(error => {
+            console.error('🔗 Error setting presence:', error);
+        });
 
-        // Heartbeat
-        setInterval(() => {
-            if (this.presenceRef) {
+        // Heartbeat pour maintenir la présence
+        this.heartbeatInterval = setInterval(() => {
+            if (this.presenceRef && currentUser) {
+                console.log('💓 Heartbeat for user:', currentUser.displayName);
                 set(ref(this.database, `onlinePlayers/${currentUser.uid}/lastSeen`), Date.now());
             }
         }, 30000);
@@ -67,26 +141,36 @@ export class MultiplayerService {
      * Écouter les joueurs en ligne
      */
     private listenToOnlinePlayers(): void {
+        console.log('👥 Setting up online players listener');
         const playersRef = ref(this.database, 'onlinePlayers');
 
         this.playersUnsubscribe = onValue(playersRef, (snapshot) => {
+            console.log('👥 Online players snapshot received');
             const players: OnlinePlayer[] = [];
             const currentUser = this.authService.getCurrentUser();
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 const now = Date.now();
+                console.log('👥 Raw players data:', data);
 
                 Object.keys(data).forEach(uid => {
                     const player = data[uid] as OnlinePlayer;
 
+                    // Exclure l'utilisateur actuel et les joueurs inactifs
                     if (uid !== currentUser?.uid && (now - player.lastSeen) < 120000) {
                         players.push({ ...player, uid });
+                        console.log('👥 Adding player:', player.displayName);
                     }
                 });
+            } else {
+                console.log('👥 No players data found');
             }
 
+            console.log('👥 Final players list:', players.map(p => p.displayName));
             this.onlinePlayersSubject.next(players);
+        }, (error) => {
+            console.error('👥 Error listening to online players:', error);
         });
     }
 
@@ -221,27 +305,39 @@ export class MultiplayerService {
      * Écouter les défis
      */
     private listenToChallenges(): void {
+        console.log('🎯 Setting up challenges listener');
         const currentUser = this.authService.getCurrentUser();
-        if (!currentUser) return;
+        if (!currentUser) {
+            console.log('🎯 No user found, skipping challenges listener');
+            return;
+        }
 
         const challengesRef = ref(this.database, 'challenges');
 
         this.challengesUnsubscribe = onValue(challengesRef, (snapshot) => {
+            console.log('🎯 Challenges snapshot received');
             const challenges: Challenge[] = [];
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
+                console.log('🎯 Raw challenges data:', data);
 
                 Object.keys(data).forEach(id => {
                     const challenge = { id, ...data[id] } as Challenge;
 
                     if (challenge.to.uid === currentUser.uid && challenge.status === 'pending') {
                         challenges.push(challenge);
+                        console.log('🎯 Adding challenge from:', challenge.from.displayName);
                     }
                 });
+            } else {
+                console.log('🎯 No challenges data found');
             }
 
+            console.log('🎯 Final challenges list:', challenges.length);
             this.challengesSubject.next(challenges);
+        }, (error) => {
+            console.error('🎯 Error listening to challenges:', error);
         });
     }
 
@@ -462,25 +558,8 @@ export class MultiplayerService {
     }
 
     ngOnDestroy(): void {
-        try {
-            if (this.playersUnsubscribe) this.playersUnsubscribe();
-        } catch (error) {
-            console.warn('Error removing playersListener:', error);
-        }
-
-        try {
-            if (this.gameUnsubscribe) this.gameUnsubscribe();
-        } catch (error) {
-            console.warn('Error removing gameListener:', error);
-        }
-
-        try {
-            if (this.challengesUnsubscribe) this.challengesUnsubscribe();
-        } catch (error) {
-            console.warn('Error removing challengesListener:', error);
-        }
-
-        this.goOffline();
+        console.log('🧹 MultiplayerService ngOnDestroy called');
+        this.cleanup();
     }
 
     /**

@@ -62,8 +62,11 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onSquareClick(square: string) {
+    console.log('🎯 EchiquierComponent onSquareClick:', { square, disableClicks: this.disableClicks, isMultiplayer: this.isMultiplayer });
+
     // Ne pas permettre les clics si on est en mode navigation
     if (this.disableClicks) {
+      console.log('🎯 Clicks disabled, ignoring');
       return;
     }
 
@@ -77,16 +80,41 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
     if (currentSelected) {
       // Tentative de mouvement
+      console.log('🎯 Attempting move from', currentSelected, 'to', square);
+
       if (this.isMultiplayer) {
-        // En mode multijoueur : juste émettre le coup, ne pas le jouer localement
-        // La position sera mise à jour via Firebase
-        const piece = this.chess.get(currentSelected as Square);
-        if (piece && piece.color === this.chess.turn()) {
-          this.moveChange.emit({
-            from: currentSelected,
-            to: square,
+        // En mode multijoueur : valider le coup AVANT de l'émettre
+        try {
+          // Créer une copie temporaire pour tester la validité
+          const tempChess = new Chess(this.chess.fen());
+          const move = tempChess.move({
+            from: currentSelected as Square,
+            to: square as Square,
             promotion: 'q' // Auto-promotion en reine
           });
+
+          if (move) {
+            console.log('🎯 Valid move, emitting moveChange:', move);
+            // Coup valide : émettre sans modifier l'état local
+            this.moveChange.emit({
+              from: move.from,
+              to: move.to,
+              promotion: move.promotion
+            });
+            this.selectedSquare.set(null);
+          } else {
+            console.log('🎯 Invalid move, selecting target square');
+            // Mouvement invalide, essayer de sélectionner la case de destination
+            const piece = this.chess.get(square as Square);
+            if (piece && piece.color === this.chess.turn()) {
+              this.selectedSquare.set(square);
+            } else {
+              this.selectedSquare.set(null);
+            }
+          }
+        } catch (error) {
+          console.log('🎯 Move error:', error);
+          // En cas d'erreur, désélectionner
           this.selectedSquare.set(null);
         }
       } else {
@@ -99,7 +127,8 @@ export class EchiquierComponent implements OnInit, OnChanges {
           });
 
           if (move) {
-            // Émettre le coup joué pour le multijoueur
+            console.log('🎯 Local mode: move played successfully');
+            // Émettre le coup joué
             this.moveChange.emit({
               from: move.from,
               to: move.to,
@@ -110,15 +139,20 @@ export class EchiquierComponent implements OnInit, OnChanges {
             this.selectedSquare.set(null);
           }
         } catch (error) {
+          console.log('🎯 Local mode: invalid move, selecting new square');
           // Mouvement invalide, sélectionner la nouvelle case
           this.selectedSquare.set(square);
         }
       }
     } else {
       // Sélectionner une nouvelle case
+      console.log('🎯 Selecting new square:', square);
       const piece = this.chess.get(square as Square);
       if (piece && piece.color === this.chess.turn()) {
+        console.log('🎯 Valid piece selected:', piece);
         this.selectedSquare.set(square);
+      } else {
+        console.log('🎯 No valid piece on this square');
       }
     }
   }
