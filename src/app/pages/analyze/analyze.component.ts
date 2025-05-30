@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, signal, computed, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,9 +7,9 @@ import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.compone
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
 import { ChessService } from '../../services/chess.service';
+import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { Chess } from 'chess.js';
 
-type BackgroundType = 'heatmap' | 'topographic';
 type AnalysisMode = 'free' | 'pgn';
 
 @Component({
@@ -27,20 +27,15 @@ type AnalysisMode = 'free' | 'pgn';
   templateUrl: './analyze.component.html',
   styleUrls: ['../../styles/shared-layout.scss', './analyze.component.scss']
 })
-export class AnalyzeComponent implements OnInit {
+export class AnalyzeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;
+  @ViewChild('boardSection', { static: true }) boardSection!: ElementRef<HTMLElement>;
 
   // Signal pour le mode d'analyse (libre ou PGN)
   analysisMode = signal<AnalysisMode>('free');
 
   // Signal pour synchroniser la position
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-  // Signal pour le background sélectionné
-  selectedBackground = signal<BackgroundType>('heatmap');
-
-  // Signal pour la luminosité de l'échiquier fixée à 25%
-  brightness = signal(25);
 
   // Gestion PGN et navigation (mode PGN)
   pgnText = '';
@@ -55,7 +50,10 @@ export class AnalyzeComponent implements OnInit {
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
   isPgnMode = computed(() => this.analysisMode() === 'pgn');
 
-  constructor(private chessService: ChessService) { }
+  constructor(
+    private chessService: ChessService,
+    public boardDisplay: BoardDisplayService
+  ) { }
 
   ngOnInit() {
     // Pré-remplir avec la partie Immortelle
@@ -79,6 +77,14 @@ e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8.
 Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15.
 Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
 Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
+  }
+
+  ngAfterViewInit() {
+    this.boardDisplay.setupResizeObserver(this.boardSection);
+  }
+
+  ngOnDestroy() {
+    this.boardDisplay.cleanup();
   }
 
   // === GESTION DES MODES ===
@@ -128,23 +134,6 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   // === GESTION COMMUNE ===
-
-  setBackground(background: BackgroundType): void {
-    this.selectedBackground.set(background);
-  }
-
-  toggleExperimentalMode(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const isExperimental = target.checked;
-    this.selectedBackground.set(isExperimental ? 'topographic' : 'heatmap');
-  }
-
-  getBoardBackgroundColor(): string {
-    const brightnessValue = this.brightness();
-    // Convertir la valeur 0-100 en couleur RGB (0,0,0) à (255,255,255)
-    const rgbValue = Math.round((brightnessValue / 100) * 255);
-    return `rgb(${rgbValue}, ${rgbValue}, ${rgbValue})`;
-  }
 
   onPositionChange(newPosition: string): void {
     // En mode PGN navigation, on ne met pas à jour la position depuis l'échiquier

@@ -1,16 +1,21 @@
 <div class="layout-with-sidebar">
   <!-- Section échiquier à gauche -->
-  <div class="board-section">
+  <div class="board-section" #boardSection>
     <div class="game-board">
       <!-- Échiquier avec background dynamique -->
-      <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
+      <app-board-wrapper
+        [backgroundColor]="boardDisplay.getBoardBackgroundColor()"
+        [style.transform]="'scale(' + boardDisplay.boardScale() + ')'"
+        [style.transform-origin]="'center'"
+        [style.transition]="'transform 0.3s ease'"
+      >
         <!-- Background heatmap -->
-        @if (selectedBackground() === 'heatmap') {
+        @if (boardDisplay.selectedBackground() === 'heatmap') {
         <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
         }
 
         <!-- Background topographique -->
-        @if (selectedBackground() === 'topographic') {
+        @if (boardDisplay.selectedBackground() === 'topographic') {
         <app-topographic-board
           [position]="currentPosition()"
         ></app-topographic-board>
@@ -171,8 +176,8 @@
             <label class="toggle-switch">
               <input
                 type="checkbox"
-                [checked]="selectedBackground() === 'topographic'"
-                (change)="toggleExperimentalMode($event)"
+                [checked]="boardDisplay.selectedBackground() === 'topographic'"
+                (change)="boardDisplay.toggleExperimentalMode($event)"
               />
               <span class="slider"></span>
             </label>

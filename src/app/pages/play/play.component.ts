@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -9,6 +9,7 @@ import { User } from '@angular/fire/auth';
 // Services
 import { MultiplayerService } from '../../services/multiplayer.service';
 import { AuthService } from '../../services/auth.service';
+import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 
 // Models
 import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
@@ -18,8 +19,6 @@ import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
-
-type BackgroundType = 'heatmap' | 'topographic';
 
 @Component({
     selector: 'app-play',
@@ -35,15 +34,16 @@ type BackgroundType = 'heatmap' | 'topographic';
     templateUrl: './play.component.html',
     styleUrls: ['../../styles/shared-layout.scss', './play.component.scss']
 })
-export class PlayComponent implements OnInit, OnDestroy {
+export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
+    @ViewChild('boardSection', { static: true }) boardSection!: ElementRef<HTMLElement>;
+
     private multiplayerService = inject(MultiplayerService);
     authService = inject(AuthService);
+    public boardDisplay = inject(BoardDisplayService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
 
-    // Signaux pour l'échiquier
-    selectedBackground = signal<BackgroundType>('heatmap');
-    brightness = signal<number>(25);
+    // Signal pour synchroniser la position
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
     // Données utilisateur et multijoueur
@@ -90,26 +90,12 @@ export class PlayComponent implements OnInit, OnDestroy {
             clearInterval(this.redirectTimer);
         }
         this.multiplayerService.leaveGame();
+
+        this.boardDisplay.cleanup();
     }
 
-    /**
-     * Méthodes pour l'échiquier
-     */
-    setBackground(background: BackgroundType): void {
-        this.selectedBackground.set(background);
-    }
-
-    toggleExperimentalMode(event: Event): void {
-        const target = event.target as HTMLInputElement;
-        const isExperimental = target.checked;
-        this.selectedBackground.set(isExperimental ? 'topographic' : 'heatmap');
-    }
-
-    getBoardBackgroundColor(): string {
-        const brightnessValue = this.brightness();
-        // Convertir la valeur 0-100 en couleur RGB (0,0,0) à (255,255,255)
-        const rgbValue = Math.round((brightnessValue / 100) * 255);
-        return `rgb(${rgbValue}, ${rgbValue}, ${rgbValue})`;
+    ngAfterViewInit() {
+        this.boardDisplay.setupResizeObserver(this.boardSection);
     }
 
     /**
