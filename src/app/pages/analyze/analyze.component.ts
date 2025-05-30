@@ -27,7 +27,7 @@ type AnalysisMode = 'free' | 'pgn';
     TopographicBoardComponent
   ],
   templateUrl: './analyze.component.html',
-  styleUrl: './analyze.component.scss'
+  styleUrls: ['../../styles/shared-layout.scss', './analyze.component.scss']
 })
 export class AnalyzeComponent implements OnInit {
   @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;

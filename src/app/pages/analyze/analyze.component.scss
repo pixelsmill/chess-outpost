@@ -1,56 +1,4 @@
-:host {
-  display: block;
-  height: 100%;
-}
-
-/* Layout principal horizontal - système flex propre */
-.analyze-layout {
-  display: flex;
-  height: 100%;
-  flex: 1 1 auto;
-  display: flex;
-  overflow: hidden;
-}
-
-/* Section échiquier à gauche - occupe tout l'espace restant */
-.board-section {
-  flex: 1 1 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  overflow: hidden;
-  
-  .game-board {
-    text-align: center;
-    
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-    /* Taille adaptative pour l'échiquier */
-    max-width: min(80vh, 80vw);
-    max-height: 80vh;
-  }
-}
-
-/* Panneau vertical côté droit - largeur fixe */
-.side-panel {
-  flex: 0 0 320px;
-  overflow-y: auto;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.panel-content {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  overflow-y: auto;
-}
+/* Styles spécifiques à la page d'analyse */
 
 /* Carte de navigation */
 .navigation-card {
@@ -109,146 +57,10 @@
   }
 }
 
-/* Sélecteur de background vertical (copié du multiplayer) */
-.background-selector-vertical {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .bg-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .bg-btn-vertical {
-    padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 300;
-    font-size: 0.85rem;
-    text-align: left;
-    width: 100%;
-    letter-spacing: 0.5px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    &.active {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-  }
-}
-
-/* Contrôle de luminosité */
-.brightness-control {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .brightness-slider-container {
-    .brightness-labels {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.8rem;
-      font-size: 0.85rem;
-
-      .label-dark, .label-light {
-        font-size: 1rem;
-        opacity: 0.8;
-      }
-
-      .brightness-value {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.3rem 0.6rem;
-        border-radius: 4px;
-        font-weight: 300;
-        color: white;
-        font-size: 0.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        opacity: 0.8;
-      }
-    }
-
-    .brightness-slider {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: linear-gradient(to right, #000000, #888888, #ffffff);
-      outline: none;
-      cursor: pointer;
-      -webkit-appearance: none;
-      appearance: none;
-
-      &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: white;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        transition: all 0.2s ease;
-
-        &:hover {
-          transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-      }
-
-      &::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: white;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        transition: all 0.2s ease;
-
-        &:hover {
-          transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-      }
-
-      &::-moz-range-track {
-        height: 6px;
-        border-radius: 3px;
-        background: linear-gradient(to right, #000000, #888888, #ffffff);
-      }
-    }
-  }
-}
-
 /* Carte d'informations d'analyse */
 .analyze-info-card {
   padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   h3 {
     margin: 0 0 1rem 0;
@@ -331,7 +143,6 @@
       background: rgba(255, 255, 255, 0.05);
       color: white;
       cursor: pointer;
-      border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 300;
       transition: all 0.3s ease;
@@ -352,13 +163,6 @@
       }
     }
   }
-}
-
-/* Contenu spécifique aux modes */
-.free-mode-content, .pgn-mode-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
 
 /* Styles pour les cartes de statut de partie (mode libre) */
@@ -398,7 +202,6 @@
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
@@ -413,8 +216,9 @@
 }
 
 /* Styles pour les informations de partie */
-.game-info-card, .analyze-info-card {
+.game-info-card {
   padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   h3 {
     margin: 0 0 1rem 0;
@@ -456,7 +260,6 @@
     background: linear-gradient(135deg, #6b7280, #4b5563);
     color: white;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
@@ -490,7 +293,6 @@
     min-height: 80px;
     padding: 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
     background: rgba(255, 255, 255, 0.05);
     color: white;
     font-family: 'Courier New', monospace;
@@ -517,7 +319,6 @@
     background: linear-gradient(135deg, #4ade80, #22c55e);
     color: white;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
@@ -528,60 +329,5 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
     }
-  }
-}
-
-/* Responsive design */
-@media (max-width: 1024px) {
-  .analyze-layout {
-    flex-direction: column;
-  }
-
-  .board-section {
-    flex: 0 0 auto;
-    padding: 1rem;
-    
-    .game-board {
-      max-width: 90vw;
-      max-height: 70vh;
-    }
-  }
-
-  .side-panel {
-    flex: 0 0 auto;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .panel-content {
-    flex: 1 1 auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .board-section {
-    padding: 0.5rem;
-    
-    .game-board {
-      padding: 1rem;
-      max-width: 95vw;
-      max-height: 60vh;
-    }
-  }
-
-  .panel-content {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .panel-content {
-    padding: 0.8rem;
-  }
-
-  .board-section .game-board {
-    padding: 0.8rem;
-    max-width: 98vw;
-    max-height: 55vh;
   }
 }
