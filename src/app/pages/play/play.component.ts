@@ -2,9 +2,10 @@ import { Component, signal, inject, OnInit, OnDestroy, ViewChild, ElementRef, Af
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { Observable } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { User } from '@angular/fire/auth';
+import { filter, take, timeout, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 // Services
 import { MultiplayerService } from '../../services/multiplayer.service';
@@ -57,19 +58,21 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     challengingPlayer: string | null = null;
     isResigning = false;
     isLeavingGame = false;
-    redirectCountdown = 0;
 
     // Gérer la partie en cours
     gameId: string | null = null;
-    private redirectTimer: any;
     private subscriptions: Subscription[] = [];
 
     ngOnInit() {
         console.log('🚀 PlayComponent ngOnInit called');
 
-        // Vérifier si on a un gameId dans la route
-        this.gameId = this.route.snapshot.paramMap.get('gameId');
+        // Vérifier si on a un gameId dans la route (child routes)
+        this.gameId = this.route.snapshot.paramMap.get('gameId') ||
+            this.route.firstChild?.snapshot.paramMap.get('gameId') ||
+            null;
         console.log('🚀 Initial gameId from route:', this.gameId);
+        console.log('🚀 Route snapshot params:', this.route.snapshot.paramMap.keys);
+        console.log('🚀 Route firstChild params:', this.route.firstChild?.snapshot.paramMap.keys);
 
         // Charger les données seulement si l'utilisateur est connecté
         this.user$.subscribe(user => {
@@ -79,10 +82,43 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.loadChallenges();
                 this.listenToCurrentGame();
 
-                // Si on a un gameId, écouter cette partie spécifique
+                // Si on a un gameId, écouter cette partie spécifique et attendre qu'elle soit disponible
                 if (this.gameId) {
-                    console.log('🚀 Listening to specific game:', this.gameId);
-                    this.multiplayerService.listenToGame(this.gameId);
+                    console.log('🚀 User is authenticated, now waiting for specific game:', this.gameId);
+
+                    // Attendre que le service soit initialisé
+                    this.subscriptions.push(
+                        this.multiplayerService.isInitialized$.pipe(
+                            filter(isInitialized => isInitialized),
+                            take(1)
+                        ).subscribe(() => {
+                            console.log('🚀 Service is initialized, starting to load game:', this.gameId);
+                            this.subscriptions.push(
+                                this.multiplayerService.waitForGame(this.gameId!).subscribe({
+                                    next: (game) => {
+                                        if (game) {
+                                            console.log('🚀 Game successfully loaded after refresh:', game.id);
+                                            console.log('🚀 Game position:', game.currentFen);
+                                            console.log('🚀 Game moves count:', game.moves?.length || 0);
+                                        } else {
+                                            console.log('🚀 Game loading failed, going back to lobby');
+                                            alert(`La partie ${this.gameId} n'existe pas ou a été supprimée.`);
+                                            this.backToLobby();
+                                        }
+                                    },
+                                    error: (error) => {
+                                        console.error('🚀 Error loading game:', error);
+                                        alert(`Erreur lors du chargement de la partie ${this.gameId}. Elle n'existe peut-être plus.`);
+                                        this.backToLobby();
+                                    }
+                                })
+                            );
+                        })
+                    );
+                } else {
+                    // Pas de gameId, on est au lobby - s'assurer que la position est réinitialisée
+                    console.log('🚀 No gameId, ensuring lobby position is set');
+                    this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
                 }
             }
         });
@@ -91,9 +127,6 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     ngOnDestroy() {
         this.isLeavingGame = true;
         this.subscriptions.forEach(sub => sub.unsubscribe());
-        if (this.redirectTimer) {
-            clearInterval(this.redirectTimer);
-        }
         this.multiplayerService.leaveGame();
 
         this.boardDisplay.cleanup();
@@ -129,23 +162,47 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     private listenToCurrentGame(): void {
         this.subscriptions.push(
             this.multiplayerService.currentGame$.subscribe((game: GameState | null) => {
-                this.currentGame = game;
+                console.log('🎮 PlayComponent: Current game subscription triggered', game ? game.id : 'null');
+
+                // Si on a une partie
                 if (game) {
+                    // Mettre à jour la position immédiatement
+                    console.log('🎮 PlayComponent: Updating position to:', game.currentFen);
                     this.currentPosition.set(game.currentFen);
                     this.gameId = game.id;
+                    this.currentGame = game;
 
-                    // Mettre à jour l'URL sans page intermédiaire
+                    // Vérifier et afficher l'orientation calculée
+                    const orientation = this.getBoardOrientation();
+                    console.log('🎯 Board orientation determined:', orientation);
+
+                    // Mettre à jour l'URL sans page intermédiaire SEULEMENT si on est sur /play
                     if (this.router.url === '/play') {
-                        this.router.navigate(['/play/multiplayer', game.id], { replaceUrl: true });
+                        console.log('🎮 PlayComponent: Navigating to game URL:', `/play/game/${game.id}`);
+                        this.router.navigate(['/play/game', game.id], { replaceUrl: true });
                     }
 
-                    // Si la partie vient de se terminer, rediriger automatiquement après 5 secondes
-                    if (game.status === 'finished' && !this.isResigning && this.redirectCountdown === 0) {
-                        this.startRedirectCountdown();
+                    // La partie est terminée, le joueur pourra cliquer sur "Back to Lobby" quand il le souhaite
+                    if (game.status === 'finished') {
+                        console.log('🎮 PlayComponent: Game finished, waiting for manual navigation');
                     }
-                } else if (this.gameId && !this.isLeavingGame) {
-                    // Partie supprimée - revenir au lobby
-                    this.backToLobby();
+                } else {
+                    // Partie nulle - mais seulement rediriger si on avait déjà une partie chargée
+                    if (this.currentGame && this.gameId && !this.isLeavingGame) {
+                        console.log('🎮 PlayComponent: Game was loaded and now lost, going back to lobby');
+                        this.backToLobby();
+                    } else if (this.gameId && !this.isLeavingGame) {
+                        console.log('🎮 PlayComponent: Game is null but gameId exists - waiting for game to load');
+                        // Ne rien faire, attendre que waitForGame() charge la partie
+                    } else if (this.gameId) {
+                        console.log('🎮 PlayComponent: Game is null but we are leaving, ignoring');
+                    } else {
+                        console.log('🎮 PlayComponent: Game is null and no gameId set, normal lobby state');
+                        // Remettre la position de départ si on est au lobby
+                        console.log('🔄 Réinitialisation de la position de l\'échiquier pour le lobby');
+                        this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+                        this.currentGame = null;
+                    }
                 }
             })
         );
@@ -178,10 +235,15 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
 
     async acceptChallenge(challenge: Challenge) {
         try {
+            console.log('🎮 Accepting challenge from:', challenge.from.displayName);
             const gameId = await this.multiplayerService.acceptChallenge(challenge.id);
-            console.log('Challenge accepted, game created:', gameId);
+            console.log('🎮 Challenge accepted, game created:', gameId);
+
+            // Navigation directe vers la partie - pas besoin d'attendre
+            // La partie vient d'être créée donc elle existe
+            this.router.navigate(['/play/game', gameId], { replaceUrl: true });
         } catch (error) {
-            console.error('Error accepting challenge:', error);
+            console.error('🎮 Error accepting challenge:', error);
         }
     }
 
@@ -260,7 +322,30 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
 
     getBoardOrientation(): 'white' | 'black' {
         const playerInfo = this.getCurrentPlayerInfo();
-        return (playerInfo?.color as 'white' | 'black') || 'white';
+
+        // Si on a les infos du joueur, utiliser sa couleur
+        if (playerInfo) {
+            return playerInfo.color as 'white' | 'black';
+        }
+
+        // Sinon, essayer de déterminer la couleur directement depuis currentGame
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser && this.currentGame?.players) {
+            // Vérifier si l'utilisateur est le joueur blanc
+            if (this.currentGame.players.white?.uid === currentUser.uid) {
+                console.log('🎯 Board orientation: white (from direct check)');
+                return 'white';
+            }
+            // Vérifier si l'utilisateur est le joueur noir
+            else if (this.currentGame.players.black?.uid === currentUser.uid) {
+                console.log('🎯 Board orientation: black (from direct check)');
+                return 'black';
+            }
+        }
+
+        // Par défaut, retourner white
+        console.log('🎯 Board orientation: white (default fallback)');
+        return 'white';
     }
 
     isPlayerTurn(): boolean {
@@ -349,13 +434,6 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     backToLobby(): void {
         this.isLeavingGame = true;
 
-        // Arrêter le timer de redirection
-        if (this.redirectTimer) {
-            clearInterval(this.redirectTimer);
-            this.redirectTimer = null;
-        }
-        this.redirectCountdown = 0;
-
         // Quitter la partie
         this.multiplayerService.leaveGame();
 
@@ -364,31 +442,15 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         this.currentGame = null;
         this.isResigning = false;
 
+        // Réinitialiser la position de l'échiquier
+        console.log('🔄 Réinitialisation de la position de l\'échiquier au lobby');
+        this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
         // Naviguer vers le lobby
-        this.router.navigate(['/play'], { replaceUrl: true });
-
-        // Remettre le flag à false après navigation
-        setTimeout(() => {
+        this.router.navigate(['/play'], { replaceUrl: true }).then(() => {
+            // Remettre le flag à false après navigation réussie
             this.isLeavingGame = false;
-        }, 100);
-    }
-
-    private startRedirectCountdown() {
-        this.redirectCountdown = 5;
-        this.redirectTimer = setInterval(() => {
-            this.redirectCountdown--;
-            if (this.redirectCountdown === 0) {
-                this.backToLobby();
-                clearInterval(this.redirectTimer);
-            }
-        }, 1000);
-    }
-
-    cancelRedirect() {
-        if (this.redirectTimer) {
-            clearInterval(this.redirectTimer);
-            this.redirectCountdown = 0;
-        }
+        });
     }
 
     getStatusColor(status: string): string {
@@ -411,33 +473,5 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
 
     goHome(): void {
         this.router.navigate(['/']);
-    }
-
-    /**
-     * Méthodes de debug pour diagnostiquer les problèmes
-     */
-    logGameState(): void {
-        console.log('🔍 === GAME STATE DEBUG ===');
-        console.log('🔍 gameId:', this.gameId);
-        console.log('🔍 currentGame:', this.currentGame);
-        console.log('🔍 currentPosition:', this.currentPosition());
-        console.log('🔍 isLeavingGame:', this.isLeavingGame);
-        console.log('🔍 isPlayerTurn:', this.isPlayerTurn());
-        console.log('🔍 getCurrentPlayerInfo:', this.getCurrentPlayerInfo());
-        console.log('🔍 === END DEBUG ===');
-    }
-
-    /**
-     * Forcer la réinitialisation des listeners (pour debug)
-     */
-    forceReloadListeners(): void {
-        console.log('🔄 Forcing reload of multiplayer listeners');
-        // Le service se réinitialisera automatiquement grâce au listener d'auth
-        this.multiplayerService.goOffline().then(() => {
-            // Attendre un petit délai puis se reconnecter
-            setTimeout(() => {
-                location.reload(); // Solution simple pour forcer la réinitialisation
-            }, 1000);
-        });
     }
 } 

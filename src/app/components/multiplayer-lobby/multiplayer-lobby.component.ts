@@ -80,7 +80,7 @@ export class MultiplayerLobbyComponent implements OnInit, OnDestroy {
                 if (game && !this.isRedirecting) {
                     this.isRedirecting = true;
                     console.log('Redirection vers la partie:', game.id);
-                    this.router.navigate(['/play/multiplayer', game.id]);
+                    this.router.navigate(['/play/game', game.id]);
                 }
             })
         );

@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, ref, push, set, onValue, off } from '@angular/fire/database';
+import { Database, ref, push, set, onValue, off, get } from '@angular/fire/database';
 import { AuthService } from './auth.service';
 import { GameState, OnlinePlayer, GameMove, Challenge } from '../models/game.model';
-import { BehaviorSubject, timer } from 'rxjs';
+import { BehaviorSubject, timer, Observable, of } from 'rxjs';
+import { filter, take, timeout, catchError } from 'rxjs/operators';
 // import { Chess } from 'chess.js'; // Temporairement commenté
 
 @Injectable({
@@ -20,6 +21,10 @@ export class MultiplayerService {
 
     private challengesSubject = new BehaviorSubject<Challenge[]>([]);
     public challenges$ = this.challengesSubject.asObservable();
+
+    // Observable pour indiquer si le service est initialisé
+    private isInitializedSubject = new BehaviorSubject<boolean>(false);
+    public isInitialized$ = this.isInitializedSubject.asObservable();
 
     // Changement : stocker les fonctions de nettoyage au lieu des listeners
     private playersUnsubscribe: (() => void) | null = null;
@@ -51,6 +56,7 @@ export class MultiplayerService {
     private initializeForUser(): void {
         console.log('🏗️ initializeForUser called');
         this.isInitialized = true;
+        this.isInitializedSubject.next(true);
         this.initializePresence();
         this.listenToOnlinePlayers();
         this.listenToChallenges();
@@ -63,6 +69,7 @@ export class MultiplayerService {
     private cleanup(): void {
         console.log('🏗️ cleanup called');
         this.isInitialized = false;
+        this.isInitializedSubject.next(false);
 
         // Arrêter le heartbeat
         if (this.heartbeatInterval) {
@@ -361,16 +368,16 @@ export class MultiplayerService {
         const gameRef = ref(this.database, `games/${gameId}`);
         console.log('🔍 Created gameRef');
 
-        this.gameUnsubscribe = onValue(gameRef, (snapshot) => {
-            console.log('🔍 onValue callback triggered');
+        // D'abord récupérer l'état actuel de la partie immédiatement
+        get(gameRef).then((snapshot) => {
+            console.log('🔍 Initial get() snapshot received');
 
             if (snapshot.exists()) {
-                console.log('🔍 Snapshot exists, getting raw data...');
+                console.log('🔍 Initial snapshot exists, getting raw data...');
                 const rawData = snapshot.val();
-                console.log('🔍 Raw data:', rawData);
+                console.log('🔍 Initial raw data:', rawData);
 
-                // Nettoyer les données pour éviter les objets chess.js sérialisés
-                console.log('🔍 Creating clean game data...');
+                // Nettoyer les données
                 const cleanGameData: GameState = {
                     id: gameId,
                     players: rawData.players || {},
@@ -384,11 +391,47 @@ export class MultiplayerService {
                     endReason: rawData.endReason
                 };
 
-                console.log('🔍 About to call currentGameSubject.next with:', cleanGameData);
+                console.log('🔍 Initial state loaded, calling currentGameSubject.next with:', cleanGameData);
                 this.currentGameSubject.next(cleanGameData);
-                console.log('🔍 currentGameSubject.next completed successfully');
+                console.log('🔍 Initial state set successfully');
             } else {
-                console.log('🔍 Snapshot does not exist, setting to null');
+                console.log('🔍 Initial snapshot does not exist, setting to null');
+                this.currentGameSubject.next(null);
+            }
+        }).catch(error => {
+            console.error('🔍 Error getting initial game state:', error);
+            this.currentGameSubject.next(null);
+        });
+
+        // Puis écouter les changements en temps réel
+        this.gameUnsubscribe = onValue(gameRef, (snapshot) => {
+            console.log('🔍 onValue callback triggered for changes');
+
+            if (snapshot.exists()) {
+                console.log('🔍 Change snapshot exists, getting raw data...');
+                const rawData = snapshot.val();
+                console.log('🔍 Change raw data:', rawData);
+
+                // Nettoyer les données pour éviter les objets chess.js sérialisés
+                console.log('🔍 Creating clean game data for change...');
+                const cleanGameData: GameState = {
+                    id: gameId,
+                    players: rawData.players || {},
+                    status: rawData.status || 'active',
+                    currentTurn: rawData.currentTurn || 'white',
+                    moves: rawData.moves || [],
+                    currentFen: rawData.currentFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                    createdAt: rawData.createdAt || Date.now(),
+                    updatedAt: rawData.updatedAt || Date.now(),
+                    winner: rawData.winner,
+                    endReason: rawData.endReason
+                };
+
+                console.log('🔍 About to call currentGameSubject.next for change with:', cleanGameData);
+                this.currentGameSubject.next(cleanGameData);
+                console.log('🔍 Change applied successfully');
+            } else {
+                console.log('🔍 Change snapshot does not exist, setting to null');
                 this.currentGameSubject.next(null);
             }
         });
@@ -597,5 +640,44 @@ export class MultiplayerService {
                 });
             }
         });
+    }
+
+    /**
+     * Écouter une partie et retourner un Observable qui émet quand la partie est disponible
+     */
+    waitForGame(gameId: string): Observable<GameState | null> {
+        console.log('🔍 waitForGame called with gameId:', gameId);
+
+        // D'abord vérifier si la partie est déjà chargée
+        const currentGame = this.currentGameSubject.value;
+        if (currentGame && currentGame.id === gameId) {
+            console.log('🔍 Game already loaded, returning immediately');
+            return of(currentGame);
+        }
+
+        // Sinon, commencer à écouter la partie
+        console.log('🔍 Starting to listen to game:', gameId);
+        this.listenToGame(gameId);
+
+        // Retourner un observable qui attend que la partie soit disponible
+        return this.currentGame$.pipe(
+            // Prendre les émissions jusqu'à ce qu'on trouve la bonne partie ou timeout
+            filter(game => {
+                const isTargetGame = game !== null && game.id === gameId;
+                if (isTargetGame) {
+                    console.log('🔍 Target game found:', gameId);
+                }
+                return isTargetGame;
+            }),
+            // Prendre seulement la première partie correspondante
+            take(1),
+            // Timeout après 8 secondes (plus de temps pour Firebase)
+            timeout(8000),
+            // En cas de timeout ou erreur, retourner null
+            catchError(error => {
+                console.error('🔍 Error or timeout waiting for game:', gameId, error.message);
+                return of(null);
+            })
+        );
     }
 } 

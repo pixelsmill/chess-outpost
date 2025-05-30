@@ -136,20 +136,6 @@
               {{ getGameStatus() }}
             </h4>
 
-            <!-- Compteur de redirection -->
-            <div class="redirect-countdown" *ngIf="redirectCountdown > 0">
-              <p>Returning to lobby in {{ redirectCountdown }}s</p>
-              <div class="countdown-bar">
-                <div
-                  class="countdown-progress"
-                  [style.width.%]="(5 - redirectCountdown) * 20"
-                ></div>
-              </div>
-              <button class="cancel-btn" (click)="cancelRedirect()">
-                Stay
-              </button>
-            </div>
-
             <!-- Boutons de partie -->
             <div class="game-actions">
               <button
@@ -166,41 +152,7 @@
                 (click)="backToLobby()"
                 *ngIf="isGameFinished()"
               >
-                Back to Lobby
-              </button>
-
-              <!-- Bouton de debug temporaire -->
-              <button
-                class="debug-btn"
-                (click)="logGameState()"
-                style="
-                  background: #666;
-                  border: 1px solid #888;
-                  color: white;
-                  padding: 0.5rem;
-                  margin-top: 0.5rem;
-                  font-size: 0.8rem;
-                  width: 100%;
-                "
-              >
-                Debug State
-              </button>
-
-              <!-- Bouton pour forcer la réinitialisation -->
-              <button
-                class="reload-btn"
-                (click)="forceReloadListeners()"
-                style="
-                  background: #f59e0b;
-                  border: 1px solid #d97706;
-                  color: white;
-                  padding: 0.5rem;
-                  margin-top: 0.5rem;
-                  font-size: 0.8rem;
-                  width: 100%;
-                "
-              >
-                🔄 Reload Listeners
+                New Game
               </button>
             </div>
           </div>
