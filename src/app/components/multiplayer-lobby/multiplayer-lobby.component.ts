@@ -6,6 +6,8 @@ import { MultiplayerService } from '../../services/multiplayer.service';
 import { AuthService } from '../../services/auth.service';
 import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
 import { Subscription } from 'rxjs';
+import { User } from '@angular/fire/auth';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-multiplayer-lobby',
@@ -19,6 +21,7 @@ export class MultiplayerLobbyComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
 
+    user$: Observable<User | null> = this.authService.user$;
     onlinePlayers: OnlinePlayer[] = [];
     currentGame: GameState | null = null;
     challenges: Challenge[] = [];
@@ -31,9 +34,14 @@ export class MultiplayerLobbyComponent implements OnInit, OnDestroy {
     private subscriptions: Subscription[] = [];
 
     ngOnInit() {
-        this.loadOnlinePlayers();
-        this.loadChallenges();
-        this.listenToCurrentGame();
+        // Charger les données seulement si l'utilisateur est connecté
+        this.user$.subscribe(user => {
+            if (user) {
+                this.loadOnlinePlayers();
+                this.loadChallenges();
+                this.listenToCurrentGame();
+            }
+        });
     }
 
     ngOnDestroy() {
@@ -76,6 +84,17 @@ export class MultiplayerLobbyComponent implements OnInit, OnDestroy {
                 }
             })
         );
+    }
+
+    /**
+     * Se connecter avec Google
+     */
+    async signInWithGoogle() {
+        try {
+            await this.authService.loginWithGoogle();
+        } catch (error) {
+            console.error('Erreur lors de la connexion:', error);
+        }
     }
 
     /**

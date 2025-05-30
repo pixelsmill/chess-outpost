@@ -25,6 +25,97 @@
   }
 }
 
+/* Section d'authentification pour utilisateurs non connectés */
+.auth-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 2rem;
+
+  .auth-message {
+    max-width: 600px;
+    text-align: center;
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 2rem;
+
+      h2 {
+        color: #ffd700;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin-bottom: 2rem;
+        opacity: 0.8;
+        line-height: 1.6;
+      }
+
+      .btn-google {
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover {
+          background: linear-gradient(135deg, #3367d6, #2d8f47);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(66, 133, 244, 0.3);
+        }
+      }
+    }
+
+    .features {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
+      h3 {
+        color: #ffd700;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+
+        li {
+          padding: 0.5rem 0;
+          opacity: 0.8;
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}
+
 /* Section des défis reçus */
 .challenges-section {
   margin-bottom: 2rem;

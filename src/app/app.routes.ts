@@ -8,7 +8,7 @@ import { authGuard } from './guards/auth.guard';
 export const routes: Routes = [
     { path: '', component: HomeComponent },
     { path: 'analyze', component: AnalyzeComponent },
-    { path: 'multiplayer', component: MultiplayerLobbyComponent, canActivate: [authGuard] },
+    { path: 'play', component: MultiplayerLobbyComponent },
     { path: 'play/multiplayer/:gameId', component: MultiplayerGameComponent, canActivate: [authGuard] },
     { path: '**', redirectTo: '' } // Redirection pour les routes inconnues
 ];
