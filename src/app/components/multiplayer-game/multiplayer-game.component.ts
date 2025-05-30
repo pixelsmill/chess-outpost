@@ -7,12 +7,11 @@ import { AuthService } from '../../services/auth.service';
 import { GameState } from '../../models/game.model';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
-import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
 import { Chess } from 'chess.js';
 
-type BackgroundType = 'classic' | 'heatmap' | 'topographic';
+type BackgroundType = 'heatmap' | 'topographic';
 
 @Component({
   selector: 'app-multiplayer-game',
@@ -21,7 +20,6 @@ type BackgroundType = 'classic' | 'heatmap' | 'topographic';
     CommonModule,
     EchiquierComponent,
     BoardWrapperComponent,
-    ClassicBoardComponent,
     HeatmapBoardComponent,
     TopographicBoardComponent
   ],
@@ -38,10 +36,10 @@ export class MultiplayerGameComponent implements OnInit, OnDestroy {
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
   // Signal pour le background sélectionné
-  selectedBackground = signal<BackgroundType>('classic');
+  selectedBackground = signal<BackgroundType>('heatmap');
 
-  // Signal pour la luminosité de l'échiquier (0 = noir, 100 = blanc)
-  brightness = signal(50);
+  // Signal pour la luminosité de l'échiquier fixée à 25%
+  brightness = signal(25);
 
   gameId: string | null = null;
   currentGame: GameState | null = null;
@@ -300,10 +298,6 @@ export class MultiplayerGameComponent implements OnInit, OnDestroy {
    */
   setBackground(background: BackgroundType): void {
     this.selectedBackground.set(background);
-  }
-
-  setBrightness(value: number): void {
-    this.brightness.set(value);
   }
 
   getBoardBackgroundColor(): string {

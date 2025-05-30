@@ -16,11 +16,10 @@ import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
 // Components
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
-import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
 
-type BackgroundType = 'classic' | 'heatmap' | 'topographic';
+type BackgroundType = 'heatmap' | 'topographic';
 
 @Component({
     selector: 'app-play',
@@ -30,7 +29,6 @@ type BackgroundType = 'classic' | 'heatmap' | 'topographic';
         FormsModule,
         EchiquierComponent,
         BoardWrapperComponent,
-        ClassicBoardComponent,
         HeatmapBoardComponent,
         TopographicBoardComponent
     ],
@@ -44,7 +42,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
 
     // Signaux pour l'échiquier
-    selectedBackground = signal<BackgroundType>('classic');
+    selectedBackground = signal<BackgroundType>('heatmap');
     brightness = signal<number>(25);
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 

@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
-import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
 import { ChessService } from '../../services/chess.service';
 import { Chess } from 'chess.js';
 
-type BackgroundType = 'classic' | 'heatmap' | 'topographic';
+type BackgroundType = 'heatmap' | 'topographic';
 type AnalysisMode = 'free' | 'pgn';
 
 @Component({
@@ -22,7 +21,6 @@ type AnalysisMode = 'free' | 'pgn';
     RouterModule,
     EchiquierComponent,
     BoardWrapperComponent,
-    ClassicBoardComponent,
     HeatmapBoardComponent,
     TopographicBoardComponent
   ],
@@ -39,7 +37,7 @@ export class AnalyzeComponent implements OnInit {
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
   // Signal pour le background sélectionné
-  selectedBackground = signal<BackgroundType>('classic');
+  selectedBackground = signal<BackgroundType>('heatmap');
 
   // Signal pour la luminosité de l'échiquier fixée à 25%
   brightness = signal(25);

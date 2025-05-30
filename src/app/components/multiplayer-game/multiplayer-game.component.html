@@ -10,14 +10,6 @@
       <div *ngIf="currentGame" class="game-board">
         <!-- Échiquier avec background dynamique -->
         <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
-          <!-- Background classique -->
-          @if (selectedBackground() === 'classic') {
-          <app-classic-board
-            [position]="currentPosition()"
-            [orientation]="getBoardOrientation()"
-          ></app-classic-board>
-          }
-
           <!-- Background heatmap -->
           @if (selectedBackground() === 'heatmap') {
           <app-heatmap-board
@@ -94,13 +86,6 @@
           <div class="bg-buttons">
             <button
               class="bg-btn-vertical"
-              [class.active]="selectedBackground() === 'classic'"
-              (click)="setBackground('classic')"
-            >
-              Classique
-            </button>
-            <button
-              class="bg-btn-vertical"
               [class.active]="selectedBackground() === 'heatmap'"
               (click)="setBackground('heatmap')"
             >
@@ -113,26 +98,6 @@
             >
               Topographique
             </button>
-          </div>
-        </div>
-
-        <!-- Contrôle de luminosité -->
-        <div class="brightness-control">
-          <h3>Luminosité de l'échiquier</h3>
-          <div class="brightness-slider-container">
-            <div class="brightness-labels">
-              <span class="label-dark">🌑</span>
-              <span class="brightness-value">{{ brightness() }}%</span>
-              <span class="label-light">☀️</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              [value]="brightness()"
-              (input)="setBrightness($any($event.target).value)"
-              class="brightness-slider"
-            />
           </div>
         </div>
 

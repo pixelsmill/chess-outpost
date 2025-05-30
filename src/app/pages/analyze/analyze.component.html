@@ -4,11 +4,6 @@
     <div class="game-board">
       <!-- Échiquier avec background dynamique -->
       <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
-        <!-- Background classique -->
-        @if (selectedBackground() === 'classic') {
-        <app-classic-board [position]="currentPosition()"></app-classic-board>
-        }
-
         <!-- Background heatmap -->
         @if (selectedBackground() === 'heatmap') {
         <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
@@ -169,13 +164,6 @@
       <div class="background-selector-vertical">
         <h3>Type d'affichage</h3>
         <div class="bg-buttons">
-          <button
-            class="bg-btn-vertical"
-            [class.active]="selectedBackground() === 'classic'"
-            (click)="setBackground('classic')"
-          >
-            Classique
-          </button>
           <button
             class="bg-btn-vertical"
             [class.active]="selectedBackground() === 'heatmap'"
