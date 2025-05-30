@@ -61,18 +61,3 @@
   background: white;
   position: relative;
 }
-
-// Responsive design
-@media (max-width: 768px) {
-  .board {
-    grid-template-columns: repeat(8, 45px);
-    grid-template-rows: repeat(8, 45px);
-  }
-
-  .coordinates-left .coord-number,
-  .coordinates-bottom .coord-letter {
-    height: 45px;
-    width: 45px;
-    font-size: 0.8rem;
-  }
-}

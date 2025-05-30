@@ -122,30 +122,3 @@
     }
   }
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .home-container {
-    padding: 1rem;
-  }
-
-  .main-content {
-    .hero h1 {
-      font-size: 2.2rem;
-      letter-spacing: 2px;
-    }
-
-    .main-menu .menu-nav .menu-list .menu-item .menu-link {
-      padding: 1rem 1.5rem;
-      font-size: 1rem;
-
-      .menu-number {
-        margin-right: 1rem;
-      }
-    }
-
-    & > div:has(img) img {
-      max-width: 150px;
-    }
-  }
-}

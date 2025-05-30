@@ -89,18 +89,3 @@
     z-index: 1;
   }
 }
-
-// Responsive design
-@media (max-width: 768px) {
-  .coordinates-left .coord-number,
-  .coordinates-bottom .coord-letter {
-    height: 45px;
-    width: 45px;
-    font-size: 0.8rem;
-  }
-
-  .layers {
-    width: 360px;
-    height: 360px;
-  }
-}

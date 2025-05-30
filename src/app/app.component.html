@@ -37,10 +37,7 @@
       </ul>
     </div>
 
-    <!-- Section d'authentification -->
-    <div class="nav-auth">
-      <app-auth></app-auth>
-    </div>
+    &nbsp;
   </nav>
 
   <!-- Menu mobile (visible seulement quand ouvert) -->
@@ -48,13 +45,22 @@
     <ul class="mobile-nav-list">
       <li class="mobile-nav-item">
         <a
+          routerLink="/"
+          routerLinkActive="active"
+          class="mobile-nav-link"
+          (click)="closeMobileMenu()"
+        >
+          Outpost
+        </a>
+      </li>
+      <li class="mobile-nav-item">
+        <a
           routerLink="/analyze"
           routerLinkActive="active"
           class="mobile-nav-link"
           (click)="closeMobileMenu()"
         >
-          <span class="mobile-nav-icon">📊</span>
-          <span class="mobile-nav-text">Analyse</span>
+          Analyser
         </a>
       </li>
       <li class="mobile-nav-item">
@@ -64,8 +70,7 @@
           class="mobile-nav-link"
           (click)="closeMobileMenu()"
         >
-          <span class="mobile-nav-icon">⚔️</span>
-          <span class="mobile-nav-text">Jouer</span>
+          Jouer
         </a>
       </li>
     </ul>

@@ -21,16 +21,24 @@
   align-items: center;
   padding: 2rem;
   overflow: hidden;
+  min-height: 0; /* Important pour éviter les problèmes de flex */
   
   .game-board {
-    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     
-    /* Taille adaptative pour l'échiquier */
-    max-width: min(80vh, 80vw);
-    max-height: 80vh;
+    /* Assurer un centrage parfait même en espace réduit */
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    
+    /* L'échiquier lui-même avec ses contraintes de taille */
+    app-board-wrapper {
+      flex-shrink: 0; /* Empêcher la compression */
+    }
   }
 }
 
@@ -257,30 +265,3 @@
   }
 }
 
-@media (max-width: 768px) {
-  .board-section {
-    padding: 0.5rem;
-    
-    .game-board {
-      padding: 1rem;
-      max-width: 95vw;
-      max-height: 60vh;
-    }
-  }
-
-  .panel-content {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .panel-content {
-    padding: 0.8rem;
-  }
-
-  .board-section .game-board {
-    padding: 0.8rem;
-    max-width: 98vw;
-    max-height: 55vh;
-  }
-} 

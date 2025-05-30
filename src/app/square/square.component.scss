@@ -142,21 +142,3 @@
     transform: scale(1.05);
   }
 }
-
-// Responsive design
-@media (max-width: 768px) {
-  .square {
-    width: 45px;
-    height: 45px;
-  }
-
-  .piece-image {
-    width: 70%;
-    height: 70%;
-  }
-
-  .control-indicator .control-value {
-    font-size: 0.6rem;
-    padding: 1px 3px;
-  }
-}

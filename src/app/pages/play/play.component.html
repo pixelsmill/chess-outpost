@@ -45,7 +45,7 @@
     <div class="panel-content">
       <!-- Corps principal de la sidebar -->
       <div class="sidebar-body">
-        <!-- Panel de connexion si utilisateur non connecté -->
+        <!-- Panel utilisateur connecté ou connexion -->
         @if (!(user$ | async)) {
         <div class="auth-card">
           <h3>Connexion requise</h3>
@@ -57,8 +57,31 @@
           </button>
         </div>
         } @else {
-
-        <!-- Contenu pour utilisateur connecté -->
+        <div class="user-card">
+          <h3>Joueur connecté</h3>
+          <div class="user-info">
+            <img
+              [src]="
+                authService.getCurrentUser()?.photoURL ||
+                '/assets/default-avatar.png'
+              "
+              [alt]="authService.getCurrentUser()?.displayName || 'Utilisateur'"
+              class="user-avatar"
+            />
+            <div class="user-details">
+              <h4>
+                {{ authService.getCurrentUser()?.displayName || "Utilisateur" }}
+              </h4>
+              <p class="user-email">
+                {{ authService.getCurrentUser()?.email }}
+              </p>
+            </div>
+          </div>
+          <button class="logout-btn" (click)="authService.logout()">
+            Déconnexion
+          </button>
+        </div>
+        }
 
         <!-- Partie en cours -->
         @if (currentGame) {
@@ -248,7 +271,7 @@
           </div>
         </div>
 
-        } }
+        }
       </div>
 
       <!-- Pied de sidebar -->
