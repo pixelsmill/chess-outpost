@@ -300,6 +300,12 @@ export class MultiplayerGameComponent implements OnInit, OnDestroy {
     this.selectedBackground.set(background);
   }
 
+  toggleExperimentalMode(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const isExperimental = target.checked;
+    this.selectedBackground.set(isExperimental ? 'topographic' : 'heatmap');
+  }
+
   getBoardBackgroundColor(): string {
     const brightnessValue = this.brightness();
     // Convertir la valeur 0-100 en couleur RGB (0,0,0) à (255,255,255)

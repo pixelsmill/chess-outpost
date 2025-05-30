@@ -160,24 +160,19 @@
       </div>
       }
 
-      <!-- Sélecteur de type d'affichage (commun aux deux modes) -->
-      <div class="background-selector-vertical">
-        <h3>Type d'affichage</h3>
-        <div class="bg-buttons">
-          <button
-            class="bg-btn-vertical"
-            [class.active]="selectedBackground() === 'heatmap'"
-            (click)="setBackground('heatmap')"
-          >
-            Territorial
-          </button>
-          <button
-            class="bg-btn-vertical"
-            [class.active]="selectedBackground() === 'topographic'"
-            (click)="setBackground('topographic')"
-          >
-            Topographique
-          </button>
+      <!-- Toggle experimental -->
+      <div class="experimental-toggle">
+        <h3>Mode d'affichage</h3>
+        <div class="toggle-container">
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="selectedBackground() === 'topographic'"
+              (change)="toggleExperimentalMode($event)"
+            />
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Experimental</span>
         </div>
       </div>
     </div>
