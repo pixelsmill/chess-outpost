@@ -48,37 +48,35 @@
         <!-- Panel utilisateur connecté ou connexion -->
         @if (!(user$ | async)) {
         <div class="auth-card">
-          <h3>Connexion requise</h3>
+          <h3>Login Required</h3>
           <div class="login-message">
-            Connectez-vous avec votre compte Google pour jouer en multijoueur
+            Sign in with your Google account to play multiplayer
           </div>
           <button class="google-login-btn" (click)="signInWithGoogle()">
-            Se connecter avec Google
+            Sign in with Google
           </button>
         </div>
         } @else {
         <div class="user-card">
-          <h3>Joueur connecté</h3>
+          <h3>Logged in Player</h3>
           <div class="user-info">
             <img
               [src]="
                 authService.getCurrentUser()?.photoURL ||
                 '/assets/default-avatar.png'
               "
-              [alt]="authService.getCurrentUser()?.displayName || 'Utilisateur'"
+              [alt]="authService.getCurrentUser()?.displayName || 'User'"
               class="user-avatar"
             />
             <div class="user-details">
-              <h4>
-                {{ authService.getCurrentUser()?.displayName || "Utilisateur" }}
-              </h4>
+              <h4>{{ authService.getCurrentUser()?.displayName || "User" }}</h4>
               <p class="user-email">
                 {{ authService.getCurrentUser()?.email }}
               </p>
             </div>
           </div>
           <button class="logout-btn" (click)="authService.logout()">
-            Déconnexion
+            Sign Out
           </button>
         </div>
         }
@@ -86,7 +84,7 @@
         <!-- Partie en cours -->
         @if (currentGame) {
         <div class="current-game-card">
-          <h3>Partie en cours</h3>
+          <h3>Current Game</h3>
 
           <!-- Informations des joueurs -->
           <div class="players-info">
@@ -101,7 +99,7 @@
                 <h4>{{ opponent.displayName }}</h4>
                 <div class="player-color">
                   <span class="color-indicator" [class]="opponent.color"></span>
-                  {{ opponent.color === "white" ? "Blancs" : "Noirs" }}
+                  {{ opponent.color === "white" ? "White" : "Black" }}
                 </div>
               </div>
             </div>
@@ -120,10 +118,10 @@
                 class="player-avatar"
               />
               <div class="player-details">
-                <h4>{{ player.displayName }} (Vous)</h4>
+                <h4>{{ player.displayName }} (You)</h4>
                 <div class="player-color">
                   <span class="color-indicator" [class]="player.color"></span>
-                  {{ player.color === "white" ? "Blancs" : "Noirs" }}
+                  {{ player.color === "white" ? "White" : "Black" }}
                 </div>
               </div>
             </div>
@@ -140,7 +138,7 @@
 
             <!-- Compteur de redirection -->
             <div class="redirect-countdown" *ngIf="redirectCountdown > 0">
-              <p>Retour au lobby dans {{ redirectCountdown }}s</p>
+              <p>Returning to lobby in {{ redirectCountdown }}s</p>
               <div class="countdown-bar">
                 <div
                   class="countdown-progress"
@@ -148,7 +146,7 @@
                 ></div>
               </div>
               <button class="cancel-btn" (click)="cancelRedirect()">
-                Rester
+                Stay
               </button>
             </div>
 
@@ -160,7 +158,7 @@
                 [disabled]="isGameFinished() || isResigning"
                 *ngIf="!isGameFinished()"
               >
-                {{ isResigning ? "..." : "Abandonner" }}
+                {{ isResigning ? "..." : "Resign" }}
               </button>
 
               <button
@@ -168,7 +166,7 @@
                 (click)="backToLobby()"
                 *ngIf="isGameFinished()"
               >
-                Retour au lobby
+                Back to Lobby
               </button>
             </div>
           </div>
@@ -178,7 +176,7 @@
         <!-- Défis reçus -->
         @if (challenges.length > 0) {
         <div class="challenges-card">
-          <h3>Défis reçus</h3>
+          <h3>Received Challenges</h3>
           <div class="challenges-list">
             <div *ngFor="let challenge of challenges" class="challenge-item">
               <div class="challenger-info">
@@ -189,18 +187,18 @@
                 />
                 <div class="challenger-details">
                   <h4>{{ challenge.from.displayName }}</h4>
-                  <p>vous défie</p>
+                  <p>challenges you</p>
                 </div>
               </div>
               <div class="challenge-actions">
                 <button class="accept-btn" (click)="acceptChallenge(challenge)">
-                  Accepter
+                  Accept
                 </button>
                 <button
                   class="decline-btn"
                   (click)="declineChallenge(challenge)"
                 >
-                  Refuser
+                  Decline
                 </button>
               </div>
             </div>
@@ -210,26 +208,26 @@
 
         <!-- Partie rapide -->
         <div class="quick-match-card">
-          <h3>Partie rapide</h3>
+          <h3>Quick Match</h3>
           <button
             class="quick-match-btn"
             (click)="quickMatch()"
             [disabled]="isQuickMatching || onlinePlayers.length === 0"
           >
-            <span *ngIf="!isQuickMatching">Partie Rapide</span>
-            <span *ngIf="isQuickMatching">Recherche...</span>
+            <span *ngIf="!isQuickMatching">Quick Match</span>
+            <span *ngIf="isQuickMatching">Searching...</span>
           </button>
           <p class="hint" *ngIf="onlinePlayers.length === 0">
-            Aucun joueur disponible
+            No players available
           </p>
         </div>
 
         <!-- Joueurs en ligne -->
         <div class="players-card">
-          <h3>Joueurs disponibles ({{ onlinePlayers.length }})</h3>
+          <h3>Available Players ({{ onlinePlayers.length }})</h3>
 
           <div *ngIf="onlinePlayers.length === 0" class="no-players">
-            <p>Aucun joueur connecté</p>
+            <p>No players online</p>
           </div>
 
           <div class="players-list">
@@ -263,8 +261,12 @@
                     challengingPlayer === player.uid
                   "
                 >
-                  <span *ngIf="challengingPlayer !== player.uid">Défier</span>
-                  <span *ngIf="challengingPlayer === player.uid">Envoi...</span>
+                  <span *ngIf="challengingPlayer !== player.uid"
+                    >Challenge</span
+                  >
+                  <span *ngIf="challengingPlayer === player.uid"
+                    >Sending...</span
+                  >
                 </button>
               </div>
             </div>

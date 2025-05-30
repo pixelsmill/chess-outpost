@@ -145,7 +145,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   getCurrentTurn(): string {
-    return this.chess.turn() === 'w' ? 'Blancs' : 'Noirs';
+    return this.chess.turn() === 'w' ? 'White' : 'Black';
   }
 
   isGameOver(): boolean {
@@ -154,18 +154,18 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
   getGameStatus(): string {
     if (this.chess.isCheckmate()) {
-      return `Échec et mat ! ${this.chess.turn() === 'w' ? 'Noirs' : 'Blancs'} gagnent`;
+      return `Checkmate! ${this.chess.turn() === 'w' ? 'Black' : 'White'} wins`;
     }
+
     if (this.chess.isStalemate()) {
-      return 'Pat - Match nul';
+      return 'Stalemate!';
     }
+
     if (this.chess.isDraw()) {
-      return 'Match nul';
+      return 'Draw!';
     }
-    if (this.chess.isCheck()) {
-      return `Échec au roi ${this.getCurrentTurn()}`;
-    }
-    return `Tour des ${this.getCurrentTurn()}`;
+
+    return `${this.getCurrentTurn()} to move`;
   }
 
   getSquareTooltip(square: ChessSquare): string {

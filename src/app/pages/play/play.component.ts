@@ -146,10 +146,10 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isQuickMatching = true;
         try {
             const challengeId = await this.multiplayerService.quickMatch();
-            console.log('Partie rapide lancée:', challengeId);
+            console.log('Quick match started:', challengeId);
         } catch (error) {
-            console.error('Erreur lors de la partie rapide:', error);
-            alert('Aucun joueur disponible pour le moment');
+            console.error('Error during quick match:', error);
+            alert('No players available at the moment');
         } finally {
             this.isQuickMatching = false;
         }
@@ -159,9 +159,9 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         this.challengingPlayer = player.uid;
         try {
             const challengeId = await this.multiplayerService.challengePlayer(player);
-            console.log('Défi envoyé:', challengeId);
+            console.log('Challenge sent:', challengeId);
         } catch (error) {
-            console.error('Erreur lors du défi:', error);
+            console.error('Error sending challenge:', error);
         } finally {
             this.challengingPlayer = null;
         }
@@ -170,9 +170,9 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     async acceptChallenge(challenge: Challenge) {
         try {
             const gameId = await this.multiplayerService.acceptChallenge(challenge.id);
-            console.log('Défi accepté, partie créée:', gameId);
+            console.log('Challenge accepted, game created:', gameId);
         } catch (error) {
-            console.error('Erreur lors de l\'acceptation du défi:', error);
+            console.error('Error accepting challenge:', error);
         }
     }
 
@@ -180,7 +180,7 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         try {
             await this.multiplayerService.declineChallenge(challenge.id);
         } catch (error) {
-            console.error('Erreur lors du refus du défi:', error);
+            console.error('Error declining challenge:', error);
         }
     }
 
@@ -218,33 +218,33 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     getGameStatus(): string {
-        if (!this.currentGame) return 'Chargement...';
+        if (!this.currentGame) return 'Loading...';
 
         const playerInfo = this.getCurrentPlayerInfo();
-        if (!playerInfo) return 'Erreur';
+        if (!playerInfo) return 'Error';
 
         if (this.currentGame.status === 'finished') {
             if (this.currentGame.winner === 'draw') {
-                return `Match nul (${this.getEndReasonText()})`;
+                return `Draw (${this.getEndReasonText()})`;
             } else if (this.currentGame.winner === playerInfo.color) {
-                return `Vous avez gagné ! (${this.getEndReasonText()})`;
+                return `You won! (${this.getEndReasonText()})`;
             } else {
-                return `Vous avez perdu (${this.getEndReasonText()})`;
+                return `You lost (${this.getEndReasonText()})`;
             }
         }
 
-        return playerInfo.isCurrentTurn ? 'À votre tour' : 'Tour de l\'adversaire';
+        return playerInfo.isCurrentTurn ? 'Your turn' : 'Opponent\'s turn';
     }
 
     private getEndReasonText(): string {
         if (!this.currentGame) return '';
 
         switch (this.currentGame.endReason) {
-            case 'checkmate': return 'Mat';
-            case 'resignation': return 'Abandon';
-            case 'timeout': return 'Temps écoulé';
-            case 'stalemate': return 'Pat';
-            case 'draw_agreement': return 'Nulle';
+            case 'checkmate': return 'Checkmate';
+            case 'resignation': return 'Resignation';
+            case 'timeout': return 'Time out';
+            case 'stalemate': return 'Stalemate';
+            case 'draw_agreement': return 'Draw agreement';
             default: return '';
         }
     }
@@ -269,7 +269,7 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         try {
             await this.multiplayerService.makeMove(this.gameId, move);
         } catch (error) {
-            console.error('Erreur lors du coup:', error);
+            console.error('Error making move:', error);
             this.currentPosition.set(this.currentGame.currentFen);
         }
     }
@@ -277,14 +277,14 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
     async resignGame(): Promise<void> {
         if (!this.gameId || this.isResigning) return;
 
-        const confirmResign = confirm('Êtes-vous sûr de vouloir abandonner cette partie ?');
+        const confirmResign = confirm('Are you sure you want to resign this game?');
         if (!confirmResign) return;
 
         this.isResigning = true;
         try {
             await this.multiplayerService.resignGame(this.gameId);
         } catch (error) {
-            console.error('Erreur lors de l\'abandon:', error);
+            console.error('Error resigning game:', error);
             this.isResigning = false;
         }
     }
@@ -326,10 +326,10 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
 
     getStatusLabel(status: string): string {
         switch (status) {
-            case 'available': return 'Disponible';
-            case 'in_game': return 'En partie';
-            case 'away': return 'Absent';
-            default: return 'Hors ligne';
+            case 'available': return 'Available';
+            case 'in_game': return 'In game';
+            case 'away': return 'Away';
+            default: return 'Offline';
         }
     }
 

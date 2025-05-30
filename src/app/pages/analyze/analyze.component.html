@@ -38,21 +38,21 @@
       <div class="sidebar-body">
         <!-- Sélecteur de mode d'analyse -->
         <div class="mode-selector-card">
-          <h3>Mode d'analyse</h3>
+          <h3>Analysis Mode</h3>
           <div class="mode-buttons">
             <button
               class="mode-btn"
               [class.active]="isFreeMoveEnabled()"
               (click)="setAnalysisMode('free')"
             >
-              Mode libre
+              Free Mode
             </button>
             <button
               class="mode-btn"
               [class.active]="isPgnMode()"
               (click)="setAnalysisMode('pgn')"
             >
-              Mode PGN
+              PGN Mode
             </button>
           </div>
         </div>
@@ -60,14 +60,14 @@
         <!-- Zone de chargement PGN (mode PGN seulement) -->
         @if (isPgnMode() && !isNavigationMode()) {
         <div class="pgn-input-card">
-          <h3>Charger une partie</h3>
+          <h3>Load a Game</h3>
           <textarea
             [(ngModel)]="pgnText"
-            placeholder="Collez votre PGN ici..."
+            placeholder="Paste your PGN here..."
             class="pgn-textarea-compact"
             rows="4"
           ></textarea>
-          <button (click)="loadPgn()" class="load-btn-compact">Charger</button>
+          <button (click)="loadPgn()" class="load-btn-compact">Load</button>
         </div>
         }
 
@@ -76,25 +76,23 @@
         <div class="free-mode-content">
           <!-- Statut de la partie -->
           <div class="game-status-card">
-            <h3>Statut de la partie</h3>
+            <h3>Game Status</h3>
             <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
               {{ gameStatus }}
             </h2>
-            <button (click)="resetGame()" class="reset-btn">
-              Nouvelle partie
-            </button>
+            <button (click)="resetGame()" class="reset-btn">New Game</button>
           </div>
 
           <!-- Informations du mode libre -->
           <div class="game-info-card">
-            <h3>Informations</h3>
+            <h3>Information</h3>
             <div class="info-item">
               <span class="label">Mode</span>
-              <span class="value">Jeu libre</span>
+              <span class="value">Free Play</span>
             </div>
             <div class="info-item">
               <span class="label">Type</span>
-              <span class="value">Analyse de position</span>
+              <span class="value">Position Analysis</span>
             </div>
           </div>
         </div>
@@ -105,7 +103,7 @@
         <div class="pgn-mode-content">
           <!-- Navigation et statut -->
           <div class="navigation-card">
-            <h3>Navigation dans la partie</h3>
+            <h3>Game Navigation</h3>
             <div class="move-info">
               {{ getCurrentMoveDisplay() }}
             </div>
@@ -114,7 +112,7 @@
                 (click)="goToStart()"
                 [disabled]="!canGoBack"
                 class="nav-btn-control"
-                title="Aller au début"
+                title="Go to start"
               >
                 ⟪
               </button>
@@ -122,7 +120,7 @@
                 (click)="goToPrevious()"
                 [disabled]="!canGoBack"
                 class="nav-btn-control"
-                title="Coup précédent"
+                title="Previous move"
               >
                 ◀
               </button>
@@ -130,7 +128,7 @@
                 (click)="goToNext()"
                 [disabled]="!canGoForward"
                 class="nav-btn-control"
-                title="Coup suivant"
+                title="Next move"
               >
                 ▶
               </button>
@@ -138,7 +136,7 @@
                 (click)="goToEnd()"
                 [disabled]="!canGoForward"
                 class="nav-btn-control"
-                title="Aller à la fin"
+                title="Go to end"
               >
                 ⟫
               </button>
@@ -147,10 +145,10 @@
 
           <!-- Informations sur l'analyse PGN -->
           <div class="analyze-info-card">
-            <h3>Informations d'analyse</h3>
+            <h3>Analysis Information</h3>
             <div class="info-item">
               <span class="label">Mode</span>
-              <span class="value">Analyse PGN</span>
+              <span class="value">PGN Analysis</span>
             </div>
             <div class="info-item">
               <span class="label">Position</span>
@@ -158,10 +156,10 @@
             </div>
             <div class="info-item">
               <span class="label">Navigation</span>
-              <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
+              <span class="value">{{ canGoBack ? "Active" : "Start" }}</span>
             </div>
             <button (click)="newPgnAnalysis()" class="back-home-btn">
-              Nouvelle analyse PGN
+              New PGN Analysis
             </button>
           </div>
         </div>

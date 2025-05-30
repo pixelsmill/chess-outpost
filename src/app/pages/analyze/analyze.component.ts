@@ -104,7 +104,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   get gameStatus(): string {
     if (!this.isFreeMoveEnabled()) return '';
-    return this.echiquierComponent?.getGameStatus() || 'Tour des Blancs';
+    return this.echiquierComponent?.getGameStatus() || 'White to move';
   }
 
   get isGameOver(): boolean {
@@ -147,7 +147,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   loadPgn(): void {
     if (!this.pgnText.trim()) {
-      alert('Veuillez entrer un PGN valide');
+      alert('Please enter a valid PGN');
       return;
     }
 
@@ -158,7 +158,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       this.goToStart();
       this.isNavigationMode.set(true);
     } else {
-      alert('Erreur lors du chargement du PGN. Vérifiez le format.');
+      alert('Error loading PGN. Please check the format.');
     }
   }
 
@@ -207,7 +207,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       try {
         this.localChess.move(this.gameHistory[i]);
       } catch (error) {
-        console.error('Erreur lors de la navigation:', error);
+        console.error('Navigation error:', error);
         return;
       }
     }
@@ -221,9 +221,9 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
     const total = this.gameHistory.length;
 
     if (current === 0) {
-      return `Position initiale (0/${total})`;
+      return `Starting position (0/${total})`;
     }
 
-    return `Coup ${current}/${total}`;
+    return `Move ${current}/${total}`;
   }
 }
