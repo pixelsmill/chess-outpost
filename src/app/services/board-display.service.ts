@@ -1,4 +1,6 @@
 import { Injectable, signal, ElementRef, effect } from '@angular/core';
+import { timer, Subject, Subscription } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 
 export type BackgroundType = 'heatmap' | 'topographic';
 
@@ -12,12 +14,21 @@ export class BoardDisplayService {
     boardScale = signal<number>(1);
 
     private resizeObserver?: ResizeObserver;
+    private resizeSubject = new Subject<ElementRef<HTMLElement>>();
+    private resizeSubscription?: Subscription;
 
     constructor() {
         // Sauvegarder automatiquement quand le background change
         effect(() => {
             const background = this.selectedBackground();
             localStorage.setItem('hotpawn-background', background);
+        });
+
+        // Configuration du debounce pour les recalculs de scale
+        this.resizeSubscription = this.resizeSubject.pipe(
+            debounceTime(100) // Attendre 100ms avant de recalculer
+        ).subscribe(element => {
+            this.calculateBoardScale(element);
         });
     }
 
@@ -41,7 +52,10 @@ export class BoardDisplayService {
      */
     setupResizeObserver(element: ElementRef<HTMLElement>): void {
         this.calculateBoardScale(element);
-        this.resizeObserver = new ResizeObserver(() => this.calculateBoardScale(element));
+        this.resizeObserver = new ResizeObserver(() => {
+            // Débouncer les recalculs pour éviter les problèmes lors des changements de focus
+            this.resizeSubject.next(element);
+        });
         this.resizeObserver.observe(element.nativeElement);
     }
 
@@ -52,6 +66,10 @@ export class BoardDisplayService {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }
+        if (this.resizeSubscription) {
+            this.resizeSubscription.unsubscribe();
+        }
+        this.resizeSubject.complete();
     }
 
     /**
@@ -86,10 +104,26 @@ export class BoardDisplayService {
      * Calcule l'échelle de l'échiquier en fonction des dimensions du conteneur
      */
     private calculateBoardScale(boardSection: ElementRef<HTMLElement>): void {
-        if (!boardSection) return;
+        if (!boardSection) {
+            console.log('🎯 BoardDisplay: No boardSection provided');
+            return;
+        }
 
         const container = boardSection.nativeElement;
         const containerRect = container.getBoundingClientRect();
+
+        console.log('🎯 BoardDisplay: Container dimensions:', {
+            width: containerRect.width,
+            height: containerRect.height,
+            clientWidth: container.clientWidth,
+            clientHeight: container.clientHeight
+        });
+
+        // Vérifier que les dimensions sont valides
+        if (containerRect.width === 0 || containerRect.height === 0) {
+            console.log('🎯 BoardDisplay: Invalid dimensions, skipping scale calculation');
+            return;
+        }
 
         // Obtenir les dimensions disponibles (en soustrayant le padding)
         const availableWidth = containerRect.width - 32; // 2rem padding
@@ -101,6 +135,15 @@ export class BoardDisplayService {
 
         // Prendre la plus petite échelle (la plus contraignante)
         const scale = Math.max(0.5, Math.min(2.5, Math.min(scaleX, scaleY)));
+
+        console.log('🎯 BoardDisplay: Scale calculation:', {
+            availableWidth,
+            availableHeight,
+            scaleX: scaleX.toFixed(2),
+            scaleY: scaleY.toFixed(2),
+            finalScale: scale.toFixed(2),
+            currentScale: this.boardScale().toFixed(2)
+        });
 
         this.boardScale.set(scale);
     }
