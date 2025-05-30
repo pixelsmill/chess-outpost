@@ -155,11 +155,9 @@
       }
 
       &.active {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #000;
-        border-color: #ffd700;
-        font-weight: 500;
-        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
       }
     }
   }
@@ -198,19 +196,20 @@
   }
 
   .reset-btn {
-    padding: 0.7rem 1.2rem;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
     color: white;
-    border: none;
     cursor: pointer;
     font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 300;
+    transition: all 0.2s ease;
+    width: 100%;
+    letter-spacing: 0.5px;
 
     &:hover {
-      background: linear-gradient(135deg, #1d4ed8, #1e40af);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.3);
     }
   }
 }
@@ -256,20 +255,20 @@
 
   .back-home-btn {
     margin-top: 1rem;
-    padding: 0.7rem 1.2rem;
-    background: linear-gradient(135deg, #6b7280, #4b5563);
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
     color: white;
-    border: none;
     cursor: pointer;
     font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 300;
+    transition: all 0.2s ease;
     width: 100%;
+    letter-spacing: 0.5px;
 
     &:hover {
-      background: linear-gradient(135deg, #4b5563, #374151);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.3);
     }
   }
 }
@@ -308,26 +307,26 @@
 
     &:focus {
       outline: none;
-      border-color: #ffd700;
-      box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 
   .load-btn-compact {
     width: 100%;
-    padding: 0.7rem 1rem;
-    background: linear-gradient(135deg, #4ade80, #22c55e);
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
     color: white;
-    border: none;
     cursor: pointer;
     font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 300;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
 
     &:hover {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.3);
     }
   }
 }

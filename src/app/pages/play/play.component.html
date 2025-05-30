@@ -191,8 +191,8 @@
           (click)="quickMatch()"
           [disabled]="isQuickMatching || onlinePlayers.length === 0"
         >
-          <span *ngIf="!isQuickMatching">⚡ Partie Rapide</span>
-          <span *ngIf="isQuickMatching">🔍 Recherche...</span>
+          <span *ngIf="!isQuickMatching">Partie Rapide</span>
+          <span *ngIf="isQuickMatching">Recherche...</span>
         </button>
         <p class="hint" *ngIf="onlinePlayers.length === 0">
           Aucun joueur disponible
@@ -222,10 +222,6 @@
               <div class="player-details">
                 <h4>{{ player.displayName }}</h4>
                 <div class="player-status">
-                  <span
-                    class="status-dot"
-                    [style.background-color]="getStatusColor(player.status)"
-                  ></span>
                   <span class="status-text">{{
                     getStatusLabel(player.status)
                   }}</span>
