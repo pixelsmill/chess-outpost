@@ -66,8 +66,8 @@ export class AuthService {
             await signOut(this.auth);
             console.log('Déconnexion réussie pour:', currentUser?.displayName);
 
-            // La redirection sera gérée automatiquement par AuthRedirectService
-            // si l'utilisateur est sur une route protégée
+            // Rafraîchir la page au lieu de rediriger
+            window.location.reload();
 
         } catch (error) {
             console.error('Erreur lors de la déconnexion:', error);
