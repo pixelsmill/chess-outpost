@@ -80,22 +80,6 @@
           </div>
         </div>
 
-        <!-- Toggle experimental -->
-        <div class="experimental-toggle">
-          <h3>Mode d'affichage</h3>
-          <div class="toggle-container">
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                [checked]="selectedBackground() === 'topographic'"
-                (change)="toggleExperimentalMode($event)"
-              />
-              <span class="slider"></span>
-            </label>
-            <span class="toggle-label">Experimental</span>
-          </div>
-        </div>
-
         <!-- Statut de la partie -->
         <div class="game-status-vertical">
           <h2
@@ -134,6 +118,21 @@
           >
             {{ isResigning ? "..." : "Abandonner" }}
           </button>
+        </div>
+
+        <!-- Toggle experimental en pied de sidebar -->
+        <div class="experimental-toggle">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="selectedBackground() === 'topographic'"
+                (change)="toggleExperimentalMode($event)"
+              />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Experimental</span>
+          </div>
         </div>
       </div>
     </div>

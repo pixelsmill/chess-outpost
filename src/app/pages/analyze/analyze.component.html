@@ -29,150 +29,155 @@
   <!-- Panneau vertical côté droit -->
   <div class="side-panel">
     <div class="panel-content">
-      <!-- Sélecteur de mode d'analyse -->
-      <div class="mode-selector-card">
-        <h3>Mode d'analyse</h3>
-        <div class="mode-buttons">
-          <button
-            class="mode-btn"
-            [class.active]="isFreeMoveEnabled()"
-            (click)="setAnalysisMode('free')"
-          >
-            Mode libre
-          </button>
-          <button
-            class="mode-btn"
-            [class.active]="isPgnMode()"
-            (click)="setAnalysisMode('pgn')"
-          >
-            Mode PGN
-          </button>
-        </div>
-      </div>
-
-      <!-- Zone de chargement PGN (mode PGN seulement) -->
-      @if (isPgnMode() && !isNavigationMode()) {
-      <div class="pgn-input-card">
-        <h3>Charger une partie</h3>
-        <textarea
-          [(ngModel)]="pgnText"
-          placeholder="Collez votre PGN ici..."
-          class="pgn-textarea-compact"
-          rows="4"
-        ></textarea>
-        <button (click)="loadPgn()" class="load-btn-compact">Charger</button>
-      </div>
-      }
-
-      <!-- Contenu spécifique au mode libre -->
-      @if (isFreeMoveEnabled()) {
-      <div class="free-mode-content">
-        <!-- Statut de la partie -->
-        <div class="game-status-card">
-          <h3>Statut de la partie</h3>
-          <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
-            {{ gameStatus }}
-          </h2>
-          <button (click)="resetGame()" class="reset-btn">
-            Nouvelle partie
-          </button>
-        </div>
-
-        <!-- Informations du mode libre -->
-        <div class="game-info-card">
-          <h3>Informations</h3>
-          <div class="info-item">
-            <span class="label">Mode</span>
-            <span class="value">Jeu libre</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Type</span>
-            <span class="value">Analyse de position</span>
-          </div>
-        </div>
-      </div>
-      }
-
-      <!-- Contenu spécifique au mode PGN -->
-      @if (isPgnMode() && isNavigationMode()) {
-      <div class="pgn-mode-content">
-        <!-- Navigation et statut -->
-        <div class="navigation-card">
-          <h3>Navigation dans la partie</h3>
-          <div class="move-info">
-            {{ getCurrentMoveDisplay() }}
-          </div>
-          <div class="nav-buttons">
+      <!-- Corps principal de la sidebar -->
+      <div class="sidebar-body">
+        <!-- Sélecteur de mode d'analyse -->
+        <div class="mode-selector-card">
+          <h3>Mode d'analyse</h3>
+          <div class="mode-buttons">
             <button
-              (click)="goToStart()"
-              [disabled]="!canGoBack"
-              class="nav-btn-control"
-              title="Aller au début"
+              class="mode-btn"
+              [class.active]="isFreeMoveEnabled()"
+              (click)="setAnalysisMode('free')"
             >
-              ⟪
+              Mode libre
             </button>
             <button
-              (click)="goToPrevious()"
-              [disabled]="!canGoBack"
-              class="nav-btn-control"
-              title="Coup précédent"
+              class="mode-btn"
+              [class.active]="isPgnMode()"
+              (click)="setAnalysisMode('pgn')"
             >
-              ◀
-            </button>
-            <button
-              (click)="goToNext()"
-              [disabled]="!canGoForward"
-              class="nav-btn-control"
-              title="Coup suivant"
-            >
-              ▶
-            </button>
-            <button
-              (click)="goToEnd()"
-              [disabled]="!canGoForward"
-              class="nav-btn-control"
-              title="Aller à la fin"
-            >
-              ⟫
+              Mode PGN
             </button>
           </div>
         </div>
 
-        <!-- Informations sur l'analyse PGN -->
-        <div class="analyze-info-card">
-          <h3>Informations d'analyse</h3>
-          <div class="info-item">
-            <span class="label">Mode</span>
-            <span class="value">Analyse PGN</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Position</span>
-            <span class="value">{{ getCurrentMoveDisplay() }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Navigation</span>
-            <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
-          </div>
-          <button (click)="newPgnAnalysis()" class="back-home-btn">
-            Nouvelle analyse PGN
-          </button>
+        <!-- Zone de chargement PGN (mode PGN seulement) -->
+        @if (isPgnMode() && !isNavigationMode()) {
+        <div class="pgn-input-card">
+          <h3>Charger une partie</h3>
+          <textarea
+            [(ngModel)]="pgnText"
+            placeholder="Collez votre PGN ici..."
+            class="pgn-textarea-compact"
+            rows="4"
+          ></textarea>
+          <button (click)="loadPgn()" class="load-btn-compact">Charger</button>
         </div>
-      </div>
-      }
+        }
 
-      <!-- Toggle experimental -->
-      <div class="experimental-toggle">
-        <h3>Mode d'affichage</h3>
-        <div class="toggle-container">
-          <label class="toggle-switch">
-            <input
-              type="checkbox"
-              [checked]="selectedBackground() === 'topographic'"
-              (change)="toggleExperimentalMode($event)"
-            />
-            <span class="slider"></span>
-          </label>
-          <span class="toggle-label">Experimental</span>
+        <!-- Contenu spécifique au mode libre -->
+        @if (isFreeMoveEnabled()) {
+        <div class="free-mode-content">
+          <!-- Statut de la partie -->
+          <div class="game-status-card">
+            <h3>Statut de la partie</h3>
+            <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
+              {{ gameStatus }}
+            </h2>
+            <button (click)="resetGame()" class="reset-btn">
+              Nouvelle partie
+            </button>
+          </div>
+
+          <!-- Informations du mode libre -->
+          <div class="game-info-card">
+            <h3>Informations</h3>
+            <div class="info-item">
+              <span class="label">Mode</span>
+              <span class="value">Jeu libre</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Type</span>
+              <span class="value">Analyse de position</span>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Contenu spécifique au mode PGN -->
+        @if (isPgnMode() && isNavigationMode()) {
+        <div class="pgn-mode-content">
+          <!-- Navigation et statut -->
+          <div class="navigation-card">
+            <h3>Navigation dans la partie</h3>
+            <div class="move-info">
+              {{ getCurrentMoveDisplay() }}
+            </div>
+            <div class="nav-buttons">
+              <button
+                (click)="goToStart()"
+                [disabled]="!canGoBack"
+                class="nav-btn-control"
+                title="Aller au début"
+              >
+                ⟪
+              </button>
+              <button
+                (click)="goToPrevious()"
+                [disabled]="!canGoBack"
+                class="nav-btn-control"
+                title="Coup précédent"
+              >
+                ◀
+              </button>
+              <button
+                (click)="goToNext()"
+                [disabled]="!canGoForward"
+                class="nav-btn-control"
+                title="Coup suivant"
+              >
+                ▶
+              </button>
+              <button
+                (click)="goToEnd()"
+                [disabled]="!canGoForward"
+                class="nav-btn-control"
+                title="Aller à la fin"
+              >
+                ⟫
+              </button>
+            </div>
+          </div>
+
+          <!-- Informations sur l'analyse PGN -->
+          <div class="analyze-info-card">
+            <h3>Informations d'analyse</h3>
+            <div class="info-item">
+              <span class="label">Mode</span>
+              <span class="value">Analyse PGN</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Position</span>
+              <span class="value">{{ getCurrentMoveDisplay() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Navigation</span>
+              <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
+            </div>
+            <button (click)="newPgnAnalysis()" class="back-home-btn">
+              Nouvelle analyse PGN
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Pied de sidebar -->
+      <div class="sidebar-footer">
+        <!-- Toggle experimental en pied de sidebar -->
+        <div class="experimental-toggle">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="selectedBackground() === 'topographic'"
+                (change)="toggleExperimentalMode($event)"
+              />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-label">Experimental</span>
+          </div>
         </div>
       </div>
     </div>
