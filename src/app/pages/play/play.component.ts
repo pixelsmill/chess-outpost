@@ -100,7 +100,10 @@ export class PlayComponent implements OnInit, OnDestroy {
     }
 
     getBoardBackgroundColor(): string {
-        return `rgba(0, 0, 0, ${(100 - this.brightness()) / 100})`;
+        const brightnessValue = this.brightness();
+        // Convertir la valeur 0-100 en couleur RGB (0,0,0) à (255,255,255)
+        const rgbValue = Math.round((brightnessValue / 100) * 255);
+        return `rgb(${rgbValue}, ${rgbValue}, ${rgbValue})`;
     }
 
     /**
