@@ -1,19 +1,8 @@
 <div class="layout-with-sidebar">
   <!-- Section échiquier à gauche -->
   <div class="board-section">
-    <!-- État non connecté -->
-    <div *ngIf="!(user$ | async)" class="auth-required">
-      <div class="auth-message">
-        <h1>Connexion requise</h1>
-        <p>Connectez-vous avec votre compte Google pour jouer en multijoueur</p>
-        <button class="btn-google" (click)="signInWithGoogle()">
-          Se connecter avec Google
-        </button>
-      </div>
-    </div>
-
-    <!-- Échiquier pour utilisateur connecté -->
-    <div *ngIf="user$ | async" class="game-board">
+    <!-- Échiquier toujours visible -->
+    <div class="game-board">
       <!-- Échiquier avec background dynamique -->
       <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
         <!-- Background classique -->
@@ -43,7 +32,9 @@
         <!-- Grille de pièces par-dessus -->
         <app-echiquier
           [externalPosition]="currentPosition()"
-          [disableClicks]="!isPlayerTurn() || isGameFinished()"
+          [disableClicks]="
+            !(user$ | async) || !isPlayerTurn() || isGameFinished()
+          "
           [isMultiplayer]="true"
           [orientation]="getBoardOrientation()"
           (moveChange)="onMoveChange($event)"
@@ -53,8 +44,23 @@
   </div>
 
   <!-- Panneau vertical côté droit -->
-  <div class="side-panel" *ngIf="user$ | async">
+  <div class="side-panel">
     <div class="panel-content">
+      <!-- Panel de connexion si utilisateur non connecté -->
+      @if (!(user$ | async)) {
+      <div class="auth-card">
+        <h3>Connexion requise</h3>
+        <div class="login-message">
+          Connectez-vous avec votre compte Google pour jouer en multijoueur
+        </div>
+        <button class="google-login-btn" (click)="signInWithGoogle()">
+          Se connecter avec Google
+        </button>
+      </div>
+      } @else {
+
+      <!-- Contenu pour utilisateur connecté -->
+
       <!-- Partie en cours -->
       @if (currentGame) {
       <div class="current-game-card">
@@ -244,9 +250,9 @@
         </div>
       </div>
 
-      }
+      } }
 
-      <!-- Sélecteur de type d'affichage -->
+      <!-- Sélecteur de type d'affichage (toujours visible) -->
       <div class="background-selector-vertical">
         <h3>Type d'affichage</h3>
         <div class="bg-buttons">
@@ -274,7 +280,7 @@
         </div>
       </div>
 
-      <!-- Contrôle de luminosité -->
+      <!-- Contrôle de luminosité (toujours visible) -->
       <div class="brightness-control">
         <h3>Luminosité de l'échiquier</h3>
         <div class="brightness-slider-container">
