@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,6 +11,7 @@ import { ChessService } from '../../services/chess.service';
 import { Chess } from 'chess.js';
 
 type BackgroundType = 'classic' | 'heatmap' | 'topographic';
+type AnalysisMode = 'free' | 'pgn';
 
 @Component({
   selector: 'app-analyze',
@@ -29,25 +30,32 @@ type BackgroundType = 'classic' | 'heatmap' | 'topographic';
   styleUrl: './analyze.component.scss'
 })
 export class AnalyzeComponent implements OnInit {
+  @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;
+
+  // Signal pour le mode d'analyse (libre ou PGN)
+  analysisMode = signal<AnalysisMode>('free');
 
   // Signal pour synchroniser la position
   currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
-  // Signal pour le background sélectionné (comme dans play)
+  // Signal pour le background sélectionné
   selectedBackground = signal<BackgroundType>('classic');
 
   // Signal pour la luminosité de l'échiquier (0 = noir, 100 = blanc)
   brightness = signal(50);
 
-  // Gestion PGN et navigation
+  // Gestion PGN et navigation (mode PGN)
   pgnText = '';
-  showPgnInput = signal(true);
   gameHistory: string[] = [];
   currentMoveIndex = signal(-1);
   isNavigationMode = signal(false);
 
   // Instance Chess locale pour le chargement PGN
   private localChess = new Chess();
+
+  // Computed properties
+  isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
+  isPgnMode = computed(() => this.analysisMode() === 'pgn');
 
   constructor(private chessService: ChessService) { }
 
@@ -75,15 +83,54 @@ Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
 Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
+  // === GESTION DES MODES ===
+
+  setAnalysisMode(mode: AnalysisMode): void {
+    this.analysisMode.set(mode);
+
+    if (mode === 'free') {
+      // Retour au mode libre : reset position et sortir du mode navigation
+      this.isNavigationMode.set(false);
+      this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    }
+    // Pour le mode PGN, on laisse l'interface de chargement apparaître
+  }
+
+  // === PROPRIÉTÉS POUR LE MODE LIBRE ===
+
+  get gameStatus(): string {
+    if (!this.isFreeMoveEnabled()) return '';
+    return this.echiquierComponent?.getGameStatus() || 'Tour des Blancs';
+  }
+
+  get isGameOver(): boolean {
+    if (!this.isFreeMoveEnabled()) return false;
+    return this.echiquierComponent?.isGameOver() || false;
+  }
+
+  get isCheck(): boolean {
+    if (!this.isFreeMoveEnabled()) return false;
+    return this.echiquierComponent?.chess.isCheck() || false;
+  }
+
+  resetGame(): void {
+    if (!this.isFreeMoveEnabled()) return;
+    this.echiquierComponent?.resetGame();
+    this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+  }
+
+  // === PROPRIÉTÉS POUR LE MODE PGN ===
+
   get canGoBack(): boolean {
-    return this.isNavigationMode() && this.currentMoveIndex() > -1;
+    return this.isPgnMode() && this.isNavigationMode() && this.currentMoveIndex() > -1;
   }
 
   get canGoForward(): boolean {
-    return this.isNavigationMode() && this.currentMoveIndex() < this.gameHistory.length - 1;
+    return this.isPgnMode() && this.isNavigationMode() && this.currentMoveIndex() < this.gameHistory.length - 1;
   }
 
-  // Nouvelle méthode pour changer de background
+  // === GESTION COMMUNE ===
+
   setBackground(background: BackgroundType): void {
     this.selectedBackground.set(background);
   }
@@ -100,10 +147,11 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   onPositionChange(newPosition: string): void {
-    // En mode navigation, on ne met pas à jour la position depuis l'échiquier
-    if (!this.isNavigationMode()) {
-      this.currentPosition.set(newPosition);
+    // En mode PGN navigation, on ne met pas à jour la position depuis l'échiquier
+    if (this.isPgnMode() && this.isNavigationMode()) {
+      return;
     }
+    this.currentPosition.set(newPosition);
   }
 
   // === GESTION PGN ===
@@ -120,16 +168,20 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       this.gameHistory = this.localChess.history();
       this.goToStart();
       this.isNavigationMode.set(true);
-      this.showPgnInput.set(false);
     } else {
       alert('Erreur lors du chargement du PGN. Vérifiez le format.');
     }
   }
 
-  // === NAVIGATION ===
+  newPgnAnalysis(): void {
+    this.isNavigationMode.set(false);
+    this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+  }
+
+  // === NAVIGATION PGN ===
 
   goToStart(): void {
-    if (!this.isNavigationMode()) return;
+    if (!this.isPgnMode() || !this.isNavigationMode()) return;
 
     this.localChess.reset();
     this.currentMoveIndex.set(-1);
@@ -151,7 +203,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   goToEnd(): void {
-    if (!this.isNavigationMode()) return;
+    if (!this.isPgnMode() || !this.isNavigationMode()) return;
 
     this.goToMoveIndex(this.gameHistory.length - 1);
   }

@@ -1,56 +1,42 @@
 <div class="home-container">
-  <!-- Section pour les utilisateurs connectés -->
-  <div *ngIf="user$ | async as user" class="dashboard">
-    <div class="welcome-section">
-      <h2>Chess Outpost</h2>
-      <div class="user-info">
-        <img
-          [src]="user.photoURL"
-          [alt]="user.displayName"
-          class="user-avatar"
-        />
-        <span>Bienvenue, {{ user.displayName }}</span>
-      </div>
+  <!-- Interface unifiée pour tous les utilisateurs -->
+  <div class="main-content">
+    <div class="hero">
+      <h1>Outpost</h1>
+      <p class="subtitle">Plateforme d'échecs minimaliste</p>
+      <p class="description">
+        Analysez des parties d'échecs ou connectez-vous pour jouer en
+        multijoueur.
+      </p>
+    </div>
+
+    <div>
+      <img src="assets/chess-outpost.png" alt="Outpost" />
     </div>
 
     <div class="main-menu">
       <nav class="menu-nav">
         <ul class="menu-list">
           <li class="menu-item">
-            <a (click)="navigateToPlay()" class="menu-link">
+            <a (click)="navigateToAnalyze()" class="menu-link">
               <span class="menu-number">1</span>
-              <span class="menu-text">Solo</span>
+              <span class="menu-text">Analyse</span>
             </a>
           </li>
           <li class="menu-item">
-            <a (click)="navigateToMultiplayer()" class="menu-link">
+            <a (click)="handleMultiplayerClick()" class="menu-link">
               <span class="menu-number">2</span>
               <span class="menu-text">Multijoueur</span>
-            </a>
-          </li>
-          <li class="menu-item">
-            <a (click)="navigateToAnalyze()" class="menu-link">
-              <span class="menu-number">3</span>
-              <span class="menu-text">Analyse</span>
             </a>
           </li>
         </ul>
       </nav>
     </div>
-  </div>
 
-  <!-- Section pour les utilisateurs non connectés -->
-  <div *ngIf="!(user$ | async)" class="landing">
-    <div class="hero">
-      <h1>Chess Outpost</h1>
-      <p class="subtitle">Plateforme d'échecs minimaliste</p>
-      <p class="description">Connectez-vous pour accéder aux modes de jeu.</p>
-    </div>
-
-    <div class="login-hint">
+    <div class="info-hint">
       <p>
-        Utilisez la connexion Google dans la barre de navigation pour commencer
-        à jouer.
+        L'analyse est accessible sans connexion. Le multijoueur nécessite une
+        connexion Google.
       </p>
     </div>
   </div>

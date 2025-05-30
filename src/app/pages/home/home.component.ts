@@ -18,15 +18,25 @@ export class HomeComponent {
 
   user$: Observable<User | null> = this.authService.user$;
 
-  navigateToPlay() {
-    this.router.navigate(['/play']);
-  }
-
   navigateToMultiplayer() {
     this.router.navigate(['/multiplayer']);
   }
 
   navigateToAnalyze() {
     this.router.navigate(['/analyze']);
+  }
+
+  showLoginPrompt() {
+    alert('Connectez-vous avec Google dans la barre de navigation pour accéder au mode multijoueur.');
+  }
+
+  handleMultiplayerClick() {
+    this.user$.subscribe(user => {
+      if (user) {
+        this.navigateToMultiplayer();
+      } else {
+        this.showLoginPrompt();
+      }
+    });
   }
 }

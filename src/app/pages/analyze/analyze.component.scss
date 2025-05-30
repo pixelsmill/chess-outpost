@@ -7,87 +7,6 @@
   align-items: center;
 }
 
-/* Interface de chargement PGN */
-.pgn-input-container {
-  max-width: 600px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
-
-  h3 {
-    margin: 0 0 1.5rem 0;
-    color: #ffd700;
-    font-size: 1.3rem;
-  }
-
-  .pgn-textarea {
-    width: 100%;
-    min-height: 200px;
-    padding: 1rem;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    resize: vertical;
-    backdrop-filter: blur(5px);
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #ffd700;
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    }
-  }
-
-  .pgn-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    justify-content: center;
-
-    .load-btn, .cancel-btn {
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-    }
-
-    .load-btn {
-      background: linear-gradient(135deg, #4ade80, #22c55e);
-      color: white;
-
-      &:hover {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
-      }
-    }
-
-    .cancel-btn {
-      background: linear-gradient(135deg, #6b7280, #4b5563);
-      color: white;
-
-      &:hover {
-        background: linear-gradient(135deg, #4b5563, #374151);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
-      }
-    }
-  }
-}
-
 /* Layout principal horizontal pour l'analyse */
 .analyze-layout {
   display: flex;
@@ -383,6 +302,233 @@
     &:hover {
       background: rgba(255, 255, 255, 0.05);
       border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* Carte de sélecteur de mode d'analyse */
+.mode-selector-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  .mode-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+
+    .mode-btn {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 300;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #000;
+        border-color: #ffd700;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+      }
+    }
+  }
+}
+
+/* Contenu spécifique aux modes */
+.free-mode-content, .pgn-mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Styles pour les cartes de statut de partie (mode libre) */
+.game-status-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  h2 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 300;
+    margin: 0 0 1rem 0;
+
+    &.check {
+      color: #fbbf24;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    }
+
+    &.checkmate {
+      color: #ef4444;
+      text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+  }
+
+  .reset-btn {
+    padding: 0.7rem 1.2rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+  }
+}
+
+/* Styles pour les informations de partie */
+.game-info-card, .analyze-info-card {
+  padding: 1rem 0;
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      color: white;
+      opacity: 0.7;
+      font-weight: 300;
+    }
+
+    .value {
+      font-size: 0.8rem;
+      color: white;
+      font-weight: 400;
+    }
+  }
+
+  .back-home-btn {
+    margin-top: 1rem;
+    padding: 0.7rem 1.2rem;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    width: 100%;
+
+    &:hover {
+      background: linear-gradient(135deg, #4b5563, #374151);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+    }
+  }
+}
+
+/* Zone de chargement PGN compacte dans la sidebar */
+.pgn-input-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  .pgn-textarea-compact {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+    backdrop-filter: blur(5px);
+    margin-bottom: 0.8rem;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.75rem;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #ffd700;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+    }
+  }
+
+  .load-btn-compact {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
     }
   }
 }
