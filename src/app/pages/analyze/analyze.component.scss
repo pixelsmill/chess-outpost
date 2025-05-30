@@ -1,57 +1,60 @@
-.analyze-content {
-  min-height: 100vh;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+:host {
+  display: block;
+  height: 100%;
 }
 
-/* Layout principal horizontal pour l'analyse */
+/* Layout principal horizontal - système flex propre */
 .analyze-layout {
   display: flex;
-  gap: 2rem;
-  width: 100%;
-  justify-content: center;
-  align-items: flex-start;
+  height: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
 }
 
-/* Section échiquier à gauche */
+/* Section échiquier à gauche - occupe tout l'espace restant */
 .board-section {
+  flex: 1 1 auto;
   display: flex;
   justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  overflow: hidden;
   
   .game-board {
     text-align: center;
     padding: 2rem;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    min-width: 400px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     
     display: flex;
     flex-direction: column;
     align-items: center;
+    
+    /* Taille adaptative pour l'échiquier */
+    max-width: min(80vh, 80vw);
+    max-height: 80vh;
   }
 }
 
-/* Panneau vertical côté droit */
+/* Panneau vertical côté droit - largeur fixe */
 .side-panel {
-  width: 300px;
-  min-width: 300px;
+  flex: 0 0 320px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .panel-content {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  height: fit-content;
+  overflow-y: auto;
 }
 
 /* Carte de navigation */
@@ -473,7 +476,7 @@
   }
 }
 
-/* Zone de chargement PGN compacte dans la sidebar */
+/* Interface de chargement PGN compacte dans la sidebar */
 .pgn-input-card {
   padding: 1rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -537,78 +540,53 @@
 @media (max-width: 1024px) {
   .analyze-layout {
     flex-direction: column;
-    align-items: center;
+  }
+
+  .board-section {
+    flex: 0 0 auto;
+    padding: 1rem;
+    
+    .game-board {
+      max-width: 90vw;
+      max-height: 70vh;
+    }
   }
 
   .side-panel {
-    width: 100%;
-    max-width: 600px;
+    flex: 0 0 auto;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .panel-content {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .navigation-card, .background-selector-vertical, .analyze-info-card {
-    flex: 1;
-    margin: 0 0.5rem;
-    border-bottom: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-
-    &:last-child {
-      border-right: none;
-    }
+    flex: 1 1 auto;
   }
 }
 
 @media (max-width: 768px) {
-  .analyze-content {
+  .board-section {
     padding: 0.5rem;
-  }
-
-  .analyze-layout {
-    gap: 1rem;
+    
+    .game-board {
+      padding: 1rem;
+      max-width: 95vw;
+      max-height: 60vh;
+    }
   }
 
   .panel-content {
-    flex-direction: column;
-  }
-
-  .navigation-card, .background-selector-vertical, .analyze-info-card {
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 0;
-  }
-
-  .side-panel {
-    width: 100%;
-  }
-
-  .pgn-input-container {
-    padding: 1.5rem;
-  }
-
-  .pgn-actions {
-    flex-direction: column;
-  }
-
-  .navigation-card .nav-buttons {
-    grid-template-columns: repeat(2, 1fr);
+    padding: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .side-panel {
-    width: 100%;
-  }
-
   .panel-content {
-    padding: 1rem;
+    padding: 0.8rem;
   }
 
-  .pgn-input-container {
-    padding: 1rem;
+  .board-section .game-board {
+    padding: 0.8rem;
+    max-width: 98vw;
+    max-height: 55vh;
   }
 }

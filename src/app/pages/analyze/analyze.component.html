@@ -1,218 +1,215 @@
-<div class="analyze-content">
-  <!-- Interface principale d'analyse -->
-  <div class="analyze-layout">
-    <!-- Section échiquier à gauche -->
-    <div class="board-section">
-      <div class="game-board">
-        <!-- Échiquier avec background dynamique -->
-        <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
-          <!-- Background classique -->
-          @if (selectedBackground() === 'classic') {
-          <app-classic-board [position]="currentPosition()"></app-classic-board>
-          }
+<div class="analyze-layout">
+  <!-- Section échiquier à gauche -->
+  <div class="board-section">
+    <div class="game-board">
+      <!-- Échiquier avec background dynamique -->
+      <app-board-wrapper [backgroundColor]="getBoardBackgroundColor()">
+        <!-- Background classique -->
+        @if (selectedBackground() === 'classic') {
+        <app-classic-board [position]="currentPosition()"></app-classic-board>
+        }
 
-          <!-- Background heatmap -->
-          @if (selectedBackground() === 'heatmap') {
-          <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
-          }
+        <!-- Background heatmap -->
+        @if (selectedBackground() === 'heatmap') {
+        <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
+        }
 
-          <!-- Background topographique -->
-          @if (selectedBackground() === 'topographic') {
-          <app-topographic-board
-            [position]="currentPosition()"
-          ></app-topographic-board>
-          }
+        <!-- Background topographique -->
+        @if (selectedBackground() === 'topographic') {
+        <app-topographic-board
+          [position]="currentPosition()"
+        ></app-topographic-board>
+        }
 
-          <!-- Grille de pièces par-dessus (activé seulement en mode libre) -->
-          <app-echiquier
-            [externalPosition]="currentPosition()"
-            [disableClicks]="!isFreeMoveEnabled()"
-            (positionChange)="onPositionChange($event)"
-          ></app-echiquier>
-        </app-board-wrapper>
-      </div>
+        <!-- Grille de pièces par-dessus (activé seulement en mode libre) -->
+        <app-echiquier
+          [externalPosition]="currentPosition()"
+          [disableClicks]="!isFreeMoveEnabled()"
+          (positionChange)="onPositionChange($event)"
+        ></app-echiquier>
+      </app-board-wrapper>
     </div>
+  </div>
 
-    <!-- Panneau vertical côté droit -->
-    <div class="side-panel">
-      <div class="panel-content">
-        <!-- Sélecteur de mode d'analyse -->
-        <div class="mode-selector-card">
-          <h3>Mode d'analyse</h3>
-          <div class="mode-buttons">
+  <!-- Panneau vertical côté droit -->
+  <div class="side-panel">
+    <div class="panel-content">
+      <!-- Sélecteur de mode d'analyse -->
+      <div class="mode-selector-card">
+        <h3>Mode d'analyse</h3>
+        <div class="mode-buttons">
+          <button
+            class="mode-btn"
+            [class.active]="isFreeMoveEnabled()"
+            (click)="setAnalysisMode('free')"
+          >
+            Mode libre
+          </button>
+          <button
+            class="mode-btn"
+            [class.active]="isPgnMode()"
+            (click)="setAnalysisMode('pgn')"
+          >
+            Mode PGN
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone de chargement PGN (mode PGN seulement) -->
+      @if (isPgnMode() && !isNavigationMode()) {
+      <div class="pgn-input-card">
+        <h3>Charger une partie</h3>
+        <textarea
+          [(ngModel)]="pgnText"
+          placeholder="Collez votre PGN ici..."
+          class="pgn-textarea-compact"
+          rows="4"
+        ></textarea>
+        <button (click)="loadPgn()" class="load-btn-compact">Charger</button>
+      </div>
+      }
+
+      <!-- Contenu spécifique au mode libre -->
+      @if (isFreeMoveEnabled()) {
+      <div class="free-mode-content">
+        <!-- Statut de la partie -->
+        <div class="game-status-card">
+          <h3>Statut de la partie</h3>
+          <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
+            {{ gameStatus }}
+          </h2>
+          <button (click)="resetGame()" class="reset-btn">
+            Nouvelle partie
+          </button>
+        </div>
+
+        <!-- Informations du mode libre -->
+        <div class="game-info-card">
+          <h3>Informations</h3>
+          <div class="info-item">
+            <span class="label">Mode</span>
+            <span class="value">Jeu libre</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Type</span>
+            <span class="value">Analyse de position</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Contenu spécifique au mode PGN -->
+      @if (isPgnMode() && isNavigationMode()) {
+      <div class="pgn-mode-content">
+        <!-- Navigation et statut -->
+        <div class="navigation-card">
+          <h3>Navigation dans la partie</h3>
+          <div class="move-info">
+            {{ getCurrentMoveDisplay() }}
+          </div>
+          <div class="nav-buttons">
             <button
-              class="mode-btn"
-              [class.active]="isFreeMoveEnabled()"
-              (click)="setAnalysisMode('free')"
+              (click)="goToStart()"
+              [disabled]="!canGoBack"
+              class="nav-btn-control"
+              title="Aller au début"
             >
-              Mode libre
+              ⏮️
             </button>
             <button
-              class="mode-btn"
-              [class.active]="isPgnMode()"
-              (click)="setAnalysisMode('pgn')"
+              (click)="goToPrevious()"
+              [disabled]="!canGoBack"
+              class="nav-btn-control"
+              title="Coup précédent"
             >
-              Mode PGN
+              ⏪
+            </button>
+            <button
+              (click)="goToNext()"
+              [disabled]="!canGoForward"
+              class="nav-btn-control"
+              title="Coup suivant"
+            >
+              ⏩
+            </button>
+            <button
+              (click)="goToEnd()"
+              [disabled]="!canGoForward"
+              class="nav-btn-control"
+              title="Aller à la fin"
+            >
+              ⏭️
             </button>
           </div>
         </div>
 
-        <!-- Zone de chargement PGN (mode PGN seulement) -->
-        @if (isPgnMode() && !isNavigationMode()) {
-        <div class="pgn-input-card">
-          <h3>Charger une partie</h3>
-          <textarea
-            [(ngModel)]="pgnText"
-            placeholder="Collez votre PGN ici..."
-            class="pgn-textarea-compact"
-            rows="4"
-          ></textarea>
-          <button (click)="loadPgn()" class="load-btn-compact">Charger</button>
+        <!-- Informations sur l'analyse PGN -->
+        <div class="analyze-info-card">
+          <h3>Informations d'analyse</h3>
+          <div class="info-item">
+            <span class="label">Mode</span>
+            <span class="value">Analyse PGN</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Position</span>
+            <span class="value">{{ getCurrentMoveDisplay() }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Navigation</span>
+            <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
+          </div>
+          <button (click)="newPgnAnalysis()" class="back-home-btn">
+            Nouvelle analyse PGN
+          </button>
         </div>
-        }
+      </div>
+      }
 
-        <!-- Contenu spécifique au mode libre -->
-        @if (isFreeMoveEnabled()) {
-        <div class="free-mode-content">
-          <!-- Statut de la partie -->
-          <div class="game-status-card">
-            <h3>Statut de la partie</h3>
-            <h2 [class.checkmate]="isGameOver" [class.check]="isCheck">
-              {{ gameStatus }}
-            </h2>
-            <button (click)="resetGame()" class="reset-btn">
-              Nouvelle partie
-            </button>
-          </div>
-
-          <!-- Informations du mode libre -->
-          <div class="game-info-card">
-            <h3>Informations</h3>
-            <div class="info-item">
-              <span class="label">Mode</span>
-              <span class="value">Jeu libre</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Type</span>
-              <span class="value">Analyse de position</span>
-            </div>
-          </div>
+      <!-- Sélecteur de type d'affichage (commun aux deux modes) -->
+      <div class="background-selector-vertical">
+        <h3>Type d'affichage</h3>
+        <div class="bg-buttons">
+          <button
+            class="bg-btn-vertical"
+            [class.active]="selectedBackground() === 'classic'"
+            (click)="setBackground('classic')"
+          >
+            Classique
+          </button>
+          <button
+            class="bg-btn-vertical"
+            [class.active]="selectedBackground() === 'heatmap'"
+            (click)="setBackground('heatmap')"
+          >
+            Territorial
+          </button>
+          <button
+            class="bg-btn-vertical"
+            [class.active]="selectedBackground() === 'topographic'"
+            (click)="setBackground('topographic')"
+          >
+            Topographique
+          </button>
         </div>
-        }
+      </div>
 
-        <!-- Contenu spécifique au mode PGN -->
-        @if (isPgnMode() && isNavigationMode()) {
-        <div class="pgn-mode-content">
-          <!-- Navigation et statut -->
-          <div class="navigation-card">
-            <h3>Navigation dans la partie</h3>
-            <div class="move-info">
-              {{ getCurrentMoveDisplay() }}
-            </div>
-            <div class="nav-buttons">
-              <button
-                (click)="goToStart()"
-                [disabled]="!canGoBack"
-                class="nav-btn-control"
-                title="Aller au début"
-              >
-                ⏮️
-              </button>
-              <button
-                (click)="goToPrevious()"
-                [disabled]="!canGoBack"
-                class="nav-btn-control"
-                title="Coup précédent"
-              >
-                ⏪
-              </button>
-              <button
-                (click)="goToNext()"
-                [disabled]="!canGoForward"
-                class="nav-btn-control"
-                title="Coup suivant"
-              >
-                ⏩
-              </button>
-              <button
-                (click)="goToEnd()"
-                [disabled]="!canGoForward"
-                class="nav-btn-control"
-                title="Aller à la fin"
-              >
-                ⏭️
-              </button>
-            </div>
+      <!-- Contrôle de luminosité (commun aux deux modes) -->
+      <div class="brightness-control">
+        <h3>Luminosité de l'échiquier</h3>
+        <div class="brightness-slider-container">
+          <div class="brightness-labels">
+            <span class="label-dark">🌑</span>
+            <span class="brightness-value">{{ brightness() }}%</span>
+            <span class="label-light">☀️</span>
           </div>
-
-          <!-- Informations sur l'analyse PGN -->
-          <div class="analyze-info-card">
-            <h3>Informations d'analyse</h3>
-            <div class="info-item">
-              <span class="label">Mode</span>
-              <span class="value">Analyse PGN</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Position</span>
-              <span class="value">{{ getCurrentMoveDisplay() }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Navigation</span>
-              <span class="value">{{ canGoBack ? "Activée" : "Début" }}</span>
-            </div>
-            <button (click)="newPgnAnalysis()" class="back-home-btn">
-              Nouvelle analyse PGN
-            </button>
-          </div>
-        </div>
-        }
-
-        <!-- Sélecteur de type d'affichage (commun aux deux modes) -->
-        <div class="background-selector-vertical">
-          <h3>Type d'affichage</h3>
-          <div class="bg-buttons">
-            <button
-              class="bg-btn-vertical"
-              [class.active]="selectedBackground() === 'classic'"
-              (click)="setBackground('classic')"
-            >
-              Classique
-            </button>
-            <button
-              class="bg-btn-vertical"
-              [class.active]="selectedBackground() === 'heatmap'"
-              (click)="setBackground('heatmap')"
-            >
-              Territorial
-            </button>
-            <button
-              class="bg-btn-vertical"
-              [class.active]="selectedBackground() === 'topographic'"
-              (click)="setBackground('topographic')"
-            >
-              Topographique
-            </button>
-          </div>
-        </div>
-
-        <!-- Contrôle de luminosité (commun aux deux modes) -->
-        <div class="brightness-control">
-          <h3>Luminosité de l'échiquier</h3>
-          <div class="brightness-slider-container">
-            <div class="brightness-labels">
-              <span class="label-dark">🌑</span>
-              <span class="brightness-value">{{ brightness() }}%</span>
-              <span class="label-light">☀️</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              [value]="brightness()"
-              (input)="setBrightness($any($event.target).value)"
-              class="brightness-slider"
-            />
-          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [value]="brightness()"
+            (input)="setBrightness($any($event.target).value)"
+            class="brightness-slider"
+          />
         </div>
       </div>
     </div>
