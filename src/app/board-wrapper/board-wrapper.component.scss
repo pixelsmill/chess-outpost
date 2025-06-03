@@ -5,52 +5,12 @@
 .board-container {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
 }
 
 .board-wrapper {
   display: inline-block;
   background: transparent;
   padding: 20px;
-  border-radius: 15px;
-}
-
-.board-with-ranks {
-  display: flex;
-  align-items: flex-start;
-}
-
-.coordinates-left {
-  display: flex;
-  flex-direction: column;
-  margin-right: 10px;
-  padding-top: 5px;
-
-  .coord-number {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 1rem;
-  }
-}
-
-.coordinates-bottom {
-  display: flex;
-  margin-top: 10px;
-  margin-left: 30px;
-
-  .coord-letter {
-    width: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 1rem;
-  }
 }
 
 // Zone centrale avec système de layers
@@ -70,6 +30,77 @@
     z-index: 0; // Fond le plus bas
   }
 
+  // Coordonnées horizontales (lettres) - coin inférieur droit des cases du bas
+  .coordinates-horizontal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5; // Au-dessus du fond mais sous l'échiquier
+    pointer-events: none; // Ne pas interférer avec les interactions
+
+    .coord-letter {
+      position: absolute;
+      top: 420px; // Position pour la rangée du bas (case 1)
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      text-transform: uppercase;
+
+      // Positionnement horizontal de chaque lettre
+      &[data-letter="a"] { left: 0px; }
+      &[data-letter="b"] { left: 60px; }
+      &[data-letter="c"] { left: 120px; }
+      &[data-letter="d"] { left: 180px; }
+      &[data-letter="e"] { left: 240px; }
+      &[data-letter="f"] { left: 300px; }
+      &[data-letter="g"] { left: 360px; }
+      &[data-letter="h"] { left: 420px; }
+    }
+  }
+
+  // Coordonnées verticales (chiffres) - coin supérieur gauche des cases de gauche
+  .coordinates-vertical {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5; // Au-dessus du fond mais sous l'échiquier
+    pointer-events: none; // Ne pas interférer avec les interactions
+
+    .coord-number {
+      position: absolute;
+      left: 0px; // Position pour la colonne de gauche (case a)
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.7rem;
+      padding: 2px 4px;
+
+      // Positionnement vertical de chaque chiffre
+      &[data-number="8"] { top: 0px; }
+      &[data-number="7"] { top: 60px; }
+      &[data-number="6"] { top: 120px; }
+      &[data-number="5"] { top: 180px; }
+      &[data-number="4"] { top: 240px; }
+      &[data-number="3"] { top: 300px; }
+      &[data-number="2"] { top: 360px; }
+      &[data-number="1"] { top: 420px; }
+    }
+  }
+
   // Tous les enfants sont positionnés absolument et superposés
   ::ng-deep > * {
     position: absolute;
@@ -84,7 +115,7 @@
     z-index: 10;
   }
 
-  // Les backgrounds (premiers enfants) sont en arrière-plan
+  // Les backgrounds et coordonnées (premiers enfants) sont en arrière-plan
   ::ng-deep > :not(:last-child) {
     z-index: 1;
   }

@@ -130,8 +130,8 @@ export class BoardDisplayService {
         const availableHeight = containerRect.height - 32;
 
         // Calculer l'échelle pour chaque dimension avec les vraies dimensions de l'échiquier
-        const scaleX = availableWidth / 550;  // Largeur réelle avec notations
-        const scaleY = availableHeight / 593; // Hauteur réelle avec notations
+        const scaleX = availableWidth / 480;  // Largeur réelle
+        const scaleY = availableHeight / 484; // Hauteur réelle
 
         // Prendre la plus petite échelle (la plus contraignante)
         const scale = Math.max(0.5, Math.min(2.5, Math.min(scaleX, scaleY)));
