@@ -127,7 +127,7 @@ export class BoardDisplayService {
 
         // Obtenir les dimensions disponibles (en soustrayant le padding)
         const availableWidth = containerRect.width; // 2rem padding
-        const availableHeight = containerRect.height - 32;
+        const availableHeight = containerRect.height;
 
         // Calculer l'échelle pour chaque dimension avec les vraies dimensions de l'échiquier
         const scaleX = availableWidth / 480;  // Largeur réelle
