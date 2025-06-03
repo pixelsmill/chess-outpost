@@ -87,11 +87,6 @@
   & > div:has(img) {
     margin: 2rem 0;
     
-    img {
-      max-width: 200px;
-      height: auto;
-      opacity: 0.8;
-    }
   }
 
   .main-menu {
