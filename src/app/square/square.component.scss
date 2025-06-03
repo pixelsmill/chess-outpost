@@ -63,27 +63,14 @@
 }
 
 .piece-image {
-  width: 85%;
-  height: 85%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   z-index: 5;
   transition: all 0.2s ease;
   pointer-events: none; // Empêcher l'image d'intercepter les clics
 
-  // Style spécifique pour la heatmap
-  &.heatmap-piece {
-    opacity: 0.9;
-    width: 80%;
-    height: 80%;
-  }
 
-  // Style spécifique pour la topographie
-  &.topographic-piece {
-    opacity: 1;
-    width: 85%;
-    height: 85%;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); // Ombre pour mieux voir les pièces
-  }
 }
 
 .control-indicator {

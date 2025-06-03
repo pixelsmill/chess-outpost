@@ -10,7 +10,7 @@
   display: flex;
   height: 100%;
   flex: 1 1 auto;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Section échiquier à gauche - occupe tout l'espace restant */
@@ -246,7 +246,7 @@
 
   .board-section {
     flex: 0 0 auto;
-    padding: 1rem;
+    max-height: 100vw;
     
     .game-board {
       max-width: 90vw;
