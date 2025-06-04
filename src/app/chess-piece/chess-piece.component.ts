@@ -110,6 +110,7 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
 
     // État du drag
     isDragging: boolean = false;
+    private hasMoved: boolean = false; // Pour différencier clic simple et drag
     private dragStartX: number = 0;
     private dragStartY: number = 0;
     private originalX: number = 0;
@@ -147,9 +148,14 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
         event.preventDefault();
         event.stopPropagation();
 
-        if (!this.isDragging) {
-            this.pieceClick.emit(this.position.square);
+        // Ignorer le clic s'il fait partie d'un drag (souris a bougé)
+        if (this.hasMoved) {
+            this.hasMoved = false; // Réinitialiser pour le prochain clic
+            return;
         }
+
+        // Permettre le clic même si isDragging = true, tant qu'on n'a pas bougé
+        this.pieceClick.emit(this.position.square);
     }
 
     onMouseDown(event: MouseEvent) {
@@ -159,13 +165,14 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
         event.stopPropagation();
 
         this.isDragging = true;
+        this.hasMoved = false; // Réinitialiser le flag de mouvement
         this.originalX = this.currentX;
         this.originalY = this.currentY;
         this.dragStartX = event.clientX;
         this.dragStartY = event.clientY;
 
         this.setupDragListeners();
-        this.dragStart.emit({ square: this.position.square, piece: this.position.piece });
+        // NE PAS émettre dragStart ici, attendre le premier mouvement
     }
 
     private setupDragListeners() {
@@ -190,6 +197,14 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
 
         const deltaX = event.clientX - this.dragStartX;
         const deltaY = event.clientY - this.dragStartY;
+
+        // Détecter si la souris a bougé significativement (plus de 3px)
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > 3 && !this.hasMoved) {
+            this.hasMoved = true;
+            // Émettre dragStart seulement maintenant
+            this.dragStart.emit({ square: this.position.square, piece: this.position.piece });
+        }
 
         // Utiliser l'échelle du board pour corriger les coordonnées
         this.currentX = this.originalX + (deltaX / this.boardScale);

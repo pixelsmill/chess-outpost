@@ -87,7 +87,7 @@ export class ChessBoardWithControlsComponent implements AfterViewInit {
         const scaleY = containerRect.height / totalHeight;
 
         // Prendre la plus petite échelle (la plus contraignante)
-        const scale = Math.max(0.5, Math.min(2.5, Math.min(scaleX, scaleY)));
+        const scale = Math.max(0.5, Math.min(2.0, Math.min(scaleX, scaleY)));
 
         this.boardDisplay.boardScale.set(scale);
     }

@@ -60,8 +60,7 @@ export interface ChessSquareData {
     }
 
     .chess-square.highlighted {
-      background-color: var(--highlight-color, #ffffcc) !important;
-      box-shadow: inset 0 0 0 3px var(--highlight-border-color, #ffff00);
+      /* Pas d'effet visuel pour la sélection */
     }
 
     .chess-square.last-move {
