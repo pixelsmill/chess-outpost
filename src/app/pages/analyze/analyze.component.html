@@ -3,7 +3,7 @@
   <div class="board-section">
     <app-chess-board-with-controls
       #chessBoardWithControls
-      [position]="currentPosition()"
+      [position]="currentPosition"
       [disableClicks]="!isFreeMoveEnabled()"
       [showNavigationControls]="true"
       [canGoBack]="canGoBack"

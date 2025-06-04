@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-controls/chess-board-with-controls.component';
-import { ChessService, GameHistory, GameNavigation } from '../../services/chess.service';
+import { ChessService } from '../../services/chess.service';
+import { GameNavigationService } from '../../services/game-navigation.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { Chess } from 'chess.js';
 
@@ -27,13 +28,6 @@ export class AnalyzeComponent implements OnInit {
   // Signal pour le mode d'analyse (libre ou PGN)
   analysisMode = signal<AnalysisMode>('free');
 
-  // Signal pour synchroniser la position
-  currentPosition = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-  // Historique centralisé et navigation (pour les deux modes)
-  gameHistory: GameHistory | null = null;
-  gameNavigation: GameNavigation = { currentMove: 0, totalMoves: 0, canGoBack: false, canGoForward: false };
-
   // Gestion PGN (mode PGN seulement)
   pgnText = '';
   isNavigationMode = signal(false);
@@ -41,22 +35,19 @@ export class AnalyzeComponent implements OnInit {
   // Instance Chess locale pour le chargement PGN et le mode libre
   private localChess = new Chess();
 
-  // Flag pour éviter les boucles lors de la navigation
-  private isNavigatingHistory = false;
-
   // Computed properties
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
   isPgnMode = computed(() => this.analysisMode() === 'pgn');
 
   constructor(
     private chessService: ChessService,
-    public boardDisplay: BoardDisplayService
+    public boardDisplay: BoardDisplayService,
+    public gameNavigationService: GameNavigationService
   ) { }
 
   ngOnInit() {
     // Initialiser l'historique vide pour le mode libre
-    this.gameHistory = this.chessService.createGameHistory();
-    this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+    this.gameNavigationService.initializeHistory();
 
     // Pré-remplir avec la partie Immortelle
     this.pgnText = `[Event "London 'Immortal game'"]
@@ -96,9 +87,7 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   private resetToStartingPosition(): void {
     this.localChess.reset();
-    this.gameHistory = this.chessService.createGameHistory();
-    this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-    this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    this.gameNavigationService.reset();
   }
 
   // === PROPRIÉTÉS POUR LE MODE LIBRE ===
@@ -130,40 +119,41 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   // === PROPRIÉTÉS POUR LA NAVIGATION (UNIFIÉES) ===
 
   get canGoBack(): boolean {
-    return this.gameNavigation.canGoBack;
+    return this.gameNavigationService.canGoBack();
   }
 
   get canGoForward(): boolean {
-    return this.gameNavigation.canGoForward;
+    return this.gameNavigationService.canGoForward();
   }
 
   get canNavigate(): boolean {
-    return this.gameHistory !== null && this.gameHistory.moves.length > 0;
+    return this.gameNavigationService.canNavigate();
+  }
+
+  get currentPosition(): string {
+    return this.gameNavigationService.currentPosition();
   }
 
   // === GESTION DES COUPS (MODE LIBRE) ===
 
   onMoveChange(move: { from: string; to: string; promotion?: string }): void {
-    if (!this.isFreeMoveEnabled() || this.isNavigatingHistory) return;
+    if (!this.isFreeMoveEnabled() || this.gameNavigationService.isCurrentlyNavigating()) return;
 
     // Faire le coup sur l'échiquier local pour capturer les informations
     try {
       const moveResult = this.localChess.move(move);
-      if (moveResult && this.gameHistory) {
-        // Ajouter le coup à l'historique centralisé
-        this.gameHistory = this.chessService.addMoveToHistory(this.gameHistory, {
+      if (moveResult) {
+        // Ajouter le coup à l'historique centralisé via le service
+        this.gameNavigationService.addMove({
           san: moveResult.san,
           from: moveResult.from,
           to: moveResult.to,
           fen: this.localChess.fen()
         });
 
-        // Mettre à jour la navigation
-        this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-
-        console.log('🎯 Move added to history:', {
+        console.log('🎯 Move added to history via service:', {
           san: moveResult.san,
-          totalMoves: this.gameHistory.moves.length
+          totalMoves: this.gameNavigationService.totalMoves()
         });
       }
     } catch (error) {
@@ -175,10 +165,10 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   onPositionChange(newPosition: string): void {
     // En mode navigation (PGN ou historique), on ne met pas à jour la position depuis l'échiquier
-    if ((this.isPgnMode() && this.isNavigationMode()) || this.isNavigatingHistory) {
+    if ((this.isPgnMode() && this.isNavigationMode()) || this.gameNavigationService.isCurrentlyNavigating()) {
       return;
     }
-    this.currentPosition.set(newPosition);
+    // En mode libre, la position est gérée par le service via onMoveChange
   }
 
   // === GESTION PGN ===
@@ -192,11 +182,10 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
     const success = this.chessService.loadPgnIntoChess(this.localChess, this.pgnText);
 
     if (success) {
-      // Convertir l'historique PGN en GameHistory centralisé
+      // Convertir l'historique PGN en GameHistory centralisé via le service
       const moves = this.localChess.history();
       const pgnMoves = moves.map(san => ({ san }));
-      this.gameHistory = this.chessService.convertMovesToGameHistory(pgnMoves);
-      this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+      this.gameNavigationService.loadFromMoves(pgnMoves);
 
       this.goToStart();
       this.isNavigationMode.set(true);
@@ -213,83 +202,30 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   // === NAVIGATION UNIFIÉE (PGN ET MODE LIBRE) ===
 
   goToStart(): void {
-    if (!this.gameHistory) return;
-
-    this.isNavigatingHistory = true;
-    try {
-      this.gameHistory = this.chessService.goToStartInHistory(this.localChess, this.gameHistory);
-      this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-      this.currentPosition.set(this.localChess.fen());
-      console.log('🎯 Navigated to start');
-    } catch (error) {
-      console.error('Error navigating to start:', error);
-    } finally {
-      this.isNavigatingHistory = false;
-    }
+    this.gameNavigationService.goToStart();
   }
 
   goToPrevious(): void {
-    if (!this.gameHistory || !this.canGoBack) return;
-
-    this.isNavigatingHistory = true;
-    try {
-      // Charger la position actuelle dans localChess
-      this.localChess.load(this.currentPosition());
-
-      this.gameHistory = this.chessService.goToPreviousInHistory(this.localChess, this.gameHistory);
-      this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-      this.currentPosition.set(this.localChess.fen());
-      console.log('🎯 Navigated to previous move');
-    } catch (error) {
-      console.error('Error navigating to previous:', error);
-    } finally {
-      this.isNavigatingHistory = false;
-    }
+    this.gameNavigationService.goToPrevious();
   }
 
   goToNext(): void {
-    if (!this.gameHistory || !this.canGoForward) return;
-
-    this.isNavigatingHistory = true;
-    try {
-      // Charger la position actuelle dans localChess
-      this.localChess.load(this.currentPosition());
-
-      this.gameHistory = this.chessService.goToNextInHistory(this.localChess, this.gameHistory);
-      this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-      this.currentPosition.set(this.localChess.fen());
-      console.log('🎯 Navigated to next move');
-    } catch (error) {
-      console.error('Error navigating to next:', error);
-    } finally {
-      this.isNavigatingHistory = false;
-    }
+    this.gameNavigationService.goToNext();
   }
 
   goToEnd(): void {
-    if (!this.gameHistory) return;
-
-    this.isNavigatingHistory = true;
-    try {
-      this.gameHistory = this.chessService.goToEndInHistory(this.localChess, this.gameHistory);
-      this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-      this.currentPosition.set(this.localChess.fen());
-      console.log('🎯 Navigated to end');
-    } catch (error) {
-      console.error('Error navigating to end:', error);
-    } finally {
-      this.isNavigatingHistory = false;
-    }
+    this.gameNavigationService.goToEnd();
   }
 
   getCurrentMoveDisplay(): string {
-    const current = this.gameNavigation.currentMove;
-    const total = this.gameNavigation.totalMoves;
+    return this.gameNavigationService.getCurrentMoveDisplay();
+  }
 
-    if (current === 0) {
-      return `Starting position (0/${total})`;
-    }
+  get currentMove(): number {
+    return this.gameNavigationService.currentMove();
+  }
 
-    return `Move ${current}/${total}`;
+  get totalMoves(): number {
+    return this.gameNavigationService.totalMoves();
   }
 }

@@ -13,6 +13,7 @@ import { MultiplayerService } from '../../services/multiplayer.service';
 import { AuthService } from '../../services/auth.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { ChessService, GameHistory, GameNavigation } from '../../services/chess.service';
+import { GameNavigationService } from '../../services/game-navigation.service';
 
 // Models
 import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
@@ -38,14 +39,10 @@ export class PlayComponent implements OnInit, OnDestroy {
     private chessService = inject(ChessService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
+    public gameNavigationService = inject(GameNavigationService);
 
     // Signal pour synchroniser la position
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-    // Gestion de l'historique et navigation
-    gameHistory: GameHistory | null = null;
-    gameNavigation: GameNavigation = { currentMove: 0, totalMoves: 0, canGoBack: false, canGoForward: false };
-    isNavigatingHistory = false; // Flag pour éviter les boucles lors de la navigation
 
     // Données utilisateur et multijoueur
     user$: Observable<User | null> = this.authService.user$;
@@ -65,6 +62,9 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         console.log('🚀 PlayComponent ngOnInit called');
+
+        // Initialiser l'historique de navigation
+        this.gameNavigationService.initializeHistory();
 
         // Vérifier si on a un gameId dans la route (child routes)
         this.gameId = this.route.snapshot.paramMap.get('gameId') ||
@@ -184,9 +184,8 @@ export class PlayComponent implements OnInit, OnDestroy {
                         console.log('🎮 PlayComponent: Game finished, waiting for manual navigation');
                     }
                 } else {
-                    // Partie nulle - réinitialiser l'historique
-                    this.gameHistory = null;
-                    this.gameNavigation = { currentMove: 0, totalMoves: 0, canGoBack: false, canGoForward: false };
+                    // Partie nulle - réinitialiser l'historique avec le service
+                    this.gameNavigationService.reset();
 
                     // Partie nulle - mais seulement rediriger si on avait déjà une partie chargée
                     if (this.currentGame && this.gameId && !this.isLeavingGame) {
@@ -198,81 +197,66 @@ export class PlayComponent implements OnInit, OnDestroy {
                     } else if (this.gameId) {
                         console.log('🎮 PlayComponent: Game is null but we are leaving, ignoring');
                     } else {
-                        console.log('🎮 PlayComponent: Game is null and no gameId set, normal lobby state');
-                        // Remettre la position de départ si on est au lobby
-                        console.log('🔄 Réinitialisation de la position de l\'échiquier pour le lobby');
+                        console.log('🎮 PlayComponent: No game, resetting position to initial state');
                         this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-                        this.currentGame = null;
                     }
+
+                    // Réinitialiser les références locales
+                    this.currentGame = null;
+                    this.gameId = null;
                 }
             })
         );
     }
 
     /**
-     * Met à jour l'historique de la partie à partir des moves
+     * Met à jour l'historique de la partie avec les coups reçus
      */
     private updateGameHistory(game: GameState): void {
-        if (!game.moves || game.moves.length === 0) {
-            // Pas encore de coups, créer un historique vide
-            this.gameHistory = this.chessService.createGameHistory();
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+        if (!game || !game.moves) {
+            console.log('🎮 No moves to update history with');
             return;
         }
 
-        // Convertir les moves en GameHistory
-        try {
-            this.gameHistory = this.chessService.convertMovesToGameHistory(game.moves);
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-            console.log('🎮 Game history updated:', {
-                moves: this.gameHistory.moves.length,
-                currentMove: this.gameNavigation.currentMove,
-                totalMoves: this.gameNavigation.totalMoves
-            });
-        } catch (error) {
-            console.error('Error updating game history:', error);
-            // Fallback : créer un historique vide
-            this.gameHistory = this.chessService.createGameHistory();
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-        }
+        console.log('🎮 Updating game history with moves:', game.moves.length);
+
+        // Utiliser le service centralisé pour charger l'historique
+        // Note: startingFen n'existe pas sur GameState, on utilise undefined par défaut
+        this.gameNavigationService.loadFromMoves(game.moves);
+
+        console.log('🎮 Game history updated via service');
     }
 
     async quickMatch() {
+        if (this.isQuickMatching) return;
+
         this.isQuickMatching = true;
         try {
-            const challengeId = await this.multiplayerService.quickMatch();
-            console.log('Quick match started:', challengeId);
+            await this.multiplayerService.quickMatch();
         } catch (error) {
             console.error('Error during quick match:', error);
-            alert('No players available at the moment');
-        } finally {
             this.isQuickMatching = false;
         }
     }
 
     async challengePlayer(player: OnlinePlayer) {
+        if (this.challengingPlayer) return;
+
         this.challengingPlayer = player.uid;
         try {
-            const challengeId = await this.multiplayerService.challengePlayer(player);
-            console.log('Challenge sent:', challengeId);
+            await this.multiplayerService.challengePlayer(player);
+            this.challengingPlayer = null;
         } catch (error) {
-            console.error('Error sending challenge:', error);
-        } finally {
+            console.error('Error challenging player:', error);
             this.challengingPlayer = null;
         }
     }
 
     async acceptChallenge(challenge: Challenge) {
         try {
-            console.log('🎮 Accepting challenge from:', challenge.from.displayName);
-            const gameId = await this.multiplayerService.acceptChallenge(challenge.id);
-            console.log('🎮 Challenge accepted, game created:', gameId);
-
-            // Navigation directe vers la partie - pas besoin d'attendre
-            // La partie vient d'être créée donc elle existe
-            this.router.navigate(['/play/game', gameId], { replaceUrl: true });
+            await this.multiplayerService.acceptChallenge(challenge.id);
         } catch (error) {
-            console.error('🎮 Error accepting challenge:', error);
+            console.error('Error accepting challenge:', error);
         }
     }
 
@@ -293,59 +277,65 @@ export class PlayComponent implements OnInit, OnDestroy {
      */
     getCurrentPlayerInfo() {
         const currentUser = this.authService.getCurrentUser();
-        if (!currentUser || !this.currentGame) return null;
+        if (!currentUser || !this.currentGame?.players) return null;
 
-        const isWhite = this.currentGame.players.white.uid === currentUser.uid;
-        return {
-            color: isWhite ? 'white' : 'black',
-            isCurrentTurn: this.currentGame.currentTurn === (isWhite ? 'white' : 'black'),
-            displayName: isWhite ? this.currentGame.players.white.displayName : this.currentGame.players.black.displayName
-        };
+        if (this.currentGame.players.white?.uid === currentUser.uid) {
+            return { ...this.currentGame.players.white, color: 'white' };
+        } else if (this.currentGame.players.black?.uid === currentUser.uid) {
+            return { ...this.currentGame.players.black, color: 'black' };
+        }
+
+        return null;
     }
 
     getOpponentInfo() {
         const currentUser = this.authService.getCurrentUser();
-        if (!currentUser || !this.currentGame) return null;
+        if (!currentUser || !this.currentGame?.players) return null;
 
-        const isWhite = this.currentGame.players.white.uid === currentUser.uid;
-        const opponent = isWhite ? this.currentGame.players.black : this.currentGame.players.white;
+        if (this.currentGame.players.white?.uid === currentUser.uid) {
+            return { ...this.currentGame.players.black, color: 'black' };
+        } else if (this.currentGame.players.black?.uid === currentUser.uid) {
+            return { ...this.currentGame.players.white, color: 'white' };
+        }
 
-        return {
-            color: isWhite ? 'black' : 'white',
-            displayName: opponent.displayName,
-            photoURL: opponent.photoURL
-        };
+        return null;
     }
 
     getGameStatus(): string {
-        if (!this.currentGame) return 'Loading...';
+        if (!this.currentGame) return '';
 
-        const playerInfo = this.getCurrentPlayerInfo();
-        if (!playerInfo) return 'Error';
-
-        if (this.currentGame.status === 'finished') {
-            if (this.currentGame.winner === 'draw') {
-                return `Draw (${this.getEndReasonText()})`;
-            } else if (this.currentGame.winner === playerInfo.color) {
-                return `You won! (${this.getEndReasonText()})`;
-            } else {
-                return `You lost (${this.getEndReasonText()})`;
-            }
+        switch (this.currentGame.status) {
+            case 'waiting':
+                return 'Waiting for opponent...';
+            case 'active':
+                if (this.isPlayerTurn()) {
+                    return 'Your turn';
+                } else {
+                    return 'Opponent\'s turn';
+                }
+            case 'finished':
+                return this.getEndReasonText();
+            default:
+                return '';
         }
-
-        return playerInfo.isCurrentTurn ? 'Your turn' : 'Opponent\'s turn';
     }
 
     private getEndReasonText(): string {
-        if (!this.currentGame) return '';
+        if (!this.currentGame?.endReason) return 'Game finished';
 
         switch (this.currentGame.endReason) {
-            case 'checkmate': return 'Checkmate';
-            case 'resignation': return 'Resignation';
-            case 'timeout': return 'Time out';
-            case 'stalemate': return 'Stalemate';
-            case 'draw_agreement': return 'Draw agreement';
-            default: return '';
+            case 'checkmate':
+                return `Checkmate! ${this.currentGame.winner === 'white' ? 'White' : 'Black'} wins`;
+            case 'resignation':
+                return `${this.currentGame.winner === 'white' ? 'Black' : 'White'} resigned`;
+            case 'stalemate':
+                return 'Stalemate - Draw';
+            case 'draw_agreement':
+                return 'Game ended in a draw';
+            case 'timeout':
+                return `${this.currentGame.winner === 'white' ? 'Black' : 'White'} ran out of time`;
+            default:
+                return 'Game finished';
         }
     }
 
@@ -378,10 +368,11 @@ export class PlayComponent implements OnInit, OnDestroy {
     }
 
     isPlayerTurn(): boolean {
-        const playerInfo = this.getCurrentPlayerInfo();
-        const result = playerInfo?.isCurrentTurn || false;
-        console.log('🔍 isPlayerTurn check:', { playerInfo, result });
-        return result;
+        if (!this.currentGame) return false;
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser) return false;
+
+        return this.currentGame.currentTurn === this.getCurrentPlayerInfo()?.color;
     }
 
     isGameFinished(): boolean {
@@ -389,61 +380,50 @@ export class PlayComponent implements OnInit, OnDestroy {
     }
 
     async onMoveChange(move: { from: string; to: string; promotion?: string }): Promise<void> {
-        console.log('🎮 PlayComponent onMoveChange called with:', move);
+        console.log('🎮 PlayComponent: Move change detected:', move);
 
-        if (!this.gameId || !this.currentGame) {
-            console.log('🎮 Missing gameId or currentGame:', { gameId: this.gameId, currentGame: this.currentGame });
+        // Vérifier qu'on est en multijoueur et que c'est notre tour
+        if (!this.currentGame || !this.gameId) {
+            console.log('🚫 No current game or gameId');
             return;
         }
 
-        const playerInfo = this.getCurrentPlayerInfo();
-        if (!playerInfo) {
-            console.log('🎮 No player info available');
+        // Vérifier qu'on n'est pas en train de naviguer dans l'historique
+        if (this.gameNavigationService.isCurrentlyNavigating()) {
+            console.log('🚫 Cannot make move while navigating history');
             return;
         }
 
-        // Si on navigue dans l'historique, revenir à la position courante d'abord
-        if (!this.isAtCurrentPosition) {
-            console.log('🎮 Player is navigating history, returning to current position before move');
-            this.returnToCurrentPosition();
-            // Permettre au joueur de refaire le coup après retour à la position courante
+        if (!this.isPlayerTurn()) {
+            console.log('🚫 Not player turn');
             return;
         }
 
-        // Vérification basique du tour
-        if (!playerInfo.isCurrentTurn) {
-            console.log('🎮 Not player turn');
-            // Restaurer la position précédente
-            this.currentPosition.set(this.currentGame.currentFen);
-            return;
-        }
-
-        // Vérification si la partie est terminée
-        if (this.currentGame.status === 'finished') {
-            console.log('🎮 Game is finished');
-            this.currentPosition.set(this.currentGame.currentFen);
+        if (this.isGameFinished()) {
+            console.log('🚫 Game is finished');
             return;
         }
 
         try {
-            console.log('🎮 Sending move to multiplayer service...');
+            console.log('🎮 PlayComponent: Sending move to multiplayer service:', move);
             await this.multiplayerService.makeMove(this.gameId, move);
-            console.log('🎮 Move sent successfully!');
+            console.log('✅ Move sent successfully');
         } catch (error) {
-            console.error('🎮 Error making move:', error);
-            // En cas d'erreur, restaurer la position précédente
-            this.currentPosition.set(this.currentGame.currentFen);
+            console.error('❌ Error making move:', error);
+
+            // Réinitialiser la position à la position courante en cas d'erreur
+            if (this.currentGame) {
+                console.log('🔄 Resetting position due to move error');
+                this.currentPosition.set(this.currentGame.currentFen);
+            }
         }
     }
 
-    /**
-     * Gestion des changements de position (pour compatibilité avec l'ancien code)
-     */
     onPositionChange(newPosition: string): void {
-        console.log('🎮 onPositionChange called with:', newPosition);
+        console.log('🎮 PlayComponent: Position change detected:', newPosition);
 
-        // En mode multijoueur, ne pas permettre les changements de position directs
-        // La position doit seulement changer via les coups validés
+        // Si on est en mode multijoueur avec une partie active, ignorer les changements de position
+        // car ils sont gérés par le service multijoueur
         if (this.currentGame && this.gameId) {
             console.log('🎮 In multiplayer mode, ignoring position change');
             return;
@@ -518,129 +498,79 @@ export class PlayComponent implements OnInit, OnDestroy {
      * Va au début de la partie
      */
     onGoToStart(): void {
-        if (!this.gameHistory || this.isNavigatingHistory) return;
-
-        this.isNavigatingHistory = true;
-        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
-
-        try {
-            this.gameHistory = this.chessService.goToStartInHistory(tempChess, this.gameHistory);
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-            this.currentPosition.set(tempChess.fen());
-            console.log('🎮 Navigated to start of game');
-        } catch (error) {
-            console.error('Error navigating to start:', error);
-        } finally {
-            this.isNavigatingHistory = false;
-        }
+        this.gameNavigationService.goToStart();
+        this.updatePositionFromNavigation();
     }
 
     /**
      * Va au coup précédent
      */
     onGoToPrevious(): void {
-        if (!this.gameHistory || this.isNavigatingHistory) return;
-
-        this.isNavigatingHistory = true;
-        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
-
-        try {
-            // Charger la position actuelle
-            const currentFen = this.currentPosition();
-            tempChess.load(currentFen);
-
-            this.gameHistory = this.chessService.goToPreviousInHistory(tempChess, this.gameHistory);
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-            this.currentPosition.set(tempChess.fen());
-            console.log('🎮 Navigated to previous move');
-        } catch (error) {
-            console.error('Error navigating to previous:', error);
-        } finally {
-            this.isNavigatingHistory = false;
-        }
+        this.gameNavigationService.goToPrevious();
+        this.updatePositionFromNavigation();
     }
 
     /**
      * Va au coup suivant
      */
     onGoToNext(): void {
-        if (!this.gameHistory || this.isNavigatingHistory) return;
-
-        this.isNavigatingHistory = true;
-        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
-
-        try {
-            // Charger la position actuelle
-            const currentFen = this.currentPosition();
-            tempChess.load(currentFen);
-
-            this.gameHistory = this.chessService.goToNextInHistory(tempChess, this.gameHistory);
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-            this.currentPosition.set(tempChess.fen());
-            console.log('🎮 Navigated to next move');
-        } catch (error) {
-            console.error('Error navigating to next:', error);
-        } finally {
-            this.isNavigatingHistory = false;
-        }
+        this.gameNavigationService.goToNext();
+        this.updatePositionFromNavigation();
     }
 
     /**
      * Va à la fin de la partie
      */
     onGoToEnd(): void {
-        if (!this.gameHistory || this.isNavigatingHistory) return;
-
-        this.isNavigatingHistory = true;
-        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
-
-        try {
-            this.gameHistory = this.chessService.goToEndInHistory(tempChess, this.gameHistory);
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-            this.currentPosition.set(tempChess.fen());
-            console.log('🎮 Navigated to end of game');
-        } catch (error) {
-            console.error('Error navigating to end:', error);
-        } finally {
-            this.isNavigatingHistory = false;
-        }
+        this.gameNavigationService.goToEnd();
+        this.updatePositionFromNavigation();
     }
 
     /**
      * Revient à la position courante de la partie (fin de l'historique)
      */
     returnToCurrentPosition(): void {
-        if (!this.currentGame || !this.gameHistory) return;
+        this.gameNavigationService.returnToCurrentPosition();
+        this.updatePositionFromNavigation();
+    }
 
-        this.isNavigatingHistory = true;
-        try {
-            // Remettre à la position courante de la partie
-            this.currentPosition.set(this.currentGame.currentFen);
-
-            // Remettre l'historique à la fin
-            this.gameHistory.currentMoveIndex = this.gameHistory.moves.length - 1;
-            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
-
-            console.log('🎮 Returned to current game position');
-        } catch (error) {
-            console.error('Error returning to current position:', error);
-        } finally {
-            this.isNavigatingHistory = false;
-        }
+    private updatePositionFromNavigation(): void {
+        const navPosition = this.gameNavigationService.currentPosition();
+        this.currentPosition.set(navPosition);
     }
 
     /**
      * Vérifie si on peut naviguer (seulement si on est dans une partie et qu'il y a des coups)
      */
     get canNavigate(): boolean {
-        return this.gameHistory !== null && this.gameHistory.moves.length > 0;
+        return this.gameNavigationService.canNavigate();
     }
 
     /**
      * Vérifie si on est à la position courante de la partie
      */
     get isAtCurrentPosition(): boolean {
-        if (!this.gameHistory || !this.currentGame) return true;
-        return this.gameHistory.currentMoveIndex === this.gameHistory.moves.length - 1;
+        return this.gameNavigationService.isAtCurrentPosition();
+    }
+
+    // Propriétés pour les contrôles de navigation
+    get canGoBack(): boolean {
+        return this.gameNavigationService.canGoBack();
+    }
+
+    get canGoForward(): boolean {
+        return this.gameNavigationService.canGoForward();
+    }
+
+    get currentMove(): number {
+        return this.gameNavigationService.currentMove();
+    }
+
+    get totalMoves(): number {
+        return this.gameNavigationService.totalMoves();
+    }
+
+    get currentMoveDisplay(): string {
+        return this.gameNavigationService.getCurrentMoveDisplay();
     }
 } 
