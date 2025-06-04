@@ -2,16 +2,78 @@
   display: block;
 }
 
-// Grille transparente pour les pièces et interactions
-.board {
+// Conteneur principal de l'échiquier
+.board-container {
+  position: relative;
+  display: inline-block;
+  background: transparent;
+  border: 2px solid var(--board-border-color, #8b4513);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+// Layer des cases (statique)
+.squares-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
+  gap: 0;
+  z-index: 1;
+}
+
+// Layer des pièces (dynamique)
+.pieces-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  gap: 0;
-  background: transparent; // Fond transparent pour laisser voir les backgrounds
-  border: none; // Plus de bordure car gérée par les backgrounds
-  position: relative;
-  z-index: 10; // Au-dessus des backgrounds
+  z-index: 10;
+  pointer-events: none; // Les pièces gèrent leurs propres événements
+}
+
+// Styles globaux pour les variables CSS
+:root {
+  --light-square-color: #f0d9b5;
+  --dark-square-color: #b58863;
+  --highlight-color: #ffffcc;
+  --highlight-border-color: #ffff00;
+  --last-move-color: #ffe066;
+  --last-move-border-color: #ffd700;
+  --check-color: #ff6b6b;
+  --check-border-color: #ff0000;
+  --possible-move-bg: rgba(0, 255, 0, 0.2);
+  --move-indicator-color: rgba(0, 0, 0, 0.3);
+  --coordinate-color: #333;
+  --hover-color: rgba(255, 255, 255, 0.1);
+  --hover-border-color: rgba(255, 255, 255, 0.3);
+  --board-border-color: #8b4513;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .board-container {
+    border-width: 1px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Animation pour les transitions de thème
+.board-container * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+// Support pour les thèmes sombres
+@media (prefers-color-scheme: dark) {
+  :root {
+    --light-square-color: #f0d9b5;
+    --dark-square-color: #8b7355;
+    --coordinate-color: #fff;
+    --board-border-color: #5a4a3a;
+  }
 } 

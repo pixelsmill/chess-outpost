@@ -1,0 +1,276 @@
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChessService } from '../services/chess.service';
+
+export interface ChessPiece {
+    type: string;
+    color: 'w' | 'b';
+}
+
+export interface PiecePosition {
+    square: string;
+    piece: ChessPiece;
+    x: number;
+    y: number;
+}
+
+@Component({
+    selector: 'app-chess-piece',
+    standalone: true,
+    imports: [CommonModule],
+    template: `
+    <div 
+      #pieceElement
+      class="chess-piece"
+      [class.selected]="isSelected"
+      [class.dragging]="isDragging"
+      [style.left.px]="currentX"
+      [style.top.px]="currentY"
+      [style.z-index]="isDragging ? 1000 : (isSelected ? 100 : 10)"
+      [attr.data-square]="position.square"
+      [attr.data-piece-color]="position.piece.color"
+      [attr.data-piece-type]="position.piece.type"
+      [title]="getPieceAltText()"
+      (mousedown)="onMouseDown($event)"
+      (click)="onPieceClick($event)"
+    >
+      <img 
+        [src]="getPieceSymbol()" 
+        [alt]="getPieceAltText()"
+        class="piece-image"
+        draggable="false"
+      />
+    </div>
+  `,
+    styles: [`
+    .chess-piece {
+      position: absolute;
+      width: var(--square-size, 60px);
+      height: var(--square-size, 60px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--piece-font-size, 48px);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border-radius: 8px;
+      transform-origin: center;
+      pointer-events: auto;
+    }
+
+    .piece-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .chess-piece:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .chess-piece.selected {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 3px #007bff, 0 6px 16px rgba(0, 123, 255, 0.4);
+      background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    .chess-piece.dragging {
+      transform: scale(1.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      transition: none;
+    }
+
+    /* Animation pour les mouvements programmatiques */
+    .chess-piece.animating {
+      transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                  top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+  `]
+})
+export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
+    @Input() position!: PiecePosition;
+    @Input() isSelected: boolean = false;
+    @Input() isDragEnabled: boolean = true;
+    @Input() boardOrientation: 'white' | 'black' = 'white';
+    @Input() squareSize: number = 60;
+    @Input() boardScale: number = 1;
+
+    @Output() pieceClick = new EventEmitter<string>();
+    @Output() dragStart = new EventEmitter<{ square: string, piece: ChessPiece }>();
+    @Output() dragEnd = new EventEmitter<{ from: string, to: string, piece: ChessPiece }>();
+    @Output() dragCancel = new EventEmitter<{ square: string, piece: ChessPiece }>();
+    @Output() coordinateRequest = new EventEmitter<{ clientX: number, clientY: number, callback: (square: string | null) => void }>();
+
+    @ViewChild('pieceElement', { static: true }) pieceElement!: ElementRef<HTMLElement>;
+
+    // Position actuelle (peut différer de position.x/y pendant le drag)
+    currentX: number = 0;
+    currentY: number = 0;
+
+    // État du drag
+    isDragging: boolean = false;
+    private dragStartX: number = 0;
+    private dragStartY: number = 0;
+    private originalX: number = 0;
+    private originalY: number = 0;
+
+    // Event listeners pour le drag
+    private mouseMoveListener?: (e: MouseEvent) => void;
+    private mouseUpListener?: (e: MouseEvent) => void;
+
+    constructor(private chessService: ChessService) { }
+
+    ngOnInit() {
+        this.currentX = this.position.x;
+        this.currentY = this.position.y;
+    }
+
+    ngOnDestroy() {
+        this.cleanupDragListeners();
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        // Mettre à jour la position si elle change (animation de mouvement)
+        if (changes['position'] && !this.isDragging) {
+            const oldPos = changes['position'].previousValue as PiecePosition;
+            const newPos = changes['position'].currentValue as PiecePosition;
+
+            // Ne repositionner que si la case a vraiment changé
+            if (!oldPos || oldPos.square !== newPos.square) {
+                this.animateToPosition(this.position.x, this.position.y);
+            }
+        }
+    }
+
+    onPieceClick(event: MouseEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!this.isDragging) {
+            this.pieceClick.emit(this.position.square);
+        }
+    }
+
+    onMouseDown(event: MouseEvent) {
+        if (!this.isDragEnabled) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.isDragging = true;
+        this.originalX = this.currentX;
+        this.originalY = this.currentY;
+        this.dragStartX = event.clientX;
+        this.dragStartY = event.clientY;
+
+        this.setupDragListeners();
+        this.dragStart.emit({ square: this.position.square, piece: this.position.piece });
+    }
+
+    private setupDragListeners() {
+        this.mouseMoveListener = (e: MouseEvent) => this.onMouseMove(e);
+        this.mouseUpListener = (e: MouseEvent) => this.onMouseUp(e);
+
+        document.addEventListener('mousemove', this.mouseMoveListener);
+        document.addEventListener('mouseup', this.mouseUpListener);
+    }
+
+    private cleanupDragListeners() {
+        if (this.mouseMoveListener) {
+            document.removeEventListener('mousemove', this.mouseMoveListener);
+        }
+        if (this.mouseUpListener) {
+            document.removeEventListener('mouseup', this.mouseUpListener);
+        }
+    }
+
+    private onMouseMove(event: MouseEvent) {
+        if (!this.isDragging) return;
+
+        const deltaX = event.clientX - this.dragStartX;
+        const deltaY = event.clientY - this.dragStartY;
+
+        // Utiliser l'échelle du board pour corriger les coordonnées
+        this.currentX = this.originalX + (deltaX / this.boardScale);
+        this.currentY = this.originalY + (deltaY / this.boardScale);
+    }
+
+    private onMouseUp(event: MouseEvent) {
+        if (!this.isDragging) return;
+
+        this.isDragging = false;
+        this.cleanupDragListeners();
+
+        // Déterminer la case de destination via le parent
+        this.coordinateRequest.emit({
+            clientX: event.clientX,
+            clientY: event.clientY,
+            callback: (targetSquare: string | null) => {
+                if (targetSquare && targetSquare !== this.position.square) {
+                    // Émettre l'événement de fin de drag
+                    this.dragEnd.emit({
+                        from: this.position.square,
+                        to: targetSquare,
+                        piece: this.position.piece
+                    });
+                } else {
+                    // Annuler le drag et revenir à la position originale
+                    this.dragCancel.emit({ square: this.position.square, piece: this.position.piece });
+                    this.animateToPosition(this.position.x, this.position.y);
+                }
+            }
+        });
+    }
+
+    private getSquareFromCoordinates(clientX: number, clientY: number): string | null {
+        // Cette méthode ne sera plus utilisée directement
+        // La logique est maintenant gérée par le parent via coordinateRequest
+        return null;
+    }
+
+    private animateToPosition(x: number, y: number) {
+        const element = this.pieceElement.nativeElement;
+        element.classList.add('animating');
+
+        this.currentX = x;
+        this.currentY = y;
+
+        // Écouter la fin de la transition pour retirer la classe
+        const handleTransitionEnd = () => {
+            element.classList.remove('animating');
+            element.removeEventListener('transitionend', handleTransitionEnd);
+        };
+
+        element.addEventListener('transitionend', handleTransitionEnd);
+    }
+
+    getPieceSymbol(): string {
+        return this.chessService.getPieceSymbol(this.position.piece);
+    }
+
+    getPieceAltText(): string {
+        const color = this.position.piece.color === 'w' ? 'Blanc' : 'Noir';
+        const type = this.chessService.getPieceTypeName(this.position.piece.type);
+        return `${color} ${type} sur ${this.position.square}`;
+    }
+
+    // Méthode publique pour déplacer la pièce programmatiquement
+    public moveTo(x: number, y: number, animate: boolean = true) {
+        if (animate) {
+            this.animateToPosition(x, y);
+        } else {
+            this.currentX = x;
+            this.currentY = y;
+        }
+    }
+
+    // Méthode publique pour réinitialiser la position
+    public resetPosition() {
+        this.animateToPosition(this.position.x, this.position.y);
+    }
+} 

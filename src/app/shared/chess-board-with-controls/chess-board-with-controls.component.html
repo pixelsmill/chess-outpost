@@ -34,6 +34,7 @@
         [disableClicks]="disableClicks"
         [isMultiplayer]="isMultiplayer"
         [orientation]="orientation"
+        [boardScale]="boardDisplay.boardScale()"
         (positionChange)="onPositionChange($event)"
         (moveChange)="onMoveChange($event)"
       ></app-echiquier>
