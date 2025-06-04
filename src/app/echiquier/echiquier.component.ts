@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, signal, computed, Output, EventEmitter, ViewChild, ElementRef, QueryList, ViewChildren, effect } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, input, output, signal, computed, ViewChild, ElementRef, QueryList, ViewChildren, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess, Square } from 'chess.js';
 import { ChessService, ChessSquare } from '../services/chess.service';
@@ -13,14 +13,14 @@ import { ChessPieceComponent, PiecePosition, ChessPiece } from '../chess-piece/c
   styleUrl: './echiquier.component.scss'
 })
 export class EchiquierComponent implements OnInit, OnChanges {
-  @Input() externalPosition?: string; // Position venant du parent (navigation PGN)
-  @Input() disableClicks = false; // Désactiver les clics pendant la navigation
-  @Input() isMultiplayer = false; // Mode multijoueur - ne pas jouer localement
-  @Input() orientation: 'white' | 'black' = 'white'; // Orientation de l'échiquier
-  @Input() enableDragDrop = true; // Activer le drag & drop
-  @Input() showCoordinates = true; // Afficher les coordonnées
-  @Input() squareSize = 60; // Taille des cases en pixels
-  @Input() boardScale = 1; // Échelle appliquée à tout l'échiquier
+  externalPosition = input<string | undefined>(undefined); // Position venant du parent (navigation PGN)
+  disableClicks = input<boolean>(false); // Désactiver les clics pendant la navigation
+  isMultiplayer = input<boolean>(false); // Mode multijoueur - ne pas jouer localement
+  orientation = input<'white' | 'black'>('white'); // Orientation de l'échiquier
+  enableDragDrop = input<boolean>(true); // Activer le drag & drop
+  showCoordinates = input<boolean>(true); // Afficher les coordonnées
+  squareSize = input<number>(60); // Taille des cases en pixels
+  boardScale = input<number>(1); // Échelle appliquée à tout l'échiquier
 
   @ViewChild('boardContainer', { static: true }) boardContainer!: ElementRef<HTMLElement>;
   @ViewChildren(ChessPieceComponent) pieceComponents!: QueryList<ChessPieceComponent>;
@@ -35,8 +35,8 @@ export class EchiquierComponent implements OnInit, OnChanges {
   orientationChange = signal(0); // Signal pour forcer le recalcul quand l'orientation change
 
   // Événements
-  @Output() positionChange = new EventEmitter<string>();
-  @Output() moveChange = new EventEmitter<{ from: string, to: string, promotion?: string }>();
+  positionChange = output<string>();
+  moveChange = output<{ from: string, to: string, promotion?: string }>();
 
   constructor(private chessService: ChessService) {
     // Effect pour synchroniser les positions des pièces
@@ -65,10 +65,10 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     // Synchroniser avec la position externe (navigation PGN)
-    if (changes['externalPosition'] && this.externalPosition) {
+    if (changes['externalPosition'] && this.externalPosition()) {
       try {
-        this.chess.load(this.externalPosition);
-        this.position.set(this.externalPosition);
+        this.chess.load(this.externalPosition()!);
+        this.position.set(this.externalPosition()!);
         this.selectedSquare.set(null);
         this.possibleMoves.set([]);
       } catch (error) {
@@ -78,16 +78,15 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
     // Synchroniser l'orientation avec le signal
     if (changes['orientation']) {
-      console.log('🎯 Orientation changed from', changes['orientation'].previousValue, 'to', this.orientation);
+      console.log('🎯 Orientation changed from', changes['orientation'].previousValue, 'to', this.orientation());
       this.orientationChange.set(this.orientationChange() + 1);
-      console.log('🎯 Orientation updated to:', this.orientation);
+      console.log('🎯 Orientation updated to:', this.orientation());
 
       // Forcer le repositionnement de toutes les pièces
       setTimeout(() => {
         this.pieceComponents.forEach(piece => {
-          const newPos = this.getPieces().find(p => p.square === piece.position.square);
+          const newPos = this.getPieces().find(p => p.square === piece.position().square);
           if (newPos) {
-            piece.position = newPos;
             piece.resetPosition();
           }
         });
@@ -103,11 +102,11 @@ export class EchiquierComponent implements OnInit, OnChanges {
     let x, y;
 
     if (orientation === 'white') {
-      x = file * this.squareSize;
-      y = (7 - rank) * this.squareSize;
+      x = file * this.squareSize();
+      y = (7 - rank) * this.squareSize();
     } else {
-      x = (7 - file) * this.squareSize;
-      y = rank * this.squareSize;
+      x = (7 - file) * this.squareSize();
+      y = rank * this.squareSize();
     }
 
     return { x, y };
@@ -115,7 +114,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
   // Calculer les coordonnées pixel d'une case (utilise l'orientation courante)
   private getSquareCoordinates(square: string): { x: number, y: number } {
-    return this.getSquareCoordinatesWithOrientation(square, this.orientation);
+    return this.getSquareCoordinatesWithOrientation(square, this.orientation());
   }
 
   // Obtenir la case à partir des coordonnées pixel
@@ -129,13 +128,13 @@ export class EchiquierComponent implements OnInit, OnChanges {
     }
 
     // Tenir compte du scaling : les dimensions réelles sont multipliées par boardScale
-    const scaledSquareSize = this.squareSize * this.boardScale;
+    const scaledSquareSize = this.squareSize() * this.boardScale();
     const file = Math.floor(relativeX / scaledSquareSize);
     const rank = Math.floor(relativeY / scaledSquareSize);
 
     let square: string;
 
-    if (this.orientation === 'white') {
+    if (this.orientation() === 'white') {
       square = String.fromCharCode(97 + file) + (8 - rank);
     } else {
       square = String.fromCharCode(97 + (7 - file)) + (rank + 1);
@@ -145,8 +144,8 @@ export class EchiquierComponent implements OnInit, OnChanges {
       x, y,
       boardRect: { left: boardRect.left, top: boardRect.top, width: boardRect.width, height: boardRect.height },
       relativeX, relativeY,
-      squareSize: this.squareSize,
-      boardScale: this.boardScale,
+      squareSize: this.squareSize(),
+      boardScale: this.boardScale(),
       scaledSquareSize,
       file, rank,
       square
@@ -157,9 +156,9 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
   // Gestionnaires d'événements
   onSquareClick(square: string) {
-    console.log('🎯 EchiquierComponent onSquareClick:', { square, disableClicks: this.disableClicks });
+    console.log('🎯 EchiquierComponent onSquareClick:', { square, disableClicks: this.disableClicks() });
 
-    if (this.disableClicks) {
+    if (this.disableClicks()) {
       console.log('🎯 Clicks disabled, ignoring');
       return;
     }
@@ -168,9 +167,9 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onPieceClick(square: string) {
-    console.log('🎯 EchiquierComponent onPieceClick:', { square, disableClicks: this.disableClicks });
+    console.log('🎯 EchiquierComponent onPieceClick:', { square, disableClicks: this.disableClicks() });
 
-    if (this.disableClicks) {
+    if (this.disableClicks()) {
       console.log('🎯 Clicks disabled, ignoring');
       return;
     }
@@ -181,7 +180,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   onDragStart(event: { square: string, piece: ChessPiece }) {
     console.log('🎯 Drag started:', event);
 
-    if (this.disableClicks) return;
+    if (this.disableClicks()) return;
 
     // Vérifier que c'est bien le tour du joueur
     if (event.piece.color !== this.chess.turn()) {
@@ -197,14 +196,14 @@ export class EchiquierComponent implements OnInit, OnChanges {
   onDragEnd(event: { from: string, to: string, piece: ChessPiece }) {
     console.log('🎯 Drag ended:', event);
 
-    if (this.disableClicks) return;
+    if (this.disableClicks()) return;
 
     // Tenter le mouvement et capturer le résultat
     const moveSuccessful = this.attemptMove(event.from, event.to);
 
     if (!moveSuccessful) {
       // Si le mouvement a échoué, forcer le repositionnement de la pièce
-      const pieceComponent = this.pieceComponents.find(p => p.position.square === event.from);
+      const pieceComponent = this.pieceComponents.find(p => p.position().square === event.from);
       if (pieceComponent) {
         pieceComponent.resetPosition();
       }
@@ -246,7 +245,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   private attemptMove(from: string, to: string): boolean {
-    if (this.isMultiplayer) {
+    if (this.isMultiplayer()) {
       // Mode multijoueur : valider le coup AVANT de l'émettre
       try {
         const tempChess = new Chess(this.chess.fen());
@@ -392,7 +391,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   getSquares(): ChessSquareData[] {
     this.orientationChange(); // Assurer la réactivité
     const squares: ChessSquareData[] = [];
-    const currentOrientation = this.orientation;
+    const currentOrientation = this.orientation();
     console.log('🎯 Computing squares with orientation:', currentOrientation);
 
     // Générer les cases dans le même ordre que pour les pièces
@@ -446,7 +445,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   getPieces(): PiecePosition[] {
     const currentPosition = this.position();
     this.orientationChange(); // Assurer la réactivité
-    const currentOrientation = this.orientation;
+    const currentOrientation = this.orientation();
     console.log('🎯 Computing pieces with orientation:', currentOrientation);
     const pieces: PiecePosition[] = [];
 

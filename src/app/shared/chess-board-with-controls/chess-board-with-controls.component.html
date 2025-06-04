@@ -8,7 +8,7 @@
     <!-- Échiquier avec background dynamique -->
     <app-board-wrapper
       [backgroundColor]="boardDisplay.getBoardBackgroundColor()"
-      [orientation]="orientation"
+      [orientation]="orientation()"
       [style.transform]="'scale(' + boardDisplay.boardScale() + ')'"
       [style.transform-origin]="'center'"
       [style.transition]="'transform 0.3s ease'"
@@ -16,25 +16,25 @@
       <!-- Background heatmap -->
       @if (boardDisplay.selectedBackground() === 'heatmap') {
       <app-heatmap-board
-        [position]="position"
-        [orientation]="orientation"
+        [position]="position()"
+        [orientation]="orientation()"
       ></app-heatmap-board>
       }
 
       <!-- Background topographique -->
       @if (boardDisplay.selectedBackground() === 'topographic') {
       <app-topographic-board
-        [position]="position"
-        [orientation]="orientation"
+        [position]="position()"
+        [orientation]="orientation()"
       ></app-topographic-board>
       }
 
       <!-- Grille de pièces par-dessus -->
       <app-echiquier
-        [externalPosition]="position"
-        [disableClicks]="disableClicks"
-        [isMultiplayer]="isMultiplayer"
-        [orientation]="orientation"
+        [externalPosition]="position()"
+        [disableClicks]="disableClicks()"
+        [isMultiplayer]="isMultiplayer()"
+        [orientation]="orientation()"
         [boardScale]="boardDisplay.boardScale()"
         (positionChange)="onPositionChange($event)"
         (moveChange)="onMoveChange($event)"
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Contrôles de navigation -->
-    @if (showNavigationControls) {
+    @if (showNavigationControls()) {
     <div class="navigation-controls">
       <button
         (click)="onGoToStart()"

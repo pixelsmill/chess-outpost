@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, input, output, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
@@ -20,36 +20,44 @@ import { inject } from '@angular/core';
     templateUrl: './chess-board-with-controls.component.html',
     styleUrl: './chess-board-with-controls.component.scss'
 })
-export class ChessBoardWithControlsComponent implements AfterViewInit {
+export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, AfterViewInit {
     // ViewChild pour accéder à l'échiquier et calculer le scaling
     @ViewChild('chessBoardContainer', { static: true }) chessBoardContainer!: ElementRef<HTMLElement>;
     @ViewChild('echiquier') echiquierComponent!: EchiquierComponent;
     @ViewChild('boardControls', { static: true }) boardControls!: ElementRef<HTMLElement>;
 
-    // Inputs pour configurer l'échiquier
-    @Input() position: string = '';
-    @Input() orientation: 'white' | 'black' = 'white';
-    @Input() disableClicks = false;
-    @Input() isMultiplayer = false;
-    @Input() showNavigationControls = false; // Pour les futures flèches
-    @Input() showExperimentalToggle: boolean = false;
+    // Inputs
+    position = input<string>('');
+    orientation = input<'white' | 'black'>('white');
+    disableClicks = input<boolean>(false);
+    isMultiplayer = input<boolean>(false);
+    showNavigationControls = input<boolean>(false); // Pour les futures flèches
+    showExperimentalToggle = input<boolean>(false);
 
-    // Inputs pour la navigation
-    @Input() canGoBack: boolean = false;
-    @Input() canGoForward: boolean = false;
+    // Navigation controls
+    canGoBack = input<boolean>(false);
+    canGoForward = input<boolean>(false);
 
-    // Outputs pour les événements
-    @Output() positionChange = new EventEmitter<string>();
-    @Output() moveChange = new EventEmitter<{ from: string; to: string; promotion?: string }>();
+    // Outputs
+    positionChange = output<string>();
+    moveChange = output<{ from: string; to: string; promotion?: string }>();
 
-    // Outputs pour la navigation
-    @Output() goToStart = new EventEmitter<void>();
-    @Output() goToPrevious = new EventEmitter<void>();
-    @Output() goToNext = new EventEmitter<void>();
-    @Output() goToEnd = new EventEmitter<void>();
+    // Navigation outputs
+    goToStart = output<void>();
+    goToPrevious = output<void>();
+    goToNext = output<void>();
+    goToEnd = output<void>();
 
     // Service d'affichage de l'échiquier
     public boardDisplay = inject(BoardDisplayService);
+
+    ngOnInit() {
+        // Initialisation du composant
+    }
+
+    ngOnDestroy() {
+        // Nettoyage si nécessaire
+    }
 
     ngAfterViewInit() {
         // Calculer le scaling initial

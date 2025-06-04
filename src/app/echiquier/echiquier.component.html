@@ -2,10 +2,10 @@
 <div
   #boardContainer
   class="board-container"
-  [style.width.px]="squareSize * 8"
-  [style.height.px]="squareSize * 8"
-  [style.--square-size.px]="squareSize"
-  [style.--piece-font-size.px]="squareSize * 0.8"
+  [style.width.px]="squareSize() * 8"
+  [style.height.px]="squareSize() * 8"
+  [style.--square-size.px]="squareSize()"
+  [style.--piece-font-size.px]="squareSize() * 0.8"
 >
   <!-- Layer 1: Cases de l'échiquier (statique) -->
   <div class="squares-layer">
@@ -24,10 +24,10 @@
     <app-chess-piece
       [position]="piece"
       [isSelected]="isSquareSelected(piece.square)"
-      [isDragEnabled]="enableDragDrop && !disableClicks"
-      [boardOrientation]="orientation"
-      [squareSize]="squareSize"
-      [boardScale]="boardScale"
+      [isDragEnabled]="enableDragDrop() && !disableClicks()"
+      [boardOrientation]="orientation()"
+      [squareSize]="squareSize()"
+      [boardScale]="boardScale()"
       (pieceClick)="onPieceClick($event)"
       (dragStart)="onDragStart($event)"
       (dragEnd)="onDragEnd($event)"

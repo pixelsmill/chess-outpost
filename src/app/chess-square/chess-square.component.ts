@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface ChessSquareData {
@@ -19,19 +19,19 @@ export interface ChessSquareData {
     template: `
     <div 
       class="chess-square"
-      [class.light-square]="squareData.isLight"
-      [class.dark-square]="!squareData.isLight"
-      [class.highlighted]="squareData.isHighlighted"
-      [class.last-move]="squareData.isLastMove"
-      [class.check]="squareData.isCheck"
-      [class.possible-move]="squareData.isPossibleMove"
-      [attr.data-square]="squareData.square"
-      [attr.data-file]="squareData.file"
-      [attr.data-rank]="squareData.rank"
+      [class.light-square]="squareData().isLight"
+      [class.dark-square]="!squareData().isLight"
+      [class.highlighted]="squareData().isHighlighted"
+      [class.last-move]="squareData().isLastMove"
+      [class.check]="squareData().isCheck"
+      [class.possible-move]="squareData().isPossibleMove"
+      [attr.data-square]="squareData().square"
+      [attr.data-file]="squareData().file"
+      [attr.data-rank]="squareData().rank"
       (click)="onSquareClick($event)"
     >
       <!-- Indicateur de mouvement possible -->
-      @if (squareData.isPossibleMove) {
+      @if (squareData().isPossibleMove) {
         <div class="move-indicator"></div>
       }
     </div>
@@ -104,13 +104,13 @@ export interface ChessSquareData {
   `]
 })
 export class ChessSquareComponent {
-    @Input() squareData!: ChessSquareData;
+    squareData = input.required<ChessSquareData>();
 
-    @Output() squareClick = new EventEmitter<string>();
+    squareClick = output<string>();
 
     onSquareClick(event: MouseEvent) {
         event.preventDefault();
         event.stopPropagation();
-        this.squareClick.emit(this.squareData.square);
+        this.squareClick.emit(this.squareData().square);
     }
 } 

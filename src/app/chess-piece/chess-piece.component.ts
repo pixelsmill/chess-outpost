@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { Component, input, output, OnInit, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChessService } from '../services/chess.service';
 
@@ -22,14 +22,14 @@ export interface PiecePosition {
     <div 
       #pieceElement
       class="chess-piece"
-      [class.selected]="isSelected"
+      [class.selected]="isSelected()"
       [class.dragging]="isDragging"
       [style.left.px]="currentX"
       [style.top.px]="currentY"
-      [style.z-index]="isDragging ? 1000 : (isSelected ? 100 : 10)"
-      [attr.data-square]="position.square"
-      [attr.data-piece-color]="position.piece.color"
-      [attr.data-piece-type]="position.piece.type"
+      [style.z-index]="isDragging ? 1000 : (isSelected() ? 100 : 10)"
+      [attr.data-square]="position().square"
+      [attr.data-piece-color]="position().piece.color"
+      [attr.data-piece-type]="position().piece.type"
       [title]="getPieceAltText()"
       (mousedown)="onMouseDown($event)"
       (click)="onPieceClick($event)"
@@ -89,18 +89,18 @@ export interface PiecePosition {
   `]
 })
 export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
-    @Input() position!: PiecePosition;
-    @Input() isSelected: boolean = false;
-    @Input() isDragEnabled: boolean = true;
-    @Input() boardOrientation: 'white' | 'black' = 'white';
-    @Input() squareSize: number = 60;
-    @Input() boardScale: number = 1;
+    position = input.required<PiecePosition>();
+    isSelected = input<boolean>(false);
+    isDragEnabled = input<boolean>(true);
+    boardOrientation = input<'white' | 'black'>('white');
+    squareSize = input<number>(60);
+    boardScale = input<number>(1);
 
-    @Output() pieceClick = new EventEmitter<string>();
-    @Output() dragStart = new EventEmitter<{ square: string, piece: ChessPiece }>();
-    @Output() dragEnd = new EventEmitter<{ from: string, to: string, piece: ChessPiece }>();
-    @Output() dragCancel = new EventEmitter<{ square: string, piece: ChessPiece }>();
-    @Output() coordinateRequest = new EventEmitter<{ clientX: number, clientY: number, callback: (square: string | null) => void }>();
+    pieceClick = output<string>();
+    dragStart = output<{ square: string, piece: ChessPiece }>();
+    dragEnd = output<{ from: string, to: string, piece: ChessPiece }>();
+    dragCancel = output<{ square: string, piece: ChessPiece }>();
+    coordinateRequest = output<{ clientX: number, clientY: number, callback: (square: string | null) => void }>();
 
     @ViewChild('pieceElement', { static: true }) pieceElement!: ElementRef<HTMLElement>;
 
@@ -123,8 +123,8 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     constructor(private chessService: ChessService) { }
 
     ngOnInit() {
-        this.currentX = this.position.x;
-        this.currentY = this.position.y;
+        this.currentX = this.position().x;
+        this.currentY = this.position().y;
     }
 
     ngOnDestroy() {
@@ -139,7 +139,7 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
 
             // Ne repositionner que si la case a vraiment changé
             if (!oldPos || oldPos.square !== newPos.square) {
-                this.animateToPosition(this.position.x, this.position.y);
+                this.animateToPosition(this.position().x, this.position().y);
             }
         }
     }
@@ -155,7 +155,7 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
         }
 
         // Permettre le clic même si isDragging = true, tant qu'on n'a pas bougé
-        this.pieceClick.emit(this.position.square);
+        this.pieceClick.emit(this.position().square);
     }
 
     onMouseDown(event: MouseEvent) {
@@ -198,17 +198,16 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
         const deltaX = event.clientX - this.dragStartX;
         const deltaY = event.clientY - this.dragStartY;
 
-        // Détecter si la souris a bougé significativement (plus de 3px)
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        if (distance > 3 && !this.hasMoved) {
+        // Détecter le premier mouvement pour émettre dragStart et marquer hasMoved
+        if (!this.hasMoved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
             this.hasMoved = true;
             // Émettre dragStart seulement maintenant
-            this.dragStart.emit({ square: this.position.square, piece: this.position.piece });
+            this.dragStart.emit({ square: this.position().square, piece: this.position().piece });
         }
 
-        // Utiliser l'échelle du board pour corriger les coordonnées
-        this.currentX = this.originalX + (deltaX / this.boardScale);
-        this.currentY = this.originalY + (deltaY / this.boardScale);
+        // Mettre à jour la position (en tenant compte du scaling)
+        this.currentX = this.originalX + deltaX / this.boardScale();
+        this.currentY = this.originalY + deltaY / this.boardScale();
     }
 
     private onMouseUp(event: MouseEvent) {
@@ -222,17 +221,17 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
             clientX: event.clientX,
             clientY: event.clientY,
             callback: (targetSquare: string | null) => {
-                if (targetSquare && targetSquare !== this.position.square) {
+                if (targetSquare && targetSquare !== this.position().square) {
                     // Émettre l'événement de fin de drag
                     this.dragEnd.emit({
-                        from: this.position.square,
+                        from: this.position().square,
                         to: targetSquare,
-                        piece: this.position.piece
+                        piece: this.position().piece
                     });
                 } else {
                     // Annuler le drag et revenir à la position originale
-                    this.dragCancel.emit({ square: this.position.square, piece: this.position.piece });
-                    this.animateToPosition(this.position.x, this.position.y);
+                    this.dragCancel.emit({ square: this.position().square, piece: this.position().piece });
+                    this.animateToPosition(this.position().x, this.position().y);
                 }
             }
         });
@@ -261,13 +260,13 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     getPieceSymbol(): string {
-        return this.chessService.getPieceSymbol(this.position.piece);
+        return this.chessService.getPieceSymbol(this.position().piece);
     }
 
     getPieceAltText(): string {
-        const color = this.position.piece.color === 'w' ? 'Blanc' : 'Noir';
-        const type = this.chessService.getPieceTypeName(this.position.piece.type);
-        return `${color} ${type} sur ${this.position.square}`;
+        const color = this.position().piece.color === 'w' ? 'Blanc' : 'Noir';
+        const type = this.chessService.getPieceTypeName(this.position().piece.type);
+        return `${color} ${type} sur ${this.position().square}`;
     }
 
     // Méthode publique pour déplacer la pièce programmatiquement
@@ -282,6 +281,6 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
 
     // Méthode publique pour réinitialiser la position
     public resetPosition() {
-        this.animateToPosition(this.position.x, this.position.y);
+        this.animateToPosition(this.position().x, this.position().y);
     }
 } 
