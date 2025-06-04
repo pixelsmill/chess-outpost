@@ -3,7 +3,7 @@
   <div class="board-section">
     <app-chess-board-with-controls
       [position]="currentPosition()"
-      [orientation]="getBoardOrientation()"
+      [orientation]="boardOrientation()"
       [disableClicks]="!(user$ | async) || !isPlayerTurn() || isGameFinished()"
       [isMultiplayer]="true"
       [showNavigationControls]="true"

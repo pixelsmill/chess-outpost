@@ -9,7 +9,7 @@
 >
   <!-- Layer 1: Cases de l'échiquier (statique) -->
   <div class="squares-layer">
-    @for (square of squares(); track square.square) {
+    @for (square of getSquares(); track square.square) {
     <app-chess-square
       [squareData]="square"
       (squareClick)="onSquareClick($event)"
@@ -19,7 +19,7 @@
 
   <!-- Layer 2: Pièces d'échecs (dynamique) -->
   <div class="pieces-layer">
-    @for (piece of pieces(); track piece.square + '-' + piece.piece.color +
+    @for (piece of getPieces(); track piece.square + '-' + piece.piece.color +
     piece.piece.type) {
     <app-chess-piece
       [position]="piece"

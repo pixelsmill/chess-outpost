@@ -32,100 +32,33 @@ export class EchiquierComponent implements OnInit, OnChanges {
   selectedSquare = signal<string | null>(null);
   possibleMoves = signal<string[]>([]);
   lastMove = signal<{ from: string, to: string } | null>(null);
+  orientationChange = signal(0); // Signal pour forcer le recalcul quand l'orientation change
 
   // Événements
   @Output() positionChange = new EventEmitter<string>();
   @Output() moveChange = new EventEmitter<{ from: string, to: string, promotion?: string }>();
 
-  // Données des cases de l'échiquier (statiques)
-  squares = computed(() => {
-    const squares: ChessSquareData[] = [];
-
-    // Générer les cases dans le même ordre que pour les pièces
-    for (let rank = 1; rank <= 8; rank++) {
-      for (let file = 1; file <= 8; file++) {
-        const square = String.fromCharCode(96 + file) + rank; // a1, b1, etc.
-        const isLight = (rank + file) % 2 === 0;
-        const lastMoveData = this.lastMove();
-
-        squares.push({
-          square,
-          rank,
-          file,
-          isLight,
-          isHighlighted: this.selectedSquare() === square,
-          isLastMove: lastMoveData ? (lastMoveData.from === square || lastMoveData.to === square) : false,
-          isCheck: this.isSquareInCheck(square),
-          isPossibleMove: this.possibleMoves().includes(square)
-        });
-      }
-    }
-
-    // Réorganiser les cases pour l'affichage en grid selon l'orientation
-    const gridSquares: ChessSquareData[] = [];
-
-    if (this.orientation === 'white') {
-      // Pour orientation blanche : rang 8 en haut, rang 1 en bas
-      for (let rank = 8; rank >= 1; rank--) {
-        for (let file = 1; file <= 8; file++) {
-          const square = String.fromCharCode(96 + file) + rank;
-          const squareData = squares.find(s => s.square === square);
-          if (squareData) gridSquares.push(squareData);
-        }
-      }
-    } else {
-      // Pour orientation noire : rang 1 en haut, rang 8 en bas
-      for (let rank = 1; rank <= 8; rank++) {
-        for (let file = 8; file >= 1; file--) {
-          const square = String.fromCharCode(96 + file) + rank;
-          const squareData = squares.find(s => s.square === square);
-          if (squareData) gridSquares.push(squareData);
-        }
-      }
-    }
-
-    return gridSquares;
-  });
-
-  // Positions des pièces (dynamiques)
-  pieces = computed(() => {
-    const currentPosition = this.position();
-    const pieces: PiecePosition[] = [];
-
-    // Générer les positions des pièces
-    for (let rank = 1; rank <= 8; rank++) {
-      for (let file = 1; file <= 8; file++) {
-        const square = String.fromCharCode(96 + file) + rank;
-        const piece = this.chess.get(square as Square);
-
-        if (piece) {
-          const { x, y } = this.getSquareCoordinates(square);
-          pieces.push({
-            square,
-            piece: {
-              type: piece.type,
-              color: piece.color
-            },
-            x,
-            y
-          });
-        }
-      }
-    }
-
-    return pieces;
-  });
-
   constructor(private chessService: ChessService) {
     // Effect pour synchroniser les positions des pièces
     effect(() => {
-      const currentPieces = this.pieces();
-      // L'effet se déclenche automatiquement quand pieces() change
+      const currentPieces = this.getPieces();
+      // L'effet se déclenche automatiquement quand getPieces() change
       // Cela garantit que les ViewChildren sont synchronisés
+    });
+
+    // Effect pour surveiller les changements d'orientation
+    effect(() => {
+      const orientationChangeValue = this.orientationChange();
+      console.log('🎯 Orientation effect triggered:', {
+        orientationChangeValue,
+        orientation: this.orientation
+      });
+      // Cet effet force le recalcul des getPieces() quand orientationChange change
     });
   }
 
   ngOnInit() {
+    this.orientationChange.set(1); // Déclencher le calcul initial avec l'orientation
     this.updatePosition();
     this.updatePossibleMoves();
   }
@@ -142,16 +75,34 @@ export class EchiquierComponent implements OnInit, OnChanges {
         console.error('Erreur lors du chargement de la position externe:', error);
       }
     }
+
+    // Synchroniser l'orientation avec le signal
+    if (changes['orientation']) {
+      console.log('🎯 Orientation changed from', changes['orientation'].previousValue, 'to', this.orientation);
+      this.orientationChange.set(this.orientationChange() + 1);
+      console.log('🎯 Orientation updated to:', this.orientation);
+
+      // Forcer le repositionnement de toutes les pièces
+      setTimeout(() => {
+        this.pieceComponents.forEach(piece => {
+          const newPos = this.getPieces().find(p => p.square === piece.position.square);
+          if (newPos) {
+            piece.position = newPos;
+            piece.resetPosition();
+          }
+        });
+      }, 0);
+    }
   }
 
-  // Calculer les coordonnées pixel d'une case
-  private getSquareCoordinates(square: string): { x: number, y: number } {
+  // Calculer les coordonnées pixel d'une case avec orientation spécifique
+  private getSquareCoordinatesWithOrientation(square: string, orientation: 'white' | 'black'): { x: number, y: number } {
     const file = square.charCodeAt(0) - 97; // a=0, b=1, etc.
     const rank = parseInt(square[1]) - 1;    // 1=0, 2=1, etc.
 
     let x, y;
 
-    if (this.orientation === 'white') {
+    if (orientation === 'white') {
       x = file * this.squareSize;
       y = (7 - rank) * this.squareSize;
     } else {
@@ -160,6 +111,11 @@ export class EchiquierComponent implements OnInit, OnChanges {
     }
 
     return { x, y };
+  }
+
+  // Calculer les coordonnées pixel d'une case (utilise l'orientation courante)
+  private getSquareCoordinates(square: string): { x: number, y: number } {
+    return this.getSquareCoordinatesWithOrientation(square, this.orientation);
   }
 
   // Obtenir la case à partir des coordonnées pixel
@@ -430,6 +386,93 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
   isSquareSelected(square: string): boolean {
     return this.selectedSquare() === square;
+  }
+
+  // Données des cases de l'échiquier (statiques)
+  getSquares(): ChessSquareData[] {
+    this.orientationChange(); // Assurer la réactivité
+    const squares: ChessSquareData[] = [];
+    const currentOrientation = this.orientation;
+    console.log('🎯 Computing squares with orientation:', currentOrientation);
+
+    // Générer les cases dans le même ordre que pour les pièces
+    for (let rank = 1; rank <= 8; rank++) {
+      for (let file = 1; file <= 8; file++) {
+        const square = String.fromCharCode(96 + file) + rank; // a1, b1, etc.
+        const isLight = (rank + file) % 2 === 0;
+        const lastMoveData = this.lastMove();
+
+        squares.push({
+          square,
+          rank,
+          file,
+          isLight,
+          isHighlighted: this.selectedSquare() === square,
+          isLastMove: lastMoveData ? (lastMoveData.from === square || lastMoveData.to === square) : false,
+          isCheck: this.isSquareInCheck(square),
+          isPossibleMove: this.possibleMoves().includes(square)
+        });
+      }
+    }
+
+    // Réorganiser les cases pour l'affichage en grid selon l'orientation
+    const gridSquares: ChessSquareData[] = [];
+
+    if (currentOrientation === 'white') {
+      // Pour orientation blanche : rang 8 en haut, rang 1 en bas
+      for (let rank = 8; rank >= 1; rank--) {
+        for (let file = 1; file <= 8; file++) {
+          const square = String.fromCharCode(96 + file) + rank;
+          const squareData = squares.find(s => s.square === square);
+          if (squareData) gridSquares.push(squareData);
+        }
+      }
+    } else {
+      // Pour orientation noire : rang 1 en haut, rang 8 en bas
+      for (let rank = 1; rank <= 8; rank++) {
+        for (let file = 8; file >= 1; file--) {
+          const square = String.fromCharCode(96 + file) + rank;
+          const squareData = squares.find(s => s.square === square);
+          if (squareData) gridSquares.push(squareData);
+        }
+      }
+    }
+
+    console.log('🎯 Squares computed, first few squares:', gridSquares.slice(0, 4).map(s => s.square));
+    return gridSquares;
+  }
+
+  // Positions des pièces (dynamiques)
+  getPieces(): PiecePosition[] {
+    const currentPosition = this.position();
+    this.orientationChange(); // Assurer la réactivité
+    const currentOrientation = this.orientation;
+    console.log('🎯 Computing pieces with orientation:', currentOrientation);
+    const pieces: PiecePosition[] = [];
+
+    // Générer les positions des pièces
+    for (let rank = 1; rank <= 8; rank++) {
+      for (let file = 1; file <= 8; file++) {
+        const square = String.fromCharCode(96 + file) + rank;
+        const piece = this.chess.get(square as Square);
+
+        if (piece) {
+          const { x, y } = this.getSquareCoordinatesWithOrientation(square, currentOrientation);
+          pieces.push({
+            square,
+            piece: {
+              type: piece.type,
+              color: piece.color
+            },
+            x,
+            y
+          });
+        }
+      }
+    }
+
+    console.log('🎯 Pieces computed, sample positions:', pieces.slice(0, 2).map(p => ({ square: p.square, x: p.x, y: p.y })));
+    return pieces;
   }
 }
 

@@ -44,6 +44,9 @@ export class PlayComponent implements OnInit, OnDestroy {
     // Signal pour synchroniser la position
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
+    // Signal pour l'orientation de l'échiquier
+    boardOrientation = signal<'white' | 'black'>('white');
+
     // Données utilisateur et multijoueur
     user$: Observable<User | null> = this.authService.user$;
     onlinePlayers: OnlinePlayer[] = [];
@@ -166,12 +169,17 @@ export class PlayComponent implements OnInit, OnDestroy {
                     this.gameId = game.id;
                     this.currentGame = game;
 
+                    // Mettre à jour l'orientation
+                    const orientation = this.calculateBoardOrientation(game);
+                    this.boardOrientation.set(orientation);
+                    console.log('🎯 Board orientation updated to:', orientation);
+
                     // Créer/mettre à jour l'historique de la partie
                     this.updateGameHistory(game);
 
                     // Vérifier et afficher l'orientation calculée
-                    const orientation = this.getBoardOrientation();
-                    console.log('🎯 Board orientation determined:', orientation);
+                    const orientationCalculated = this.getBoardOrientation();
+                    console.log('🎯 Board orientation determined:', orientationCalculated);
 
                     // Mettre à jour l'URL sans page intermédiaire SEULEMENT si on est sur /play
                     if (this.router.url === '/play') {
@@ -462,6 +470,7 @@ export class PlayComponent implements OnInit, OnDestroy {
         // Réinitialiser la position de l'échiquier
         console.log('🔄 Réinitialisation de la position de l\'échiquier au lobby');
         this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        this.boardOrientation.set('white'); // Réinitialiser l'orientation par défaut
 
         // Naviguer vers le lobby
         this.router.navigate(['/play'], { replaceUrl: true }).then(() => {
@@ -572,5 +581,18 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     get currentMoveDisplay(): string {
         return this.gameNavigationService.getCurrentMoveDisplay();
+    }
+
+    private calculateBoardOrientation(game: GameState): 'white' | 'black' {
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser || !game.players) return 'white';
+
+        if (game.players.white?.uid === currentUser.uid) {
+            return 'white';
+        } else if (game.players.black?.uid === currentUser.uid) {
+            return 'black';
+        }
+
+        return 'white';
     }
 } 

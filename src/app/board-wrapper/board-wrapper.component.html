@@ -11,26 +11,16 @@
 
       <!-- Coordonnées horizontales (lettres) - coin inférieur gauche des cases du bas -->
       <div class="coordinates-horizontal">
-        <div class="coord-letter" data-letter="a">a</div>
-        <div class="coord-letter" data-letter="b">b</div>
-        <div class="coord-letter" data-letter="c">c</div>
-        <div class="coord-letter" data-letter="d">d</div>
-        <div class="coord-letter" data-letter="e">e</div>
-        <div class="coord-letter" data-letter="f">f</div>
-        <div class="coord-letter" data-letter="g">g</div>
-        <div class="coord-letter" data-letter="h">h</div>
+        @for (letter of getHorizontalCoordinates(); track letter) {
+        <div class="coord-letter" [attr.data-letter]="letter">{{ letter }}</div>
+        }
       </div>
 
       <!-- Coordonnées verticales (chiffres) - coin supérieur droit des cases de droite -->
       <div class="coordinates-vertical">
-        <div class="coord-number" data-number="8">8</div>
-        <div class="coord-number" data-number="7">7</div>
-        <div class="coord-number" data-number="6">6</div>
-        <div class="coord-number" data-number="5">5</div>
-        <div class="coord-number" data-number="4">4</div>
-        <div class="coord-number" data-number="3">3</div>
-        <div class="coord-number" data-number="2">2</div>
-        <div class="coord-number" data-number="1">1</div>
+        @for (number of getVerticalCoordinates(); track number) {
+        <div class="coord-number" [attr.data-number]="number">{{ number }}</div>
+        }
       </div>
 
       <ng-content></ng-content>

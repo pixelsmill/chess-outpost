@@ -8,6 +8,7 @@
     <!-- Échiquier avec background dynamique -->
     <app-board-wrapper
       [backgroundColor]="boardDisplay.getBoardBackgroundColor()"
+      [orientation]="orientation"
       [style.transform]="'scale(' + boardDisplay.boardScale() + ')'"
       [style.transform-origin]="'center'"
       [style.transition]="'transform 0.3s ease'"
