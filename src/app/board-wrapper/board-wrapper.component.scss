@@ -54,7 +54,7 @@
       padding: 2px 4px;
       text-transform: uppercase;
 
-      // Positionnement horizontal de chaque lettre
+      // Positionnement horizontal pour orientation white (normale)
       &[data-letter="a"] { left: 0px; }
       &[data-letter="b"] { left: 60px; }
       &[data-letter="c"] { left: 120px; }
@@ -89,7 +89,7 @@
       font-size: 0.7rem;
       padding: 2px 4px;
 
-      // Positionnement vertical de chaque chiffre
+      // Positionnement vertical pour orientation white (normale)
       &[data-number="8"] { top: 0px; }
       &[data-number="7"] { top: 60px; }
       &[data-number="6"] { top: 120px; }
@@ -118,5 +118,32 @@
   // Les backgrounds et coordonnées (premiers enfants) sont en arrière-plan
   ::ng-deep > :not(:last-child) {
     z-index: 1;
+  }
+}
+
+// Styles spécifiques pour l'orientation black
+:host([data-orientation="black"]) .layers {
+  .coordinates-horizontal .coord-letter {
+    // Inverser les positions horizontales pour orientation black
+    &[data-letter="a"] { left: 420px; }
+    &[data-letter="b"] { left: 360px; }
+    &[data-letter="c"] { left: 300px; }
+    &[data-letter="d"] { left: 240px; }
+    &[data-letter="e"] { left: 180px; }
+    &[data-letter="f"] { left: 120px; }
+    &[data-letter="g"] { left: 60px; }
+    &[data-letter="h"] { left: 0px; }
+  }
+
+  .coordinates-vertical .coord-number {
+    // Inverser les positions verticales pour orientation black
+    &[data-number="8"] { top: 420px; }
+    &[data-number="7"] { top: 360px; }
+    &[data-number="6"] { top: 300px; }
+    &[data-number="5"] { top: 240px; }
+    &[data-number="4"] { top: 180px; }
+    &[data-number="3"] { top: 120px; }
+    &[data-number="2"] { top: 60px; }
+    &[data-number="1"] { top: 0px; }
   }
 }

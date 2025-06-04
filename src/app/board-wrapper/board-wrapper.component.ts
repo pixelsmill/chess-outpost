@@ -1,4 +1,4 @@
-import { Component, input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, input, OnChanges, SimpleChanges, HostBinding } from '@angular/core';
 
 @Component({
   selector: 'app-board-wrapper',
@@ -9,6 +9,12 @@ import { Component, input, OnChanges, SimpleChanges } from '@angular/core';
 export class BoardWrapperComponent implements OnChanges {
   backgroundColor = input<string>('rgb(255, 255, 255)'); // Couleur de fond de l'échiquier
   orientation = input<'white' | 'black'>('white'); // Orientation de l'échiquier
+
+  // Ajouter l'attribut data-orientation au host pour le CSS
+  @HostBinding('attr.data-orientation')
+  get dataOrientation() {
+    return this.orientation();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['orientation']) {
