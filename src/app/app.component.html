@@ -1,21 +1,15 @@
 <div class="chess-app">
   <!-- Navigation principale -->
   <nav class="main-navigation">
-    <!-- Bouton burger (visible seulement sur mobile) -->
-    <button
-      class="burger-menu"
-      (click)="toggleMobileMenu()"
-      [class.open]="isMobileMenuOpen"
-    >
-      <span class="burger-line"></span>
-      <span class="burger-line"></span>
-      <span class="burger-line"></span>
-    </button>
-
     <div class="nav-header">
       <h1>
         <img src="assets/chess-outpost.png" alt="Outpost" height="50px" />
-        <span routerLink="/" class="app-title" (click)="closeMobileMenu()"
+        <span
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="app-title"
+          (click)="closeMobileMenu()"
           >Outpost</span
         >
       </h1>
@@ -24,6 +18,15 @@
     <!-- Menu desktop (masqué sur mobile) -->
     <div class="nav-menu desktop-menu">
       <ul class="nav-list">
+        <li class="nav-item">
+          <a
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link"
+            >Home</a
+          >
+        </li>
         <li class="nav-item">
           <a routerLink="/analyze" routerLinkActive="active" class="nav-link"
             >Analyze</a
@@ -37,6 +40,17 @@
       </ul>
     </div>
 
+    <!-- Bouton burger (visible seulement sur mobile) -->
+    <button
+      class="burger-menu"
+      (click)="toggleMobileMenu()"
+      [class.open]="isMobileMenuOpen"
+    >
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+
     &nbsp;
   </nav>
 
@@ -47,6 +61,7 @@
         <a
           routerLink="/"
           routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
           class="mobile-nav-link"
           (click)="closeMobileMenu()"
         >
