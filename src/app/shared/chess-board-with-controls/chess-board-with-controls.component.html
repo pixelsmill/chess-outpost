@@ -63,7 +63,7 @@
     <div class="navigation-controls">
       <button
         (click)="onGoToStart()"
-        [disabled]="!canGoBack"
+        [disabled]="!canGoBack()"
         class="nav-btn"
         title="Go to start"
       >
@@ -71,7 +71,7 @@
       </button>
       <button
         (click)="onGoToPrevious()"
-        [disabled]="!canGoBack"
+        [disabled]="!canGoBack()"
         class="nav-btn"
         title="Previous move"
       >
@@ -79,7 +79,7 @@
       </button>
       <button
         (click)="onGoToNext()"
-        [disabled]="!canGoForward"
+        [disabled]="!canGoForward()"
         class="nav-btn"
         title="Next move"
       >
@@ -87,7 +87,7 @@
       </button>
       <button
         (click)="onGoToEnd()"
-        [disabled]="!canGoForward"
+        [disabled]="!canGoForward()"
         class="nav-btn"
         title="Go to end"
       >

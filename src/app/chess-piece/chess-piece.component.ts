@@ -33,6 +33,7 @@ export interface PiecePosition {
       [title]="getPieceAltText()"
       (mousedown)="onMouseDown($event)"
       (click)="onPieceClick($event)"
+      (touchstart)="onTouchStart($event)"
     >
       <img 
         [src]="getPieceSymbol()" 
@@ -57,6 +58,13 @@ export interface PiecePosition {
       border-radius: 8px;
       transform-origin: center;
       pointer-events: auto;
+      /* Améliorer l'interaction tactile */
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     .piece-image {
@@ -85,6 +93,21 @@ export interface PiecePosition {
     .chess-piece.animating {
       transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
                   top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* Styles spécifiques pour mobile */
+    @media (max-width: 768px) {
+      .chess-piece:hover {
+        transform: none; /* Désactiver le hover sur mobile */
+      }
+      
+      .chess-piece.selected {
+        transform: scale(1.1); /* Réduction légère du scale sur mobile */
+      }
+      
+      .chess-piece.dragging {
+        transform: scale(1.1);
+      }
     }
   `]
 })
@@ -116,9 +139,14 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     private originalX: number = 0;
     private originalY: number = 0;
 
-    // Event listeners pour le drag
+    // Event listeners pour le drag (souris et tactile)
     private mouseMoveListener?: (e: MouseEvent) => void;
     private mouseUpListener?: (e: MouseEvent) => void;
+    private touchMoveListener?: (e: TouchEvent) => void;
+    private touchEndListener?: (e: TouchEvent) => void;
+
+    // Détecter le type d'interaction (souris ou tactile)
+    private isTouch: boolean = false;
 
     constructor(private chessService: ChessService) { }
 
@@ -159,28 +187,52 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     onMouseDown(event: MouseEvent) {
-        if (!this.isDragEnabled) return;
+        if (!this.isDragEnabled() || this.isTouch) return; // Ignorer si on est en mode tactile
 
         event.preventDefault();
         event.stopPropagation();
 
+        this.startDrag(event.clientX, event.clientY, false);
+    }
+
+    onTouchStart(event: TouchEvent) {
+        if (!this.isDragEnabled()) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.isTouch = true;
+        const touch = event.touches[0];
+        this.startDrag(touch.clientX, touch.clientY, true);
+    }
+
+    private startDrag(clientX: number, clientY: number, isTouch: boolean) {
         this.isDragging = true;
-        this.hasMoved = false; // Réinitialiser le flag de mouvement
+        this.hasMoved = false;
+        this.isTouch = isTouch;
         this.originalX = this.currentX;
         this.originalY = this.currentY;
-        this.dragStartX = event.clientX;
-        this.dragStartY = event.clientY;
+        this.dragStartX = clientX;
+        this.dragStartY = clientY;
 
         this.setupDragListeners();
-        // NE PAS émettre dragStart ici, attendre le premier mouvement
     }
 
     private setupDragListeners() {
-        this.mouseMoveListener = (e: MouseEvent) => this.onMouseMove(e);
-        this.mouseUpListener = (e: MouseEvent) => this.onMouseUp(e);
+        if (this.isTouch) {
+            this.touchMoveListener = (e: TouchEvent) => this.onTouchMove(e);
+            this.touchEndListener = (e: TouchEvent) => this.onTouchEnd(e);
 
-        document.addEventListener('mousemove', this.mouseMoveListener);
-        document.addEventListener('mouseup', this.mouseUpListener);
+            document.addEventListener('touchmove', this.touchMoveListener, { passive: false });
+            document.addEventListener('touchend', this.touchEndListener);
+            document.addEventListener('touchcancel', this.touchEndListener);
+        } else {
+            this.mouseMoveListener = (e: MouseEvent) => this.onMouseMove(e);
+            this.mouseUpListener = (e: MouseEvent) => this.onMouseUp(e);
+
+            document.addEventListener('mousemove', this.mouseMoveListener);
+            document.addEventListener('mouseup', this.mouseUpListener);
+        }
     }
 
     private cleanupDragListeners() {
@@ -190,13 +242,31 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
         if (this.mouseUpListener) {
             document.removeEventListener('mouseup', this.mouseUpListener);
         }
+        if (this.touchMoveListener) {
+            document.removeEventListener('touchmove', this.touchMoveListener);
+        }
+        if (this.touchEndListener) {
+            document.removeEventListener('touchend', this.touchEndListener);
+            document.removeEventListener('touchcancel', this.touchEndListener);
+        }
     }
 
     private onMouseMove(event: MouseEvent) {
-        if (!this.isDragging) return;
+        if (!this.isDragging || this.isTouch) return;
+        this.handleMove(event.clientX, event.clientY);
+    }
 
-        const deltaX = event.clientX - this.dragStartX;
-        const deltaY = event.clientY - this.dragStartY;
+    private onTouchMove(event: TouchEvent) {
+        if (!this.isDragging || !this.isTouch) return;
+
+        event.preventDefault(); // Empêcher le scroll
+        const touch = event.touches[0];
+        this.handleMove(touch.clientX, touch.clientY);
+    }
+
+    private handleMove(clientX: number, clientY: number) {
+        const deltaX = clientX - this.dragStartX;
+        const deltaY = clientY - this.dragStartY;
 
         // Détecter le premier mouvement pour émettre dragStart et marquer hasMoved
         if (!this.hasMoved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
@@ -211,15 +281,33 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     private onMouseUp(event: MouseEvent) {
-        if (!this.isDragging) return;
+        if (!this.isDragging || this.isTouch) return;
+        this.handleEnd(event.clientX, event.clientY);
+    }
 
+    private onTouchEnd(event: TouchEvent) {
+        if (!this.isDragging || !this.isTouch) return;
+
+        event.preventDefault();
+        // Utiliser les coordonnées du dernier touch ou changedTouches
+        const touch = event.changedTouches[0] || event.touches[0];
+        if (touch) {
+            this.handleEnd(touch.clientX, touch.clientY);
+        } else {
+            // Fallback si pas de coordonnées disponibles
+            this.handleEnd(this.dragStartX, this.dragStartY);
+        }
+    }
+
+    private handleEnd(clientX: number, clientY: number) {
         this.isDragging = false;
+        this.isTouch = false;
         this.cleanupDragListeners();
 
         // Déterminer la case de destination via le parent
         this.coordinateRequest.emit({
-            clientX: event.clientX,
-            clientY: event.clientY,
+            clientX: clientX,
+            clientY: clientY,
             callback: (targetSquare: string | null) => {
                 if (targetSquare && targetSquare !== this.position().square) {
                     // Émettre l'événement de fin de drag

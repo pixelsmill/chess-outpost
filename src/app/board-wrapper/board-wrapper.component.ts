@@ -18,17 +18,15 @@ export class BoardWrapperComponent implements OnChanges {
   }
 
   getHorizontalCoordinates(): string[] {
-    const coords = this.orientation() === 'white'
-      ? ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-      : ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+    // Toujours dans l'ordre standard - c'est l'échiquier qui gère l'inversion visuelle
+    const coords = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     console.log('🎯 BoardWrapper horizontalCoordinates:', coords, 'for orientation:', this.orientation());
     return coords;
   }
 
   getVerticalCoordinates(): string[] {
-    const coords = this.orientation() === 'white'
-      ? ['8', '7', '6', '5', '4', '3', '2', '1']
-      : ['1', '2', '3', '4', '5', '6', '7', '8'];
+    // Toujours dans l'ordre standard - c'est l'échiquier qui gère l'inversion visuelle
+    const coords = ['8', '7', '6', '5', '4', '3', '2', '1'];
     console.log('🎯 BoardWrapper verticalCoordinates:', coords, 'for orientation:', this.orientation());
     return coords;
   }
