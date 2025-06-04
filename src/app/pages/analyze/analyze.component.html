@@ -5,7 +5,14 @@
       #chessBoardWithControls
       [position]="currentPosition()"
       [disableClicks]="!isFreeMoveEnabled()"
+      [showNavigationControls]="isPgnMode()"
+      [canGoBack]="canGoBack"
+      [canGoForward]="canGoForward"
       (positionChange)="onPositionChange($event)"
+      (goToStart)="goToStart()"
+      (goToPrevious)="goToPrevious()"
+      (goToNext)="goToNext()"
+      (goToEnd)="goToEnd()"
     ></app-chess-board-with-controls>
   </div>
 
@@ -85,40 +92,7 @@
             <div class="move-info">
               {{ getCurrentMoveDisplay() }}
             </div>
-            <div class="nav-buttons">
-              <button
-                (click)="goToStart()"
-                [disabled]="!canGoBack"
-                class="nav-btn-control"
-                title="Go to start"
-              >
-                ⟪
-              </button>
-              <button
-                (click)="goToPrevious()"
-                [disabled]="!canGoBack"
-                class="nav-btn-control"
-                title="Previous move"
-              >
-                ◀
-              </button>
-              <button
-                (click)="goToNext()"
-                [disabled]="!canGoForward"
-                class="nav-btn-control"
-                title="Next move"
-              >
-                ▶
-              </button>
-              <button
-                (click)="goToEnd()"
-                [disabled]="!canGoForward"
-                class="nav-btn-control"
-                title="Go to end"
-              >
-                ⟫
-              </button>
-            </div>
+            <!-- Les boutons de navigation sont maintenant sous l'échiquier -->
           </div>
 
           <!-- Informations sur l'analyse PGN -->

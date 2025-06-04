@@ -24,6 +24,7 @@ export class ChessBoardWithControlsComponent implements AfterViewInit {
     // ViewChild pour accéder à l'échiquier et calculer le scaling
     @ViewChild('chessBoardContainer', { static: true }) chessBoardContainer!: ElementRef<HTMLElement>;
     @ViewChild('echiquier') echiquierComponent!: EchiquierComponent;
+    @ViewChild('boardControls', { static: true }) boardControls!: ElementRef<HTMLElement>;
 
     // Inputs pour configurer l'échiquier
     @Input() position: string = '';
@@ -33,9 +34,19 @@ export class ChessBoardWithControlsComponent implements AfterViewInit {
     @Input() showNavigationControls = false; // Pour les futures flèches
     @Input() showExperimentalToggle: boolean = false;
 
+    // Inputs pour la navigation
+    @Input() canGoBack: boolean = false;
+    @Input() canGoForward: boolean = false;
+
     // Outputs pour les événements
     @Output() positionChange = new EventEmitter<string>();
     @Output() moveChange = new EventEmitter<{ from: string; to: string; promotion?: string }>();
+
+    // Outputs pour la navigation
+    @Output() goToStart = new EventEmitter<void>();
+    @Output() goToPrevious = new EventEmitter<void>();
+    @Output() goToNext = new EventEmitter<void>();
+    @Output() goToEnd = new EventEmitter<void>();
 
     // Service d'affichage de l'échiquier
     public boardDisplay = inject(BoardDisplayService);
@@ -62,9 +73,18 @@ export class ChessBoardWithControlsComponent implements AfterViewInit {
             return;
         }
 
-        // Calculer l'échelle pour chaque dimension
-        const scaleX = containerRect.width / 480;  // Largeur réelle de l'échiquier
-        const scaleY = containerRect.height / 484; // Hauteur réelle de l'échiquier
+        // Mesurer dynamiquement la hauteur des contrôles
+        const controlsHeight = this.boardControls.nativeElement.getBoundingClientRect().height;
+
+        // Calculer l'échelle en tenant compte de la nouvelle structure :
+        // - Échiquier : 480x484px
+        // - Contrôles sous l'échiquier : hauteur mesurée dynamiquement
+        const boardWidth = 480;
+        const boardHeight = 484;
+        const totalHeight = boardHeight + controlsHeight;
+
+        const scaleX = containerRect.width / boardWidth;
+        const scaleY = containerRect.height / totalHeight;
 
         // Prendre la plus petite échelle (la plus contraignante)
         const scale = Math.max(0.5, Math.min(2.5, Math.min(scaleX, scaleY)));
@@ -99,5 +119,22 @@ export class ChessBoardWithControlsComponent implements AfterViewInit {
         if (this.echiquierComponent) {
             this.echiquierComponent.resetGame();
         }
+    }
+
+    // Méthodes pour la navigation
+    onGoToStart() {
+        this.goToStart.emit();
+    }
+
+    onGoToPrevious() {
+        this.goToPrevious.emit();
+    }
+
+    onGoToNext() {
+        this.goToNext.emit();
+    }
+
+    onGoToEnd() {
+        this.goToEnd.emit();
     }
 } 

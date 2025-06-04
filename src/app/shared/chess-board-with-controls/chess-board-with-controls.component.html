@@ -41,7 +41,7 @@
   </div>
 
   <!-- Contrôles sous l'échiquier -->
-  <div class="board-controls">
+  <div class="board-controls" #boardControls>
     <!-- Toggle experimental -->
     <div class="experimental-toggle">
       <div class="toggle-container">
@@ -53,14 +53,44 @@
           />
           <span class="slider"></span>
         </label>
-        <span class="toggle-label">Experimental</span>
       </div>
     </div>
 
-    <!-- Placeholder pour les futures flèches de navigation -->
+    <!-- Contrôles de navigation -->
     @if (showNavigationControls) {
     <div class="navigation-controls">
-      <!-- Les contrôles de navigation seront ajoutés ici plus tard -->
+      <button
+        (click)="onGoToStart()"
+        [disabled]="!canGoBack"
+        class="nav-btn"
+        title="Go to start"
+      >
+        ⟪
+      </button>
+      <button
+        (click)="onGoToPrevious()"
+        [disabled]="!canGoBack"
+        class="nav-btn"
+        title="Previous move"
+      >
+        ◀
+      </button>
+      <button
+        (click)="onGoToNext()"
+        [disabled]="!canGoForward"
+        class="nav-btn"
+        title="Next move"
+      >
+        ▶
+      </button>
+      <button
+        (click)="onGoToEnd()"
+        [disabled]="!canGoForward"
+        class="nav-btn"
+        title="Go to end"
+      >
+        ⟫
+      </button>
     </div>
     }
   </div>

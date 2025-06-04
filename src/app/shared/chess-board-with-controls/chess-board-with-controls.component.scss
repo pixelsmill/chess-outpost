@@ -1,5 +1,6 @@
 :host {
   display: block;
+  width: 100%;
   height: 100%;
 }
 
@@ -33,26 +34,30 @@
 .board-controls {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 0;
+  padding: 0.5rem;
   width: 100%;
+  position: relative;
+  /* Prendre la largeur du conteneur parent (.board-section) */
+  align-self: stretch;
 }
 
-/* Toggle experimental - réutilisation du style existant */
+/* Toggle experimental - repositionné à gauche */
 .experimental-toggle {
+  flex: 0 0 auto;
+  
   .toggle-container {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    opacity: 1;
   }
 
   .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 24px;
+    width: 40px;
+    height: 20px;
     cursor: pointer;
   }
 
@@ -70,14 +75,14 @@
     bottom: 0;
     background-color: rgba(255, 255, 255, 0.2);
     transition: 0.3s;
-    border-radius: 24px;
+    border-radius: 20px;
   }
 
   .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 14px;
+    width: 14px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -90,23 +95,41 @@
   }
 
   input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-
-  .toggle-label {
-    color: white;
-    font-size: 0.85rem;
-    font-style: italic;
-    font-weight: 300;
-    opacity: 0.8;
+    transform: translateX(20px);
   }
 }
 
-/* Placeholder pour les futurs contrôles de navigation */
+/* Contrôles de navigation - centrés */
 .navigation-controls {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 0.5rem;
-  align-items: center;
-  
-  /* Sera utilisé plus tard pour les flèches de navigation */
+  justify-content: center;
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
 } 
