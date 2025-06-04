@@ -12,8 +12,6 @@
     @for (square of squares(); track square.square) {
     <app-chess-square
       [squareData]="square"
-      [showCoordinates]="showCoordinates"
-      [boardOrientation]="orientation"
       (squareClick)="onSquareClick($event)"
     ></app-chess-square>
     }

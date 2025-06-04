@@ -69,18 +69,14 @@ export interface PiecePosition {
 
     .chess-piece:hover {
       transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .chess-piece.selected {
-      transform: scale(1.1);
-      box-shadow: 0 0 0 3px #007bff, 0 6px 16px rgba(0, 123, 255, 0.4);
-      background-color: rgba(0, 123, 255, 0.1);
+      transform: scale(1.2);
     }
 
     .chess-piece.dragging {
       transform: scale(1.15);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       z-index: 1000;
       transition: none;
     }

@@ -30,14 +30,6 @@ export interface ChessSquareData {
       [attr.data-rank]="squareData.rank"
       (click)="onSquareClick($event)"
     >
-      <!-- Coordonnées optionnelles -->
-      @if (showCoordinates && shouldShowFileLabel()) {
-        <div class="file-label">{{ getFileLabel() }}</div>
-      }
-      @if (showCoordinates && shouldShowRankLabel()) {
-        <div class="rank-label">{{ getRankLabel() }}</div>
-      }
-      
       <!-- Indicateur de mouvement possible -->
       @if (squareData.isPossibleMove) {
         <div class="move-indicator"></div>
@@ -55,14 +47,16 @@ export interface ChessSquareData {
       cursor: pointer;
       user-select: none;
       transition: background-color 0.15s ease, box-shadow 0.15s ease;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
     }
 
     .light-square {
-      background-color: var(--light-square-color, #f0d9b5);
+      background-color: transparent;
     }
 
     .dark-square {
-      background-color: var(--dark-square-color, #b58863);
+      background-color: transparent;
     }
 
     .chess-square.highlighted {
@@ -71,8 +65,7 @@ export interface ChessSquareData {
     }
 
     .chess-square.last-move {
-      background-color: var(--last-move-color, #ffe066) !important;
-      box-shadow: inset 0 0 0 2px var(--last-move-border-color, #ffd700);
+      background-color: rgba(255, 224, 102, 0.2) !important;
     }
 
     .chess-square.check {
@@ -87,7 +80,7 @@ export interface ChessSquareData {
     }
 
     .chess-square.possible-move {
-      background-color: var(--possible-move-bg, rgba(0, 255, 0, 0.2));
+      /* Pas de fond, seulement l'indicateur rond */
     }
 
     .move-indicator {
@@ -97,25 +90,6 @@ export interface ChessSquareData {
       border-radius: 50%;
       background-color: var(--move-indicator-color, rgba(0, 0, 0, 0.3));
       pointer-events: none;
-    }
-
-    .file-label, .rank-label {
-      position: absolute;
-      font-size: 12px;
-      font-weight: bold;
-      color: var(--coordinate-color, #333);
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    .file-label {
-      bottom: 2px;
-      right: 2px;
-    }
-
-    .rank-label {
-      top: 2px;
-      left: 2px;
     }
 
     /* Hover effect */
@@ -132,8 +106,6 @@ export interface ChessSquareData {
 })
 export class ChessSquareComponent {
     @Input() squareData!: ChessSquareData;
-    @Input() showCoordinates: boolean = true;
-    @Input() boardOrientation: 'white' | 'black' = 'white';
 
     @Output() squareClick = new EventEmitter<string>();
 
@@ -141,27 +113,5 @@ export class ChessSquareComponent {
         event.preventDefault();
         event.stopPropagation();
         this.squareClick.emit(this.squareData.square);
-    }
-
-    shouldShowFileLabel(): boolean {
-        // Afficher les lettres de colonne sur la dernière rangée
-        return this.boardOrientation === 'white'
-            ? this.squareData.rank === 1
-            : this.squareData.rank === 8;
-    }
-
-    shouldShowRankLabel(): boolean {
-        // Afficher les chiffres de rangée sur la première colonne
-        return this.boardOrientation === 'white'
-            ? this.squareData.file === 1
-            : this.squareData.file === 8;
-    }
-
-    getFileLabel(): string {
-        return String.fromCharCode(96 + this.squareData.file); // a, b, c, ...
-    }
-
-    getRankLabel(): string {
-        return this.squareData.rank.toString();
     }
 } 
