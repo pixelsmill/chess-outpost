@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -16,10 +16,7 @@ import { BoardDisplayService, BackgroundType } from '../../services/board-displa
 import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
 
 // Components
-import { EchiquierComponent } from '../../echiquier/echiquier.component';
-import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
-import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
-import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
+import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-controls/chess-board-with-controls.component';
 
 @Component({
     selector: 'app-play',
@@ -27,17 +24,12 @@ import { TopographicBoardComponent } from '../../backgrounds/topographic-board/t
     imports: [
         CommonModule,
         FormsModule,
-        EchiquierComponent,
-        BoardWrapperComponent,
-        HeatmapBoardComponent,
-        TopographicBoardComponent
+        ChessBoardWithControlsComponent
     ],
     templateUrl: './play.component.html',
     styleUrls: ['../../styles/shared-layout.scss', './play.component.scss']
 })
-export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
-    @ViewChild('boardSection', { static: true }) boardSection!: ElementRef<HTMLElement>;
-
+export class PlayComponent implements OnInit, OnDestroy {
     private multiplayerService = inject(MultiplayerService);
     authService = inject(AuthService);
     public boardDisplay = inject(BoardDisplayService);
@@ -128,12 +120,6 @@ export class PlayComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isLeavingGame = true;
         this.subscriptions.forEach(sub => sub.unsubscribe());
         this.multiplayerService.leaveGame();
-
-        this.boardDisplay.cleanup();
-    }
-
-    ngAfterViewInit() {
-        this.boardDisplay.setupResizeObserver(this.boardSection);
     }
 
     /**

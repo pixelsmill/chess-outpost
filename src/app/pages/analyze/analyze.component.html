@@ -1,34 +1,12 @@
 <div class="layout-with-sidebar">
   <!-- Section échiquier à gauche -->
-  <div class="board-section" #boardSection>
-    <div class="game-board">
-      <!-- Échiquier avec background dynamique -->
-      <app-board-wrapper
-        [backgroundColor]="boardDisplay.getBoardBackgroundColor()"
-        [style.transform]="'scale(' + boardDisplay.boardScale() + ')'"
-        [style.transform-origin]="'center'"
-        [style.transition]="'transform 0.3s ease'"
-      >
-        <!-- Background heatmap -->
-        @if (boardDisplay.selectedBackground() === 'heatmap') {
-        <app-heatmap-board [position]="currentPosition()"></app-heatmap-board>
-        }
-
-        <!-- Background topographique -->
-        @if (boardDisplay.selectedBackground() === 'topographic') {
-        <app-topographic-board
-          [position]="currentPosition()"
-        ></app-topographic-board>
-        }
-
-        <!-- Grille de pièces par-dessus (activé seulement en mode libre) -->
-        <app-echiquier
-          [externalPosition]="currentPosition()"
-          [disableClicks]="!isFreeMoveEnabled()"
-          (positionChange)="onPositionChange($event)"
-        ></app-echiquier>
-      </app-board-wrapper>
-    </div>
+  <div class="board-section">
+    <app-chess-board-with-controls
+      #chessBoardWithControls
+      [position]="currentPosition()"
+      [disableClicks]="!isFreeMoveEnabled()"
+      (positionChange)="onPositionChange($event)"
+    ></app-chess-board-with-controls>
   </div>
 
   <!-- Panneau vertical côté droit -->
@@ -166,22 +144,9 @@
         }
       </div>
 
-      <!-- Pied de sidebar -->
+      <!-- Pied de sidebar - le toggle experimental a été déplacé sous l'échiquier -->
       <div class="sidebar-footer">
-        <!-- Toggle experimental en pied de sidebar -->
-        <div class="experimental-toggle">
-          <div class="toggle-container">
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                [checked]="boardDisplay.selectedBackground() === 'topographic'"
-                (change)="boardDisplay.toggleExperimentalMode($event)"
-              />
-              <span class="slider"></span>
-            </label>
-            <span class="toggle-label">Experimental</span>
-          </div>
-        </div>
+        <!-- Plus de toggle experimental ici, il est maintenant sous l'échiquier -->
       </div>
     </div>
   </div>

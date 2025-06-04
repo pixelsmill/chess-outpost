@@ -1,11 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef, signal, computed, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { EchiquierComponent } from '../../echiquier/echiquier.component';
-import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
-import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
-import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
+import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-controls/chess-board-with-controls.component';
 import { ChessService } from '../../services/chess.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { Chess } from 'chess.js';
@@ -19,17 +16,13 @@ type AnalysisMode = 'free' | 'pgn';
     CommonModule,
     FormsModule,
     RouterModule,
-    EchiquierComponent,
-    BoardWrapperComponent,
-    HeatmapBoardComponent,
-    TopographicBoardComponent
+    ChessBoardWithControlsComponent
   ],
   templateUrl: './analyze.component.html',
   styleUrls: ['../../styles/shared-layout.scss', './analyze.component.scss']
 })
-export class AnalyzeComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(EchiquierComponent) echiquierComponent!: EchiquierComponent;
-  @ViewChild('boardSection', { static: true }) boardSection!: ElementRef<HTMLElement>;
+export class AnalyzeComponent implements OnInit {
+  @ViewChild('chessBoardWithControls') chessBoardWithControls!: ChessBoardWithControlsComponent;
 
   // Signal pour le mode d'analyse (libre ou PGN)
   analysisMode = signal<AnalysisMode>('free');
@@ -79,14 +72,6 @@ Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
 Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
-  ngAfterViewInit() {
-    this.boardDisplay.setupResizeObserver(this.boardSection);
-  }
-
-  ngOnDestroy() {
-    this.boardDisplay.cleanup();
-  }
-
   // === GESTION DES MODES ===
 
   setAnalysisMode(mode: AnalysisMode): void {
@@ -104,22 +89,25 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   get gameStatus(): string {
     if (!this.isFreeMoveEnabled()) return '';
-    return this.echiquierComponent?.getGameStatus() || 'White to move';
+    return this.chessBoardWithControls?.gameStatus || '';
   }
 
   get isGameOver(): boolean {
     if (!this.isFreeMoveEnabled()) return false;
-    return this.echiquierComponent?.isGameOver() || false;
+    return this.chessBoardWithControls?.isGameOver || false;
   }
 
   get isCheck(): boolean {
     if (!this.isFreeMoveEnabled()) return false;
-    return this.echiquierComponent?.chess.isCheck() || false;
+    return this.chessBoardWithControls?.isCheck || false;
   }
 
   resetGame(): void {
     if (!this.isFreeMoveEnabled()) return;
-    this.echiquierComponent?.resetGame();
+    if (this.chessBoardWithControls) {
+      this.chessBoardWithControls.resetGame();
+    }
+    // Réinitialiser aussi le signal de position
     this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
   }
 
