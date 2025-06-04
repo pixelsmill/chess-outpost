@@ -6,7 +6,14 @@
       [orientation]="getBoardOrientation()"
       [disableClicks]="!(user$ | async) || !isPlayerTurn() || isGameFinished()"
       [isMultiplayer]="true"
+      [showNavigationControls]="true"
+      [canGoBack]="gameNavigation.canGoBack"
+      [canGoForward]="gameNavigation.canGoForward"
       (moveChange)="onMoveChange($event)"
+      (goToStart)="onGoToStart()"
+      (goToPrevious)="onGoToPrevious()"
+      (goToNext)="onGoToNext()"
+      (goToEnd)="onGoToEnd()"
     ></app-chess-board-with-controls>
   </div>
 

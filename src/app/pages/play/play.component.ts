@@ -6,11 +6,13 @@ import { Subscription, Observable } from 'rxjs';
 import { User } from '@angular/fire/auth';
 import { filter, take, timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { Chess } from 'chess.js';
 
 // Services
 import { MultiplayerService } from '../../services/multiplayer.service';
 import { AuthService } from '../../services/auth.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
+import { ChessService, GameHistory, GameNavigation } from '../../services/chess.service';
 
 // Models
 import { OnlinePlayer, GameState, Challenge } from '../../models/game.model';
@@ -33,11 +35,17 @@ export class PlayComponent implements OnInit, OnDestroy {
     private multiplayerService = inject(MultiplayerService);
     authService = inject(AuthService);
     public boardDisplay = inject(BoardDisplayService);
+    private chessService = inject(ChessService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
 
     // Signal pour synchroniser la position
     currentPosition = signal<string>('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
+    // Gestion de l'historique et navigation
+    gameHistory: GameHistory | null = null;
+    gameNavigation: GameNavigation = { currentMove: 0, totalMoves: 0, canGoBack: false, canGoForward: false };
+    isNavigatingHistory = false; // Flag pour éviter les boucles lors de la navigation
 
     // Données utilisateur et multijoueur
     user$: Observable<User | null> = this.authService.user$;
@@ -158,6 +166,9 @@ export class PlayComponent implements OnInit, OnDestroy {
                     this.gameId = game.id;
                     this.currentGame = game;
 
+                    // Créer/mettre à jour l'historique de la partie
+                    this.updateGameHistory(game);
+
                     // Vérifier et afficher l'orientation calculée
                     const orientation = this.getBoardOrientation();
                     console.log('🎯 Board orientation determined:', orientation);
@@ -173,6 +184,10 @@ export class PlayComponent implements OnInit, OnDestroy {
                         console.log('🎮 PlayComponent: Game finished, waiting for manual navigation');
                     }
                 } else {
+                    // Partie nulle - réinitialiser l'historique
+                    this.gameHistory = null;
+                    this.gameNavigation = { currentMove: 0, totalMoves: 0, canGoBack: false, canGoForward: false };
+
                     // Partie nulle - mais seulement rediriger si on avait déjà une partie chargée
                     if (this.currentGame && this.gameId && !this.isLeavingGame) {
                         console.log('🎮 PlayComponent: Game was loaded and now lost, going back to lobby');
@@ -192,6 +207,34 @@ export class PlayComponent implements OnInit, OnDestroy {
                 }
             })
         );
+    }
+
+    /**
+     * Met à jour l'historique de la partie à partir des moves
+     */
+    private updateGameHistory(game: GameState): void {
+        if (!game.moves || game.moves.length === 0) {
+            // Pas encore de coups, créer un historique vide
+            this.gameHistory = this.chessService.createGameHistory();
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            return;
+        }
+
+        // Convertir les moves en GameHistory
+        try {
+            this.gameHistory = this.chessService.convertMovesToGameHistory(game.moves);
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            console.log('🎮 Game history updated:', {
+                moves: this.gameHistory.moves.length,
+                currentMove: this.gameNavigation.currentMove,
+                totalMoves: this.gameNavigation.totalMoves
+            });
+        } catch (error) {
+            console.error('Error updating game history:', error);
+            // Fallback : créer un historique vide
+            this.gameHistory = this.chessService.createGameHistory();
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+        }
     }
 
     async quickMatch() {
@@ -359,6 +402,14 @@ export class PlayComponent implements OnInit, OnDestroy {
             return;
         }
 
+        // Si on navigue dans l'historique, revenir à la position courante d'abord
+        if (!this.isAtCurrentPosition) {
+            console.log('🎮 Player is navigating history, returning to current position before move');
+            this.returnToCurrentPosition();
+            // Permettre au joueur de refaire le coup après retour à la position courante
+            return;
+        }
+
         // Vérification basique du tour
         if (!playerInfo.isCurrentTurn) {
             console.log('🎮 Not player turn');
@@ -459,5 +510,137 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     goHome(): void {
         this.router.navigate(['/']);
+    }
+
+    // === GESTION DES CONTRÔLES DE NAVIGATION ===
+
+    /**
+     * Va au début de la partie
+     */
+    onGoToStart(): void {
+        if (!this.gameHistory || this.isNavigatingHistory) return;
+
+        this.isNavigatingHistory = true;
+        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
+
+        try {
+            this.gameHistory = this.chessService.goToStartInHistory(tempChess, this.gameHistory);
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            this.currentPosition.set(tempChess.fen());
+            console.log('🎮 Navigated to start of game');
+        } catch (error) {
+            console.error('Error navigating to start:', error);
+        } finally {
+            this.isNavigatingHistory = false;
+        }
+    }
+
+    /**
+     * Va au coup précédent
+     */
+    onGoToPrevious(): void {
+        if (!this.gameHistory || this.isNavigatingHistory) return;
+
+        this.isNavigatingHistory = true;
+        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
+
+        try {
+            // Charger la position actuelle
+            const currentFen = this.currentPosition();
+            tempChess.load(currentFen);
+
+            this.gameHistory = this.chessService.goToPreviousInHistory(tempChess, this.gameHistory);
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            this.currentPosition.set(tempChess.fen());
+            console.log('🎮 Navigated to previous move');
+        } catch (error) {
+            console.error('Error navigating to previous:', error);
+        } finally {
+            this.isNavigatingHistory = false;
+        }
+    }
+
+    /**
+     * Va au coup suivant
+     */
+    onGoToNext(): void {
+        if (!this.gameHistory || this.isNavigatingHistory) return;
+
+        this.isNavigatingHistory = true;
+        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
+
+        try {
+            // Charger la position actuelle
+            const currentFen = this.currentPosition();
+            tempChess.load(currentFen);
+
+            this.gameHistory = this.chessService.goToNextInHistory(tempChess, this.gameHistory);
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            this.currentPosition.set(tempChess.fen());
+            console.log('🎮 Navigated to next move');
+        } catch (error) {
+            console.error('Error navigating to next:', error);
+        } finally {
+            this.isNavigatingHistory = false;
+        }
+    }
+
+    /**
+     * Va à la fin de la partie
+     */
+    onGoToEnd(): void {
+        if (!this.gameHistory || this.isNavigatingHistory) return;
+
+        this.isNavigatingHistory = true;
+        const tempChess = new Chess(); // Échiquier temporaire pour la navigation
+
+        try {
+            this.gameHistory = this.chessService.goToEndInHistory(tempChess, this.gameHistory);
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+            this.currentPosition.set(tempChess.fen());
+            console.log('🎮 Navigated to end of game');
+        } catch (error) {
+            console.error('Error navigating to end:', error);
+        } finally {
+            this.isNavigatingHistory = false;
+        }
+    }
+
+    /**
+     * Revient à la position courante de la partie (fin de l'historique)
+     */
+    returnToCurrentPosition(): void {
+        if (!this.currentGame || !this.gameHistory) return;
+
+        this.isNavigatingHistory = true;
+        try {
+            // Remettre à la position courante de la partie
+            this.currentPosition.set(this.currentGame.currentFen);
+
+            // Remettre l'historique à la fin
+            this.gameHistory.currentMoveIndex = this.gameHistory.moves.length - 1;
+            this.gameNavigation = this.chessService.getGameNavigationFromHistory(this.gameHistory);
+
+            console.log('🎮 Returned to current game position');
+        } catch (error) {
+            console.error('Error returning to current position:', error);
+        } finally {
+            this.isNavigatingHistory = false;
+        }
+    }
+
+    /**
+     * Vérifie si on peut naviguer (seulement si on est dans une partie et qu'il y a des coups)
+     */
+    get canNavigate(): boolean {
+        return this.gameHistory !== null && this.gameHistory.moves.length > 0;
+    }
+
+    /**
+     * Vérifie si on est à la position courante de la partie
+     */
+    get isAtCurrentPosition(): boolean {
+        if (!this.gameHistory || !this.currentGame) return true;
+        return this.gameHistory.currentMoveIndex === this.gameHistory.moves.length - 1;
     }
 } 

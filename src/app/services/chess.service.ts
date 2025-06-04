@@ -28,6 +28,21 @@ export interface GameNavigation {
   canGoForward: boolean;
 }
 
+// Nouvelle interface pour l'historique centralisé
+export interface MoveHistoryEntry {
+  san: string;        // Notation algébrique (e4, Nf3, etc.)
+  from: string;       // Case de départ (e2)
+  to: string;         // Case d'arrivée (e4)
+  fen: string;        // Position après le coup
+  timestamp?: number; // Optionnel : timestamp du coup
+}
+
+export interface GameHistory {
+  moves: MoveHistoryEntry[];
+  currentMoveIndex: number; // -1 = position initiale, 0 = après le 1er coup, etc.
+  startingFen: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -445,5 +460,179 @@ export class ChessService {
       console.error('Erreur lors de la navigation:', error);
       return false;
     }
+  }
+
+  // === GESTION HISTORIQUE CENTRALISÉ ===
+
+  /**
+   * Crée un nouvel historique de jeu
+   */
+  createGameHistory(startingFen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'): GameHistory {
+    return {
+      moves: [],
+      currentMoveIndex: -1, // Position initiale
+      startingFen
+    };
+  }
+
+  /**
+   * Ajoute un coup à l'historique
+   */
+  addMoveToHistory(history: GameHistory, move: { san: string, from: string, to: string, fen: string }): GameHistory {
+    const newMove: MoveHistoryEntry = {
+      san: move.san,
+      from: move.from,
+      to: move.to,
+      fen: move.fen,
+      timestamp: Date.now()
+    };
+
+    // Si on n'est pas à la fin, on tronque l'historique (comme un vrai éditeur)
+    const newMoves = history.moves.slice(0, history.currentMoveIndex + 1);
+    newMoves.push(newMove);
+
+    return {
+      ...history,
+      moves: newMoves,
+      currentMoveIndex: newMoves.length - 1
+    };
+  }
+
+  /**
+   * Convertit un historique de coups simples en GameHistory
+   */
+  convertMovesToGameHistory(moves: any[], startingFen?: string): GameHistory {
+    const history = this.createGameHistory(startingFen);
+
+    // Créer un échiquier temporaire pour générer les FEN
+    const tempChess = new Chess();
+    if (startingFen) {
+      tempChess.load(startingFen);
+    }
+
+    for (const move of moves) {
+      try {
+        // Faire le coup et capturer les informations
+        const moveResult = tempChess.move(move.san || move);
+        if (moveResult) {
+          const newMove: MoveHistoryEntry = {
+            san: moveResult.san,
+            from: moveResult.from,
+            to: moveResult.to,
+            fen: tempChess.fen(),
+            timestamp: move.timestamp || Date.now()
+          };
+          history.moves.push(newMove);
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la conversion du coup:', move, error);
+      }
+    }
+
+    // Positionner à la fin
+    history.currentMoveIndex = history.moves.length - 1;
+    return history;
+  }
+
+  /**
+   * Obtient la navigation pour un historique donné
+   */
+  getGameNavigationFromHistory(history: GameHistory): GameNavigation {
+    return {
+      currentMove: history.currentMoveIndex + 1, // +1 car -1 = position initiale = coup 0
+      totalMoves: history.moves.length,
+      canGoBack: history.currentMoveIndex >= 0,
+      canGoForward: history.currentMoveIndex < history.moves.length - 1
+    };
+  }
+
+  /**
+   * Va au début de la partie
+   */
+  goToStartInHistory(chess: Chess, history: GameHistory): GameHistory {
+    chess.load(history.startingFen);
+    return {
+      ...history,
+      currentMoveIndex: -1
+    };
+  }
+
+  /**
+   * Va au coup précédent
+   */
+  goToPreviousInHistory(chess: Chess, history: GameHistory): GameHistory {
+    if (history.currentMoveIndex < 0) {
+      return history; // Déjà au début
+    }
+
+    const newIndex = history.currentMoveIndex - 1;
+
+    if (newIndex < 0) {
+      // Retour à la position initiale
+      chess.load(history.startingFen);
+    } else {
+      // Aller à la position du coup précédent
+      chess.load(history.moves[newIndex].fen);
+    }
+
+    return {
+      ...history,
+      currentMoveIndex: newIndex
+    };
+  }
+
+  /**
+   * Va au coup suivant
+   */
+  goToNextInHistory(chess: Chess, history: GameHistory): GameHistory {
+    if (history.currentMoveIndex >= history.moves.length - 1) {
+      return history; // Déjà à la fin
+    }
+
+    const newIndex = history.currentMoveIndex + 1;
+    chess.load(history.moves[newIndex].fen);
+
+    return {
+      ...history,
+      currentMoveIndex: newIndex
+    };
+  }
+
+  /**
+   * Va à la fin de la partie
+   */
+  goToEndInHistory(chess: Chess, history: GameHistory): GameHistory {
+    if (history.moves.length === 0) {
+      return history; // Pas de coups
+    }
+
+    const lastMove = history.moves[history.moves.length - 1];
+    chess.load(lastMove.fen);
+
+    return {
+      ...history,
+      currentMoveIndex: history.moves.length - 1
+    };
+  }
+
+  /**
+   * Va à un coup spécifique
+   */
+  goToMoveInHistory(chess: Chess, history: GameHistory, moveIndex: number): GameHistory {
+    if (moveIndex < -1 || moveIndex >= history.moves.length) {
+      return history; // Index invalide
+    }
+
+    if (moveIndex < 0) {
+      // Position initiale
+      chess.load(history.startingFen);
+    } else {
+      chess.load(history.moves[moveIndex].fen);
+    }
+
+    return {
+      ...history,
+      currentMoveIndex: moveIndex
+    };
   }
 }

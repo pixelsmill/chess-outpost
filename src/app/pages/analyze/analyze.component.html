@@ -5,10 +5,11 @@
       #chessBoardWithControls
       [position]="currentPosition()"
       [disableClicks]="!isFreeMoveEnabled()"
-      [showNavigationControls]="isPgnMode()"
+      [showNavigationControls]="true"
       [canGoBack]="canGoBack"
       [canGoForward]="canGoForward"
       (positionChange)="onPositionChange($event)"
+      (moveChange)="onMoveChange($event)"
       (goToStart)="goToStart()"
       (goToPrevious)="goToPrevious()"
       (goToNext)="goToNext()"
