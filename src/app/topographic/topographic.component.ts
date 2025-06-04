@@ -253,12 +253,12 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
   }
 
   private getColorForValueWithConflict(netValue: number, whiteValue: number, blackValue: number): { r: number, g: number, b: number, a: number } {
-    // Détecter les zones de conflit (comme dans la heatmap)
+    // Détecter les zones de conflit (comme dans la heatmap) - ORANGE au lieu de violet
     if (whiteValue > 0.5 && blackValue > 0.5) {
-      // Zone contestée - couleur violette comme dans la heatmap
+      // Zone contestée - couleur ORANGE (255, 165, 0) comme dans la heatmap
       const totalControl = whiteValue + blackValue;
-      const contestedOpacity = Math.min(100 + (totalControl * 20), 200);
-      return { r: 128, g: 0, b: 128, a: contestedOpacity }; // Violet
+      const contestedOpacity = Math.min(50 + (totalControl * 30), 255); // Gamme élargie 50-255
+      return { r: 255, g: 165, b: 0, a: contestedOpacity }; // Orange
     }
 
     // Appliquer des seuils pour créer des zones de couleur unie
@@ -274,31 +274,31 @@ export class TopographicComponent implements OnChanges, AfterViewInit {
     else if (netValue >= -3) level = -3; // Fort contrôle opposé
     else level = -4;                 // Très fort contrôle opposé
 
-    // Couleurs par paliers pour les blancs (feu) - même couleur que heatmap (255, 69, 0)
+    // Couleurs par paliers pour les blancs - BLANC (255, 255, 255) au lieu d'orange-rouge
     if (level > 0) {
-      const baseR = 255, baseG = 69, baseB = 0;
+      const baseR = 255, baseG = 255, baseB = 255; // Blanc pur
       switch (level) {
-        case 4: return { r: baseR, g: baseG, b: baseB, a: 220 };    // Intensité maximale
-        case 3: return { r: baseR, g: baseG + 30, b: baseB, a: 180 }; // Légèrement plus orange
-        case 2: return { r: baseR, g: baseG + 60, b: baseB + 30, a: 140 }; // Plus orange
-        case 1: return { r: baseR, g: baseG + 100, b: baseB + 80, a: 100 }; // Orange clair
-        default: return { r: 240, g: 240, b: 240, a: 30 };
+        case 4: return { r: baseR, g: baseG, b: baseB, a: 255 };    // Blanc opaque complet
+        case 3: return { r: baseR, g: baseG, b: baseB, a: 200 };    // Blanc forte opacité
+        case 2: return { r: baseR, g: baseG, b: baseB, a: 150 };    // Blanc opacité moyenne
+        case 1: return { r: baseR, g: baseG, b: baseB, a: 100 };    // Blanc opacité faible
+        default: return { r: 70, g: 130, b: 180, a: 50 };         // Fallback bleu
       }
     }
-    // Couleurs par paliers pour les noirs (eau) - même couleur que heatmap (0, 150, 255)
+    // Couleurs par paliers pour les noirs - NOIR (0, 0, 0) au lieu de bleu cyan
     else if (level < 0) {
-      const baseR = 0, baseG = 150, baseB = 255;
+      const baseR = 0, baseG = 0, baseB = 0; // Noir pur
       switch (level) {
-        case -4: return { r: baseR, g: baseG - 50, b: baseB - 50, a: 220 }; // Bleu plus foncé
-        case -3: return { r: baseR + 20, g: baseG - 30, b: baseB - 30, a: 180 }; // Bleu moyen foncé
-        case -2: return { r: baseR + 40, g: baseG - 10, b: baseB - 10, a: 140 }; // Bleu moyen
-        case -1: return { r: baseR + 80, g: baseG + 20, b: baseB, a: 100 }; // Bleu clair
-        default: return { r: 240, g: 240, b: 240, a: 30 };
+        case -4: return { r: baseR, g: baseG, b: baseB, a: 255 };   // Noir opaque complet
+        case -3: return { r: baseR, g: baseG, b: baseB, a: 200 };   // Noir forte opacité
+        case -2: return { r: baseR, g: baseG, b: baseB, a: 150 };   // Noir opacité moyenne
+        case -1: return { r: baseR, g: baseG, b: baseB, a: 100 };   // Noir opacité faible
+        default: return { r: 70, g: 130, b: 180, a: 50 };          // Fallback bleu
       }
     }
-    // Zone neutre
+    // Zone neutre - BLEU (70, 130, 180) au lieu de gris clair
     else {
-      return { r: 240, g: 240, b: 240, a: 30 };
+      return { r: 70, g: 130, b: 180, a: 120 }; // Bleu acier visible
     }
   }
 }

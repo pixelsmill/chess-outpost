@@ -255,39 +255,39 @@ export class ChessService {
   // === STYLES POUR LA HEATMAP ===
 
   getSquareControlStyle(control: SquareControl): any {
-    // Pas de contrôle = couleur neutre avec un damier léger
+    // Pas de contrôle = couleur neutre BLEUE (au lieu de grise)
     if (control.whiteControl === 0 && control.blackControl === 0) {
       return {
-        backgroundColor: 'rgba(120, 120, 120, 0.3)' // Gris plus visible
+        backgroundColor: 'rgba(70, 130, 180, 1)' // Bleu acier plus visible
       };
     }
 
-    // Calculer l'opacité basée sur l'intensité du contrôle
+    // Calculer l'opacité basée sur l'intensité du contrôle avec une gamme élargie
     const maxControl = Math.max(control.whiteControl, control.blackControl);
-    const opacity = Math.min(0.3 + (maxControl * 0.15), 0.8); // Opacité de 0.3 à 0.8
+    const opacity = Math.min(0.2 + (maxControl * 0.2), 1.0); // Opacité de 0.2 à 1.0 (gamme élargie)
 
     if (control.netControl > 0) {
-      // Contrôle blanc dominant - couleur du feu (orange-rouge) avec opacité variable
+      // Contrôle blanc dominant - couleur BLANCHE (au lieu d'orange-rouge)
       return {
-        backgroundColor: `rgba(255, 69, 0, ${opacity})` // Orange-rouge feu
+        backgroundColor: `rgba(255, 255, 255, ${opacity})` // Blanc
       };
     } else if (control.netControl < 0) {
-      // Contrôle noir dominant - couleur de l'eau (bleu cyan) avec opacité variable
+      // Contrôle noir dominant - couleur NOIRE (au lieu de bleu)
       return {
-        backgroundColor: `rgba(0, 150, 255, ${opacity})` // Bleu cyan eau
+        backgroundColor: `rgba(0, 0, 0, ${opacity})` // Noir
       };
     } else if (control.whiteControl > 0 && control.blackControl > 0) {
-      // Case contestée - violet avec opacité basée sur l'intensité totale
+      // Case contestée - ORANGE (au lieu de violet) avec gamme d'opacité élargie
       const totalControl = control.whiteControl + control.blackControl;
-      const contestedOpacity = Math.min(0.4 + (totalControl * 0.1), 0.8);
+      const contestedOpacity = Math.min(0.3 + (totalControl * 0.15), 1.0); // Gamme élargie pour les contestées
       return {
-        backgroundColor: `rgba(128, 0, 128, ${contestedOpacity})`, // Violet
+        backgroundColor: `rgba(255, 165, 0, ${contestedOpacity})`, // Orange
         animation: 'pulse-heatmap 2s infinite'
       };
     }
 
     return {
-      backgroundColor: 'rgba(120, 120, 120, 0.2)' // Fallback gris
+      backgroundColor: 'rgba(70, 130, 180, 0.5)' // Fallback bleu plus visible
     };
   }
 

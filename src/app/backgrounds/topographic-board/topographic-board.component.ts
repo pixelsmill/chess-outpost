@@ -190,47 +190,47 @@ export class TopographicBoardComponent implements OnChanges, AfterViewInit {
   }
 
   private getColorForValueWithConflict(netValue: number, whiteValue: number, blackValue: number): { r: number, g: number, b: number, a: number } {
-    // Si aucun contrôle significatif, rendre complètement transparent
+    // Si aucun contrôle significatif, afficher en BLEU (au lieu de transparent)
     if (whiteValue < 0.1 && blackValue < 0.1) {
-      return { r: 0, g: 0, b: 0, a: 0 };
+      return { r: 70, g: 130, b: 180, a: 120 }; // Bleu acier visible
     }
 
     // Détecter les zones de conflit : seulement quand il y a réellement égalité (netValue proche de 0)
     // ET que les deux camps ont un contrôle significatif
     if (Math.abs(netValue) < 0.5 && whiteValue > 0.5 && blackValue > 0.5) {
-      // Zone réellement contestée - couleur violette avec alpha léger
+      // Zone réellement contestée - couleur ORANGE (255, 165, 0) avec gamme élargie
       const totalControl = whiteValue + blackValue;
-      const contestedOpacity = Math.min(80 + (totalControl * 15), 120); // Alpha plus léger
-      return { r: 128, g: 0, b: 128, a: contestedOpacity }; // Violet
+      const contestedOpacity = Math.min(50 + (totalControl * 30), 255); // Gamme élargie 50-255
+      return { r: 255, g: 165, b: 0, a: contestedOpacity }; // Orange
     }
 
-    // Calculer l'intensité basée sur les valeurs de contrôle (comme la heatmap)
+    // Calculer l'intensité basée sur les valeurs de contrôle avec gamme élargie
     const intensity = Math.abs(netValue);
     let alpha = 0;
 
-    // Alpha progressif basé sur l'intensité (comme la heatmap)
-    if (intensity > 3) alpha = 140;       // Fort contrôle 
-    else if (intensity > 2) alpha = 110;  // Contrôle modéré-fort
-    else if (intensity > 1) alpha = 80;   // Contrôle modéré
-    else if (intensity > 0.5) alpha = 50; // Contrôle faible-modéré
-    else if (intensity > 0.1) alpha = 25; // Très faible contrôle
-    else alpha = 0;                       // Aucun contrôle - transparent
+    // Alpha progressif basé sur l'intensité avec gamme élargie (0.2 à 1.0 comme dans chess.service)
+    if (intensity > 3) alpha = 255;       // Fort contrôle - opaque complet
+    else if (intensity > 2) alpha = 200;  // Contrôle modéré-fort
+    else if (intensity > 1) alpha = 150;  // Contrôle modéré
+    else if (intensity > 0.5) alpha = 100; // Contrôle faible-modéré
+    else if (intensity > 0.1) alpha = 50;  // Très faible contrôle
+    else alpha = 120;                     // Aucun contrôle - bleu visible
 
-    // Si alpha est 0, retourner transparent
-    if (alpha === 0) {
-      return { r: 0, g: 0, b: 0, a: 0 };
+    // Si c'est un contrôle très faible, retourner bleu
+    if (alpha <= 50 && Math.abs(netValue) <= 0.1) {
+      return { r: 70, g: 130, b: 180, a: 120 }; // Bleu acier visible
     }
 
-    // Utiliser exactement les mêmes couleurs que la heatmap
+    // Utiliser les nouvelles couleurs cohérentes avec la heatmap
     if (netValue > 0) {
-      // Zones blanches - couleur rouge-orange (255, 69, 0) comme la heatmap
-      return { r: 255, g: 69, b: 0, a: alpha };
+      // Zones blanches - couleur BLANCHE (255, 255, 255) au lieu d'orange-rouge
+      return { r: 255, g: 255, b: 255, a: alpha };
     } else if (netValue < 0) {
-      // Zones noires - couleur bleu (0, 150, 255) comme la heatmap  
-      return { r: 0, g: 150, b: 255, a: alpha };
+      // Zones noires - couleur NOIRE (0, 0, 0) au lieu de bleu cyan
+      return { r: 0, g: 0, b: 0, a: alpha };
     } else {
-      // Zone parfaitement neutre - transparent
-      return { r: 0, g: 0, b: 0, a: 0 };
+      // Zone parfaitement neutre - bleu acier
+      return { r: 70, g: 130, b: 180, a: 120 };
     }
   }
 }
