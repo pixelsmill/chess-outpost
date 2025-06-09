@@ -1,0 +1,60 @@
+# Cursor Rules for Chess Outpost Project
+
+## Project Context
+This is an Angular chess application with the following key features:
+- Multiplayer chess games with real-time synchronization
+- PGN analysis and navigation
+- Drag & drop piece movement (desktop & mobile)
+- Multiple board backgrounds (classic, heatmap, topographic)
+- Firebase backend for authentication and game state
+- Never use anti pattern setTimeout or setInterval, prefer timer from rxjs and only for animations, or short delays
+- Never run ng serve, ng build, npm run. It's my responsability. And hot reload is enabled.
+
+## Code Standards
+- Use Angular 18+ with standalone components and signals
+- Prefer input() and output() over @Input()/@Output()
+- Use computed() for derived state and effect() for side effects
+- Always use TypeScript with strict typing
+- Follow reactive programming patterns with RxJS
+
+## File Structure Rules
+- Components go in src/app/[component-name]/
+- Services go in src/app/services/
+- Shared components go in src/app/shared/
+- Page components go in src/app/pages/
+- Models/interfaces go in src/app/models/
+
+## Chess-Specific Rules
+- Always use chess.js library for game logic validation
+- Position strings should always be FEN format
+- Piece coordinates use standard chess notation (a1-h8)
+- Board orientation: 'white' or 'black' for player perspective
+- All chess moves must be validated before execution
+
+## Mobile Optimization
+- Always include touch events alongside mouse events for drag & drop
+- Use touch-action: none to prevent scroll conflicts
+- Test responsive behavior on mobile viewports
+- Consider finger size for touch targets (minimum 44px)
+
+## Performance Guidelines
+- Use OnPush change detection when possible
+- Implement trackBy functions for *ngFor loops
+- Lazy load heavy components when appropriate
+- Optimize bundle size by avoiding unnecessary imports
+
+## Testing Approach
+- Skip test files
+
+## When Making Changes
+1. Always check that chess game rules are preserved
+2. Verify that both orientations (white/black) work correctly
+3. Test drag & drop on mobile devices
+4. Ensure real-time multiplayer sync still works
+5. Check that PGN analysis features remain functional
+
+## Communication Style
+- Be precise about chess terminology
+- Explain the impact of changes on gameplay
+- Mention mobile compatibility when relevant
+- Use French for user-facing text and comments in French files 
