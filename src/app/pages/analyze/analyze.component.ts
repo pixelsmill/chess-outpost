@@ -139,6 +139,10 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   onMoveChange(move: { from: string; to: string; promotion?: string }): void {
     if (!this.isFreeMoveEnabled() || this.gameNavigationService.isCurrentlyNavigating()) return;
 
+    // Synchroniser this.localChess avec la position actuelle de navigation
+    const currentPosition = this.gameNavigationService.currentPosition();
+    this.localChess.load(currentPosition);
+
     // Faire le coup sur l'échiquier local pour capturer les informations
     try {
       const moveResult = this.localChess.move(move);
