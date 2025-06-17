@@ -298,4 +298,61 @@
   }
 }
 
+/* Styles pour les cartes dans les panneaux */
+.info-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  p {
+    color: white;
+    opacity: 0.7;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      color: white;
+      opacity: 0.7;
+      font-weight: 300;
+    }
+
+    .value {
+      font-size: 0.8rem;
+      color: white;
+      font-weight: 400;
+    }
+  }
+
+  .sidebar-btn {
+    margin-top: 0.5rem;
+    
+    &:first-of-type {
+      margin-top: 1rem;
+    }
+  }
+}
+
 /* Responsive design */
