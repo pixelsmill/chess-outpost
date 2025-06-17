@@ -154,11 +154,6 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
           to: moveResult.to,
           fen: this.localChess.fen()
         });
-
-        console.log('🎯 Move added to history via service:', {
-          san: moveResult.san,
-          totalMoves: this.gameNavigationService.totalMoves()
-        });
       }
     } catch (error) {
       console.error('Error adding move to history:', error);

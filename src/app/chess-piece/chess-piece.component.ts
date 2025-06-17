@@ -12,6 +12,7 @@ export interface PiecePosition {
     piece: ChessPiece;
     x: number;
     y: number;
+    id: string; // ID unique pour le tracking DOM
 }
 
 @Component({
@@ -41,6 +42,9 @@ export interface PiecePosition {
         class="piece-image"
         draggable="false"
       />
+      @if (debugText()) {
+        <div class="debug-text">{{ debugText() }}</div>
+      }
     </div>
   `,
     styles: [`
@@ -54,7 +58,8 @@ export interface PiecePosition {
       font-size: var(--piece-font-size, 48px);
       cursor: pointer;
       user-select: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.5s ease, box-shadow 0.15s ease, 
+                  left 0.5s ease, top 0.5s ease;
       border-radius: 8px;
       transform-origin: center;
       pointer-events: auto;
@@ -75,6 +80,23 @@ export interface PiecePosition {
       user-select: none;
     }
 
+    .debug-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      font-family: monospace;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1001;
+    }
+
     .chess-piece:hover {
       transform: scale(1.05);
     }
@@ -86,13 +108,6 @@ export interface PiecePosition {
     .chess-piece.dragging {
       transform: scale(1.15);
       z-index: 1000;
-      transition: none;
-    }
-
-    /* Animation pour les mouvements programmatiques */
-    .chess-piece.animating {
-      transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                  top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     /* Styles spécifiques pour mobile */
@@ -118,6 +133,7 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     boardOrientation = input<'white' | 'black'>('white');
     squareSize = input<number>(60);
     boardScale = input<number>(1);
+    debugText = input<string>(''); // Texte de debug à afficher
 
     pieceClick = output<string>();
     dragStart = output<{ square: string, piece: ChessPiece }>();
@@ -332,19 +348,8 @@ export class ChessPieceComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     private animateToPosition(x: number, y: number) {
-        const element = this.pieceElement.nativeElement;
-        element.classList.add('animating');
-
         this.currentX = x;
         this.currentY = y;
-
-        // Écouter la fin de la transition pour retirer la classe
-        const handleTransitionEnd = () => {
-            element.classList.remove('animating');
-            element.removeEventListener('transitionend', handleTransitionEnd);
-        };
-
-        element.addEventListener('transitionend', handleTransitionEnd);
     }
 
     getPieceSymbol(): string {

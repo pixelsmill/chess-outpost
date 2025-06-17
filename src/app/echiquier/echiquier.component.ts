@@ -1,9 +1,10 @@
-import { Component, OnInit, OnChanges, SimpleChanges, input, output, signal, computed, ViewChild, ElementRef, QueryList, ViewChildren, effect } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, input, output, signal, computed, ViewChild, ElementRef, QueryList, ViewChildren, effect, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess, Square } from 'chess.js';
 import { ChessService, ChessSquare } from '../services/chess.service';
 import { ChessSquareComponent, ChessSquareData } from '../chess-square/chess-square.component';
 import { ChessPieceComponent, PiecePosition, ChessPiece } from '../chess-piece/chess-piece.component';
+import { take, timer } from 'rxjs';
 
 @Component({
   selector: 'app-echiquier',
@@ -22,6 +23,8 @@ export class EchiquierComponent implements OnInit, OnChanges {
   squareSize = input<number>(60); // Taille des cases en pixels
   boardScale = input<number>(1); // Échelle appliquée à tout l'échiquier
 
+  ref = inject(ChangeDetectorRef);
+
   @ViewChild('boardContainer', { static: true }) boardContainer!: ElementRef<HTMLElement>;
   @ViewChildren(ChessPieceComponent) pieceComponents!: QueryList<ChessPieceComponent>;
 
@@ -33,26 +36,16 @@ export class EchiquierComponent implements OnInit, OnChanges {
   possibleMoves = signal<string[]>([]);
   lastMove = signal<{ from: string, to: string } | null>(null);
   orientationChange = signal(0); // Signal pour forcer le recalcul quand l'orientation change
+  pieces = signal<PiecePosition[]>([]);
 
   // Événements
   positionChange = output<string>();
   moveChange = output<{ from: string, to: string, promotion?: string }>();
 
   constructor(private chessService: ChessService) {
-    // Effect pour synchroniser les positions des pièces
-    effect(() => {
-      const currentPieces = this.getPieces();
-      // L'effet se déclenche automatiquement quand getPieces() change
-      // Cela garantit que les ViewChildren sont synchronisés
-    });
-
     // Effect pour surveiller les changements d'orientation
     effect(() => {
       const orientationChangeValue = this.orientationChange();
-      console.log('🎯 Orientation effect triggered:', {
-        orientationChangeValue,
-        orientation: this.orientation
-      });
       // Cet effet force le recalcul des getPieces() quand orientationChange change
     });
   }
@@ -61,6 +54,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
     this.orientationChange.set(1); // Déclencher le calcul initial avec l'orientation
     this.updatePosition();
     this.updatePossibleMoves();
+    this.updatePieces(); // Initialiser les pièces
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -71,6 +65,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
         this.position.set(this.externalPosition()!);
         this.selectedSquare.set(null);
         this.possibleMoves.set([]);
+        this.updatePieces(); // Mettre à jour les pièces quand position externe change
       } catch (error) {
         console.error('Erreur lors du chargement de la position externe:', error);
       }
@@ -78,19 +73,16 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
     // Synchroniser l'orientation avec le signal
     if (changes['orientation']) {
-      console.log('🎯 Orientation changed from', changes['orientation'].previousValue, 'to', this.orientation());
       this.orientationChange.set(this.orientationChange() + 1);
-      console.log('🎯 Orientation updated to:', this.orientation());
 
       // Forcer le repositionnement de toutes les pièces
-      setTimeout(() => {
-        this.pieceComponents.forEach(piece => {
-          const newPos = this.getPieces().find(p => p.square === piece.position().square);
-          if (newPos) {
-            piece.resetPosition();
-          }
-        });
-      }, 0);
+      this.updatePieces();
+      this.pieceComponents.forEach(piece => {
+        const newPos = this.pieces().find(p => p.square === piece.position().square);
+        if (newPos) {
+          piece.resetPosition();
+        }
+      });
     }
   }
 
@@ -140,26 +132,14 @@ export class EchiquierComponent implements OnInit, OnChanges {
       square = String.fromCharCode(97 + (7 - file)) + (rank + 1);
     }
 
-    console.log('🎯 getSquareFromCoordinates:', {
-      x, y,
-      boardRect: { left: boardRect.left, top: boardRect.top, width: boardRect.width, height: boardRect.height },
-      relativeX, relativeY,
-      squareSize: this.squareSize(),
-      boardScale: this.boardScale(),
-      scaledSquareSize,
-      file, rank,
-      square
-    });
+
 
     return square;
   }
 
   // Gestionnaires d'événements
   onSquareClick(square: string) {
-    console.log('🎯 EchiquierComponent onSquareClick:', { square, disableClicks: this.disableClicks() });
-
     if (this.disableClicks()) {
-      console.log('🎯 Clicks disabled, ignoring');
       return;
     }
 
@@ -167,10 +147,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onPieceClick(square: string) {
-    console.log('🎯 EchiquierComponent onPieceClick:', { square, disableClicks: this.disableClicks() });
-
     if (this.disableClicks()) {
-      console.log('🎯 Clicks disabled, ignoring');
       return;
     }
 
@@ -178,13 +155,10 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onDragStart(event: { square: string, piece: ChessPiece }) {
-    console.log('🎯 Drag started:', event);
-
     if (this.disableClicks()) return;
 
     // Vérifier que c'est bien le tour du joueur
     if (event.piece.color !== this.chess.turn()) {
-      console.log('🎯 Not this player turn, ignoring drag');
       return;
     }
 
@@ -194,8 +168,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onDragEnd(event: { from: string, to: string, piece: ChessPiece }) {
-    console.log('🎯 Drag ended:', event);
-
     if (this.disableClicks()) return;
 
     // Tenter le mouvement et capturer le résultat
@@ -211,7 +183,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
   }
 
   onDragCancel(event: { square: string, piece: ChessPiece }) {
-    console.log('🎯 Drag cancelled:', event);
     // La pièce reviendra automatiquement à sa position
   }
 
@@ -339,6 +310,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
     const newPosition = this.chess.fen();
     this.position.set(newPosition);
     this.positionChange.emit(newPosition);
+    this.updatePieces(); // Mettre à jour les pièces quand la position change
   }
 
   resetGame() {
@@ -387,12 +359,17 @@ export class EchiquierComponent implements OnInit, OnChanges {
     return this.selectedSquare() === square;
   }
 
+  // Fonction trackBy pour *ngFor des pièces
+  trackPiece(index: number, piece: PiecePosition): string {
+    return piece.id;
+  }
+
   // Données des cases de l'échiquier (statiques)
   getSquares(): ChessSquareData[] {
     this.orientationChange(); // Assurer la réactivité
     const squares: ChessSquareData[] = [];
     const currentOrientation = this.orientation();
-    console.log('🎯 Computing squares with orientation:', currentOrientation);
+
 
     // Générer les cases dans le même ordre que pour les pièces
     for (let rank = 1; rank <= 8; rank++) {
@@ -437,19 +414,119 @@ export class EchiquierComponent implements OnInit, OnChanges {
       }
     }
 
-    console.log('🎯 Squares computed, first few squares:', gridSquares.slice(0, 4).map(s => s.square));
+
     return gridSquares;
   }
 
-  // Positions des pièces (dynamiques)
-  getPieces(): PiecePosition[] {
-    const currentPosition = this.position();
-    this.orientationChange(); // Assurer la réactivité
-    const currentOrientation = this.orientation();
-    console.log('🎯 Computing pieces with orientation:', currentOrientation);
-    const pieces: PiecePosition[] = [];
+  // Générer un ID aléatoire de 8 caractères a-z
+  private generateRandomId(): string {
+    const chars = 'abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
 
-    // Générer les positions des pièces
+  // Fonction pour calculer les IDs avec ordre stable - version optimisée
+  private computeIds(oldPieces: PiecePosition[], newPieces: PiecePosition[]): PiecePosition[] {
+    const usedIds = new Set<string>();
+    const finalResult: PiecePosition[] = [];
+
+    // 1. CONSERVER L'ORDRE: Commencer par les anciennes pièces dans leur ordre original
+    for (const oldPiece of oldPieces) {
+      // Chercher si cette pièce existe encore (même case + même type)
+      const stillExists = newPieces.find(newP =>
+        newP.square === oldPiece.square &&
+        newP.piece.type === oldPiece.piece.type &&
+        newP.piece.color === oldPiece.piece.color
+      );
+
+      if (stillExists) {
+        // Conserver la pièce avec son ID original mais les nouvelles coordonnées
+        finalResult.push({
+          ...stillExists,
+          id: oldPiece.id
+        });
+        usedIds.add(oldPiece.id);
+      }
+    }
+
+    // 2. RÉASSIGNER LES IDS: Pour les pièces qui ont bougé, essayer de garder leur ID original
+    const remainingNewPieces = newPieces.filter(newP =>
+      !finalResult.some(existing =>
+        existing.square === newP.square &&
+        existing.piece.type === newP.piece.type &&
+        existing.piece.color === newP.piece.color
+      )
+    );
+
+    // D'abord essayer de trouver la pièce d'origine (qui a bougé)
+    for (const newPiece of remainingNewPieces) {
+      // Chercher si c'est une pièce qui a juste bougé (même type + couleur)
+      const movedFromOld = oldPieces.find(oldP =>
+        oldP.piece.type === newPiece.piece.type &&
+        oldP.piece.color === newPiece.piece.color &&
+        oldP.square !== newPiece.square && // Case différente = mouvement
+        !usedIds.has(oldP.id) // ID pas encore utilisé
+      );
+
+      if (movedFromOld) {
+        finalResult.push({
+          ...newPiece,
+          id: movedFromOld.id
+        });
+        usedIds.add(movedFromOld.id);
+      }
+    }
+
+    // 3. Pour les vraies nouvelles pièces, utiliser les IDs restants
+    const stillRemainingPieces = remainingNewPieces.filter(newP =>
+      !finalResult.some(existing =>
+        existing.square === newP.square &&
+        existing.piece.type === newP.piece.type &&
+        existing.piece.color === newP.piece.color
+      )
+    );
+
+    const availableIds = oldPieces
+      .filter(oldP => !usedIds.has(oldP.id))
+      .map(oldP => oldP.id);
+
+    for (let i = 0; i < stillRemainingPieces.length; i++) {
+      const newPiece = stillRemainingPieces[i];
+
+      if (i < availableIds.length) {
+        // Réutiliser un ID existant
+        finalResult.push({
+          ...newPiece,
+          id: availableIds[i]
+        });
+        usedIds.add(availableIds[i]);
+      } else {
+        // Créer un nouvel ID
+        let pieceId: string;
+        do {
+          pieceId = this.generateRandomId();
+        } while (usedIds.has(pieceId));
+
+        finalResult.push({
+          ...newPiece,
+          id: pieceId
+        });
+        usedIds.add(pieceId);
+      }
+    }
+
+    return finalResult;
+  }
+
+  // Positions des pièces (dynamiques)
+  updatePieces(): void {
+    const currentOrientation = this.orientation();
+
+    // Générer le nouvel état (sans IDs intelligents pour l'instant)
+    const newPieces: PiecePosition[] = [];
     for (let rank = 1; rank <= 8; rank++) {
       for (let file = 1; file <= 8; file++) {
         const square = String.fromCharCode(96 + file) + rank;
@@ -457,21 +534,26 @@ export class EchiquierComponent implements OnInit, OnChanges {
 
         if (piece) {
           const { x, y } = this.getSquareCoordinatesWithOrientation(square, currentOrientation);
-          pieces.push({
+          newPieces.push({
             square,
             piece: {
               type: piece.type,
               color: piece.color
             },
             x,
-            y
+            y,
+            id: ''
           });
         }
       }
     }
 
-    console.log('🎯 Pieces computed, sample positions:', pieces.slice(0, 2).map(p => ({ square: p.square, x: p.x, y: p.y })));
-    return pieces;
+    // Calculer les IDs intelligents avec ordre stable
+    const piecesWithSmartIds = this.computeIds(this.pieces(), newPieces);
+
+    timer(200).pipe(take(1)).subscribe(() => {
+      this.pieces.set(piecesWithSmartIds);
+    });
   }
 }
 

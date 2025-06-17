@@ -45,7 +45,6 @@ export class GameNavigationService {
             this.localChess.reset();
             this.currentPosition.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
-        console.log('🎯 History initialized');
     }
 
     /**
@@ -58,11 +57,6 @@ export class GameNavigationService {
         this.updateNavigation();
         this.localChess.load(move.fen);
         this.currentPosition.set(move.fen);
-
-        console.log('🎯 Move added to history:', {
-            san: move.san,
-            totalMoves: this.gameHistory.moves.length
-        });
     }
 
     /**
@@ -81,12 +75,6 @@ export class GameNavigationService {
             this.localChess.load(startingFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
             this.currentPosition.set(startingFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
-
-        console.log('🎯 History loaded from moves:', {
-            moves: this.gameHistory.moves.length,
-            currentMove: this.gameNavigation().currentMove,
-            totalMoves: this.gameNavigation().totalMoves
-        });
     }
 
     /**
@@ -100,7 +88,6 @@ export class GameNavigationService {
             this.gameHistory = this.chessService.goToStartInHistory(this.localChess, this.gameHistory);
             this.updateNavigation();
             this.currentPosition.set(this.localChess.fen());
-            console.log('🎯 Navigated to start');
         } catch (error) {
             console.error('Error navigating to start:', error);
         } finally {
@@ -122,7 +109,6 @@ export class GameNavigationService {
             this.gameHistory = this.chessService.goToPreviousInHistory(this.localChess, this.gameHistory);
             this.updateNavigation();
             this.currentPosition.set(this.localChess.fen());
-            console.log('🎯 Navigated to previous move');
         } catch (error) {
             console.error('Error navigating to previous:', error);
         } finally {
@@ -144,7 +130,6 @@ export class GameNavigationService {
             this.gameHistory = this.chessService.goToNextInHistory(this.localChess, this.gameHistory);
             this.updateNavigation();
             this.currentPosition.set(this.localChess.fen());
-            console.log('🎯 Navigated to next move');
         } catch (error) {
             console.error('Error navigating to next:', error);
         } finally {
@@ -163,7 +148,6 @@ export class GameNavigationService {
             this.gameHistory = this.chessService.goToEndInHistory(this.localChess, this.gameHistory);
             this.updateNavigation();
             this.currentPosition.set(this.localChess.fen());
-            console.log('🎯 Navigated to end');
         } catch (error) {
             console.error('Error navigating to end:', error);
         } finally {
@@ -192,8 +176,6 @@ export class GameNavigationService {
                 this.localChess.load(this.gameHistory.startingFen);
                 this.currentPosition.set(this.gameHistory.startingFen);
             }
-
-            console.log('🎯 Returned to current position');
         } catch (error) {
             console.error('Error returning to current position:', error);
         } finally {
@@ -211,8 +193,6 @@ export class GameNavigationService {
         const fen = startingFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
         this.localChess.load(fen);
         this.currentPosition.set(fen);
-
-        console.log('🎯 History reset');
     }
 
     /**

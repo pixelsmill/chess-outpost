@@ -19,21 +19,20 @@
 
   <!-- Layer 2: Pièces d'échecs (dynamique) -->
   <div class="pieces-layer">
-    @for (piece of getPieces(); track piece.square + '-' + piece.piece.color +
-    piece.piece.type) {
     <app-chess-piece
+      *ngFor="let piece of pieces(); trackBy: trackPiece"
       [position]="piece"
       [isSelected]="isSquareSelected(piece.square)"
       [isDragEnabled]="enableDragDrop() && !disableClicks()"
       [boardOrientation]="orientation()"
       [squareSize]="squareSize()"
       [boardScale]="boardScale()"
+      [debugText]="piece.id"
       (pieceClick)="onPieceClick($event)"
       (dragStart)="onDragStart($event)"
       (dragEnd)="onDragEnd($event)"
       (dragCancel)="onDragCancel($event)"
       (coordinateRequest)="onCoordinateRequest($event)"
     ></app-chess-piece>
-    }
   </div>
 </div>

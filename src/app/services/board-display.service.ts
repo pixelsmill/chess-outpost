@@ -112,13 +112,6 @@ export class BoardDisplayService {
         const container = boardSection.nativeElement;
         const containerRect = container.getBoundingClientRect();
 
-        console.log('🎯 BoardDisplay: Container dimensions:', {
-            width: containerRect.width,
-            height: containerRect.height,
-            clientWidth: container.clientWidth,
-            clientHeight: container.clientHeight
-        });
-
         // Vérifier que les dimensions sont valides
         if (containerRect.width === 0 || containerRect.height === 0) {
             console.log('🎯 BoardDisplay: Invalid dimensions, skipping scale calculation');
