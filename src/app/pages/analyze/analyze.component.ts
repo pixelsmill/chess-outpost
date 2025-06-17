@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
+import { Component, OnInit, ViewChild, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute } from '@angular/router';
@@ -6,9 +6,12 @@ import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-c
 import { ChessService } from '../../services/chess.service';
 import { GameNavigationService } from '../../services/game-navigation.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
+import { PositionEvaluatorService, PositionEvaluation } from '../../services/position-evaluator.service';
 import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
+
+type AnalysisSection = 'kingSafety' | 'material' | 'pieceActivity' | 'spaceControl' | 'pawnStructure';
 
 @Component({
   selector: 'app-analyze',
@@ -25,6 +28,27 @@ type AnalysisMode = 'free' | 'pgn';
 export class AnalyzeComponent implements OnInit {
   @ViewChild('chessBoardWithControls') chessBoardWithControls!: ChessBoardWithControlsComponent;
 
+  // État d'expansion des sections
+  expandedSections = signal<Set<AnalysisSection>>(new Set(['kingSafety'])); // Par défaut, la première section est ouverte
+
+  // Méthodes pour gérer l'expansion des sections
+  toggleSection(section: AnalysisSection): void {
+    const currentExpanded = this.expandedSections();
+    const newExpanded = new Set(currentExpanded);
+
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+
+    this.expandedSections.set(newExpanded);
+  }
+
+  isSectionExpanded(section: AnalysisSection): boolean {
+    return this.expandedSections().has(section);
+  }
+
   // Signal pour le mode d'analyse (libre ou PGN)
   analysisMode = signal<AnalysisMode>('free');
 
@@ -35,16 +59,34 @@ export class AnalyzeComponent implements OnInit {
   // Instance Chess locale pour le chargement PGN et le mode libre
   private localChess = new Chess();
 
+  // Évaluation de la position actuelle
+  currentEvaluation = signal<PositionEvaluation | null>(null);
+
   // Computed properties
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
   isPgnMode = computed(() => this.analysisMode() === 'pgn');
+
+  // Computed pour les indicateurs spécifiques
+  kingPawnShieldScore = computed(() => {
+    const evaluation = this.currentEvaluation();
+    return evaluation ? evaluation.kingPawnShield : 0;
+  });
 
   constructor(
     private chessService: ChessService,
     public boardDisplay: BoardDisplayService,
     public gameNavigationService: GameNavigationService,
-    private route: ActivatedRoute
-  ) { }
+    private route: ActivatedRoute,
+    private positionEvaluator: PositionEvaluatorService
+  ) {
+    // Effect qui se déclenche quand la position change
+    effect(() => {
+      const currentPosition = this.gameNavigationService.currentPosition();
+      if (currentPosition) {
+        this.updatePositionEvaluation(currentPosition);
+      }
+    });
+  }
 
   ngOnInit() {
     // Initialiser l'historique vide pour le mode libre
@@ -252,5 +294,36 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   get totalMoves(): number {
     return this.gameNavigationService.totalMoves();
+  }
+
+  /**
+   * Met à jour l'évaluation de la position
+   */
+  private updatePositionEvaluation(position: string): void {
+    try {
+      const evaluation = this.positionEvaluator.evaluatePosition(position);
+      this.currentEvaluation.set(evaluation);
+    } catch (error) {
+      console.error('Erreur lors de l\'évaluation de la position:', error);
+      this.currentEvaluation.set(null);
+    }
+  }
+
+  /**
+   * Obtient le score formaté pour l'affichage
+   */
+  getFormattedScore(score: number): string {
+    return (score * 100).toFixed(0) + '%';
+  }
+
+  /**
+   * Obtient la classe CSS basée sur le score
+   */
+  getScoreClass(score: number): string {
+    if (score >= 0.8) return 'score-excellent';
+    if (score >= 0.6) return 'score-good';
+    if (score >= 0.4) return 'score-average';
+    if (score >= 0.2) return 'score-poor';
+    return 'score-critical';
   }
 }

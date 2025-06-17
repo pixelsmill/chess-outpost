@@ -298,59 +298,177 @@
   }
 }
 
-/* Styles pour les cartes dans les panneaux */
-.info-card {
+/* Styles pour les sections d'analyse dans le panneau de gauche */
+.analysis-section {
   padding: 1rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
+  margin-bottom: 1rem;
 
   h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin: 0 0 0.8rem 0;
+    font-size: 0.85rem;
     color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  p {
-    color: white;
-    opacity: 0.7;
-    font-size: 0.8rem;
-    line-height: 1.5;
-    margin-bottom: 1rem;
-  }
-
-  .info-item {
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    transition: all 0.2s ease;
 
-    &:last-child {
-      border-bottom: none;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      opacity: 1;
     }
 
-    .label {
-      font-size: 0.8rem;
-      color: white;
-      opacity: 0.7;
-      font-weight: 300;
+    &.expanded {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
     }
 
-    .value {
-      font-size: 0.8rem;
-      color: white;
-      font-weight: 400;
+    .expand-icon {
+      font-size: 0.8em;
+      transition: transform 0.2s ease;
     }
   }
 
-  .sidebar-btn {
-    margin-top: 0.5rem;
-    
-    &:first-of-type {
-      margin-top: 1rem;
+  .indicator-list {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+
+    &.expanded {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+  }
+
+  .indicator-item {
+    font-size: 0.75rem;
+    color: white;
+    opacity: 0.7;
+    padding: 0.4rem 0.6rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+
+    .indicator-title {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    &:hover {
+      opacity: 0.9;
+      background: rgba(255, 255, 255, 0.08);
+      border-left-color: rgba(255, 255, 255, 0.4);
+      transform: translateX(2px);
+    }
+
+    &.active {
+      background: rgba(59, 130, 246, 0.2);
+      border-left-color: #3b82f6;
+      opacity: 1;
+    }
+
+    &.positive {
+      border-left-color: rgba(34, 197, 94, 0.6);
+      &:hover {
+        border-left-color: #22c55e;
+      }
+    }
+
+    &.negative {
+      border-left-color: rgba(239, 68, 68, 0.6);
+      &:hover {
+        border-left-color: #ef4444;
+      }
+    }
+
+    // Classes d'évaluation de performance
+    &.score-excellent {
+      background: rgba(34, 197, 94, 0.15);
+      border-left-color: #22c55e;
+      
+      .score {
+        color: #22c55e;
+        font-weight: 600;
+      }
+    }
+
+    &.score-good {
+      background: rgba(59, 130, 246, 0.15);
+      border-left-color: #3b82f6;
+
+      .score {
+        color: #3b82f6;
+        font-weight: 600;
+      }
+    }
+
+    &.score-average {
+      background: rgba(249, 115, 22, 0.15);
+      border-left-color: #f97316;
+      
+      .score {
+        color: #f97316;
+        font-weight: 600;
+      }
+    }
+
+    &.score-poor {
+      background: rgba(239, 68, 68, 0.15);
+      border-left-color: #ef4444;
+      
+      .score {
+        color: #ef4444;
+        font-weight: 600;
+      }
+    }
+
+    &.score-critical {
+      background: rgba(190, 18, 60, 0.15);
+      border-left-color: #be123c;
+      
+      .score {
+        color: #be123c;
+        font-weight: 600;
+      }
+    }
+
+    // Score d'évaluation
+    .score {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.15rem 0.4rem;
+      border-radius: 2px;
+      min-width: 36px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+    }
+
+    // Style pour les exposants de difficulté
+    sup {
+      font-size: 0.6rem;
+      opacity: 0.6;
+      margin-left: 0.2rem;
+      font-weight: 400;
     }
   }
 }
