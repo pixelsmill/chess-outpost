@@ -19,6 +19,7 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@angular/service-worker": "^19.2.14",
     "@types/chess.js": "^0.13.7",
     "@types/d3": "^7.4.3",
     "chess.js": "^1.2.0",

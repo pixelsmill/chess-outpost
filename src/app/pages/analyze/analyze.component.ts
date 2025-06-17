@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-controls/chess-board-with-controls.component';
 import { ChessService } from '../../services/chess.service';
 import { GameNavigationService } from '../../services/game-navigation.service';
@@ -42,15 +42,27 @@ export class AnalyzeComponent implements OnInit {
   constructor(
     private chessService: ChessService,
     public boardDisplay: BoardDisplayService,
-    public gameNavigationService: GameNavigationService
+    public gameNavigationService: GameNavigationService,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
     // Initialiser l'historique vide pour le mode libre
     this.gameNavigationService.initializeHistory();
 
-    // Pré-remplir avec la partie Immortelle
-    this.pgnText = `[Event "London 'Immortal game'"]
+    // Vérifier si un PGN a été partagé via l'API Web Share Target
+    this.route.queryParams.subscribe(params => {
+      // La propriété 'pgn' correspond au paramètre 'text' dans le share_target du manifest
+      if (params['pgn']) {
+        this.pgnText = params['pgn'];
+        this.setAnalysisMode('pgn');
+        this.loadPgn();
+      } else if (params['url']) {
+        // Si un URL est partagé, essayer de l'analyser pour voir si c'est un lien vers une partie
+        this.fetchPgnFromUrl(params['url']);
+      } else {
+        // Pré-remplir avec la partie Immortelle
+        this.pgnText = `[Event "London 'Immortal game'"]
 [Site "London"]
 [Date "1851.06.21"]
 [Round "?"]
@@ -70,6 +82,20 @@ e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8.
 Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15.
 Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21.
 Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
+      }
+    });
+  }
+
+  // Méthode pour récupérer le PGN à partir d'une URL partagée
+  private fetchPgnFromUrl(url: string): void {
+    // Tenter de détecter si l'URL est une partie Chess.com
+    if (url.includes('chess.com/game/live') || url.includes('chess.com/game/daily')) {
+      // Pour le moment, informer l'utilisateur que la fonctionnalité est en développement
+      console.log('URL de partie Chess.com détectée:', url);
+      // Note: Pour une implémentation complète, vous auriez besoin d'un service backend
+      // pour récupérer le PGN à partir de l'API Chess.com, car CORS empêcherait
+      // les appels directs depuis le navigateur
+    }
   }
 
   // === GESTION DES MODES ===
