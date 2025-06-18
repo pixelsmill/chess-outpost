@@ -21,12 +21,12 @@
       ></app-heatmap-board>
       }
 
-      <!-- Background topographique -->
-      @if (boardDisplay.selectedBackground() === 'topographic') {
-      <app-topographic-board
+      <!-- Background classique -->
+      @if (boardDisplay.selectedBackground() === 'classic') {
+      <app-classic-board
         [position]="position()"
         [orientation]="orientation()"
-      ></app-topographic-board>
+      ></app-classic-board>
       }
 
       <!-- Grille de pièces par-dessus -->
@@ -50,7 +50,7 @@
         <label class="toggle-switch">
           <input
             type="checkbox"
-            [checked]="boardDisplay.selectedBackground() === 'topographic'"
+            [checked]="boardDisplay.selectedBackground() === 'heatmap'"
             (change)="boardDisplay.toggleExperimentalMode($event)"
           />
           <span class="slider"></span>

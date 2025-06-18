@@ -2,7 +2,7 @@ import { Injectable, signal, ElementRef, effect } from '@angular/core';
 import { timer, Subject, Subscription } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
-export type BackgroundType = 'heatmap' | 'topographic';
+export type BackgroundType = 'heatmap' | 'classic';
 
 @Injectable({
     providedIn: 'root'
@@ -38,13 +38,13 @@ export class BoardDisplayService {
     private loadBackgroundFromStorage(): BackgroundType {
         try {
             const stored = localStorage.getItem('hotpawn-background');
-            if (stored === 'heatmap' || stored === 'topographic') {
+            if (stored === 'heatmap' || stored === 'classic') {
                 return stored;
             }
         } catch (error) {
             console.warn('Erreur lors du chargement des préférences:', error);
         }
-        return 'heatmap'; // Valeur par défaut
+        return 'classic'; // Valeur par défaut changée
     }
 
     /**
@@ -81,12 +81,12 @@ export class BoardDisplayService {
     }
 
     /**
-     * Toggle entre heatmap et topographic via checkbox avec sauvegarde automatique
+     * Toggle entre heatmap et classic via checkbox avec sauvegarde automatique
      */
     toggleExperimentalMode(event: Event): void {
         const target = event.target as HTMLInputElement;
         const isExperimental = target.checked;
-        this.selectedBackground.set(isExperimental ? 'topographic' : 'heatmap');
+        this.selectedBackground.set(isExperimental ? 'heatmap' : 'classic');
         // La sauvegarde se fait automatiquement via l'effect()
     }
 

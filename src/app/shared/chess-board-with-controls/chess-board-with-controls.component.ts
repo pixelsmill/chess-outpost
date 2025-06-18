@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
-import { TopographicBoardComponent } from '../../backgrounds/topographic-board/topographic-board.component';
+import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
 import { BoardDisplayService } from '../../services/board-display.service';
 import { inject } from '@angular/core';
 
@@ -15,7 +15,7 @@ import { inject } from '@angular/core';
         EchiquierComponent,
         BoardWrapperComponent,
         HeatmapBoardComponent,
-        TopographicBoardComponent
+        ClassicBoardComponent
     ],
     templateUrl: './chess-board-with-controls.component.html',
     styleUrl: './chess-board-with-controls.component.scss'

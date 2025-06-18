@@ -1,5 +1,82 @@
 /* Styles spécifiques à la page d'analyse */
 
+/* Styles pour les métriques simplifiées */
+.analysis-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: white;
+    font-weight: 400;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .metric-bar {
+    cursor: help;
+    
+    .evaluation-bar {
+      height: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: scale(1.02);
+      }
+
+      .white-portion {
+        background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
+        transition: width 0.5s ease;
+        border-right: 2px solid rgba(0, 0, 0, 0.3);
+      }
+
+      .black-portion {
+        background: linear-gradient(90deg, #64748b 0%, #1e293b 100%);
+        transition: width 0.5s ease;
+      }
+    }
+  }
+
+  .metric-bar {
+    cursor: help;
+    
+    .evaluation-bar {
+      height: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: scale(1.02);
+      }
+
+      .white-portion {
+        background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
+        transition: width 0.5s ease;
+        border-right: 2px solid rgba(0, 0, 0, 0.3);
+      }
+
+      .black-portion {
+        background: linear-gradient(90deg, #64748b 0%, #1e293b 100%);
+        transition: width 0.5s ease;
+      }
+    }
+  }
+}
+
 /* Carte de navigation et contrôles */
 .navigation-card {
   padding: 1rem 0;
@@ -474,3 +551,122 @@
 }
 
 /* Responsive design */
+
+/* Mobile optimizations */
+@media (max-width: 1024px) {
+  .layout-with-sidebar {
+    .left-panel {
+      // Sidebar en overlay mobile
+      position: relative;
+      height: 0;
+      overflow: visible;
+      z-index: 1000;
+      
+      .panel-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        max-height: 70vh;
+        overflow-y: auto;
+        
+        .sidebar-body {
+          padding: 0.5rem;
+          justify-content: flex-start;
+        }
+      }
+    }
+  }
+
+  // Barres d'évaluation compactes
+  .analysis-section {
+    margin-bottom: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    
+    // Maintenir le layout horizontal
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    
+    h3 {
+      font-size: 0.75rem;
+      margin: 0;
+      padding: 0;
+      min-width: 55px; // Largeur légèrement réduite
+    }
+    
+    .metric-bar {
+      flex: 1;
+      
+      .evaluation-bar {
+        height: 14px; // Encore plus compact
+        border-radius: 7px;
+      }
+    }
+  }
+
+  // Navigation compacte
+  .navigation-card {
+    padding: 0.5rem 0;
+    
+    h3 {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .move-info {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  // Mode selector compact
+  .mode-selector-card {
+    padding: 0.5rem 0;
+    
+    h3 {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .mode-buttons {
+      gap: 0.3rem;
+      
+      .mode-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  // Info card compact
+  .analyze-info-card {
+    padding: 0.5rem 0;
+    
+    h3 {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .info-item {
+      padding: 0.3rem 0;
+      
+      .label,
+      .value {
+        font-size: 0.75rem;
+      }
+    }
+    
+    .back-home-btn {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.75rem;
+    }
+  }
+}

@@ -2,58 +2,30 @@ import { Injectable } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 
 export interface PositionEvaluation {
-    // Sécurité du roi
-    kingPawnShield: number;
-    kingExposedInCenter: number;
-    openLinesAgainstKing: number;
-    kingCastlingSafety: number;
-    kingEscapeSquares: number;
-    attackersVsDefenders: number;
+    // Évaluation matérielle (non relative) - somme des points sur l'échiquier
+    materialBalance: { white: number; black: number };
 
-    // Rapport matériel
-    materialAdvantage: number;
-    bishopPair: number;
-    lightSquareAdvantage: number;
-    darkSquareAdvantage: number;
-    queenVsMinorPieces: number;
-    rookVsMinorPieces: number;
-    exchangeQuality: number;
+    // Prise d'espace - nombre d'espaces sous chacun des pions jusqu'au bord
+    spaceControl: { white: number; black: number };
 
-    // Activité des pièces
-    activePieces: number;
-    pieceMobility: number;
-    pieceCoordination: number;
-    rookColumnControl: number;
-    overloadedPieces: number;
-    badlyPlacedPieces: number;
-    bishopVsKnight: number;
+    // Activité des pièces - nombre de déplacements possibles (hors pions et roi)
+    pieceActivity: { white: number; black: number };
 
-    // Prise d'espace
-    centerControl: number;
-    spaceAdvantage: number;
-    weakSquares: number;
-    outposts: number;
-    holes: number;
-    centerTension: number;
+    // Sécurité du roi - présence de 3 pions à leur position initiale devant le roi
+    kingSafety: { white: number; black: number };
 
-    // Structure de pions
-    passedPawns: number;
-    protectedPassedPawns: number;
-    distantPassedPawns: number;
-    isolatedPawns: number;
-    backwardPawns: number;
-    backwardPawnsOnSemiOpen: number;
-    pawnMajority: number;
-    doubledPawns: number;
-    pawnIslands: number;
-    hangingPawns: number;
-    pawnChains: number;
+    // Structure de pions - nombre d'îlots de pions
+    pawnStructure: { white: number; black: number };
 }
 
 @Injectable({
     providedIn: 'root'
 })
 export class PositionEvaluatorService {
+
+    private readonly PIECE_VALUES = {
+        'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0
+    };
 
     constructor() { }
 
@@ -65,104 +37,209 @@ export class PositionEvaluatorService {
         chess.load(position);
 
         return {
-            // Sécurité du roi
-            kingPawnShield: this.evaluateKingPawnShield(chess),
-            kingExposedInCenter: this.evaluateKingExposedInCenter(chess),
-            openLinesAgainstKing: this.evaluateOpenLinesAgainstKing(chess),
-            kingCastlingSafety: this.evaluateKingCastlingSafety(chess),
-            kingEscapeSquares: this.evaluateKingEscapeSquares(chess),
-            attackersVsDefenders: this.evaluateAttackersVsDefenders(chess),
-
-            // Rapport matériel
-            materialAdvantage: this.evaluateMaterialAdvantage(chess),
-            bishopPair: this.evaluateBishopPair(chess),
-            lightSquareAdvantage: this.evaluateLightSquareAdvantage(chess),
-            darkSquareAdvantage: this.evaluateDarkSquareAdvantage(chess),
-            queenVsMinorPieces: this.evaluateQueenVsMinorPieces(chess),
-            rookVsMinorPieces: this.evaluateRookVsMinorPieces(chess),
-            exchangeQuality: this.evaluateExchangeQuality(chess),
-
-            // Activité des pièces
-            activePieces: this.evaluateActivePieces(chess),
-            pieceMobility: this.evaluatePieceMobility(chess),
-            pieceCoordination: this.evaluatePieceCoordination(chess),
-            rookColumnControl: this.evaluateRookColumnControl(chess),
-            overloadedPieces: this.evaluateOverloadedPieces(chess),
-            badlyPlacedPieces: this.evaluateBadlyPlacedPieces(chess),
-            bishopVsKnight: this.evaluateBishopVsKnight(chess),
-
-            // Prise d'espace
-            centerControl: this.evaluateCenterControl(chess),
-            spaceAdvantage: this.evaluateSpaceAdvantage(chess),
-            weakSquares: this.evaluateWeakSquares(chess),
-            outposts: this.evaluateOutposts(chess),
-            holes: this.evaluateHoles(chess),
-            centerTension: this.evaluateCenterTension(chess),
-
-            // Structure de pions
-            passedPawns: this.evaluatePassedPawns(chess),
-            protectedPassedPawns: this.evaluateProtectedPassedPawns(chess),
-            distantPassedPawns: this.evaluateDistantPassedPawns(chess),
-            isolatedPawns: this.evaluateIsolatedPawns(chess),
-            backwardPawns: this.evaluateBackwardPawns(chess),
-            backwardPawnsOnSemiOpen: this.evaluateBackwardPawnsOnSemiOpen(chess),
-            pawnMajority: this.evaluatePawnMajority(chess),
-            doubledPawns: this.evaluateDoubledPawns(chess),
-            pawnIslands: this.evaluatePawnIslands(chess),
-            hangingPawns: this.evaluateHangingPawns(chess),
-            pawnChains: this.evaluatePawnChains(chess)
+            materialBalance: this.evaluateMaterialBalance(chess),
+            spaceControl: this.evaluateSpaceControl(chess),
+            pieceActivity: this.evaluatePieceActivity(chess),
+            kingSafety: this.evaluateKingSafety(chess),
+            pawnStructure: this.evaluatePawnStructure(chess)
         };
     }
 
     /**
-     * Évalue les pions de protection du roi (0.0 à 1.0)
+     * Évalue l'équilibre matériel - somme des points sur l'échiquier
      */
-    private evaluateKingPawnShield(chess: Chess): number {
-        const kingSquare = this.findKingSquare(chess, 'w');
-        if (!kingSquare) return 0.0;
+    private evaluateMaterialBalance(chess: Chess): { white: number; black: number } {
+        let whitePoints = 0;
+        let blackPoints = 0;
 
-        let score = 0.0;
-        const kingFile = kingSquare.charCodeAt(0) - 'a'.charCodeAt(0);
-        const kingRank = parseInt(kingSquare[1]);
-
-        // Bonus si roi roqué
-        if (this.isKingCastled(kingSquare)) {
-            score += 0.3;
-
-            // Vérifier les pions protecteurs selon le côté du roque
-            if (kingFile >= 6) { // Roque côté roi (colonnes g-h)
-                score += this.checkPawnShield(chess, ['f2', 'g2', 'h2']);
-            } else if (kingFile <= 2) { // Roque côté dame (colonnes a-c)
-                score += this.checkPawnShield(chess, ['a2', 'b2', 'c2']);
-            }
-        } else {
-            // Roi au centre - pénalité
-            if (kingFile >= 3 && kingFile <= 4 && kingRank === 1) {
-                score = 0.1; // Très faible protection
+        const board = chess.board();
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = board[i][j];
+                if (piece) {
+                    const value = this.PIECE_VALUES[piece.type as keyof typeof this.PIECE_VALUES];
+                    if (piece.color === 'w') {
+                        whitePoints += value;
+                    } else {
+                        blackPoints += value;
+                    }
+                }
             }
         }
 
-        return Math.min(score, 1.0);
+        return { white: whitePoints, black: blackPoints };
     }
 
-    private checkPawnShield(chess: Chess, squares: string[]): number {
-        let shieldScore = 0.0;
+    /**
+     * Évalue la prise d'espace - nombre d'espaces sous chacun des pions jusqu'au bord
+     */
+    private evaluateSpaceControl(chess: Chess): { white: number; black: number } {
+        let whiteSpace = 0;
+        let blackSpace = 0;
 
-        squares.forEach(square => {
-            const piece = chess.get(square as Square);
-            if (piece && piece.type === 'p' && piece.color === 'w') {
-                shieldScore += 0.2; // Pion intact
-            } else {
-                // Vérifier si pion avancé d'une case
-                const advancedSquare = square[0] + '3';
-                const advancedPiece = chess.get(advancedSquare as Square);
-                if (advancedPiece && advancedPiece.type === 'p' && advancedPiece.color === 'w') {
-                    shieldScore += 0.1; // Pion avancé mais encore protecteur
+        const board = chess.board();
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = board[i][j];
+                if (piece && piece.type === 'p') {
+                    const rank = 8 - i; // rang réel (1-8)
+
+                    if (piece.color === 'w') {
+                        // Blancs: compter toutes les cases jusqu'au rang 1 (leur bord)
+                        whiteSpace += (rank - 1);
+                    } else {
+                        // Noirs: compter toutes les cases jusqu'au rang 8 (leur bord)  
+                        blackSpace += (8 - rank);
+                    }
                 }
+            }
+        }
+
+        return { white: whiteSpace, black: blackSpace };
+    }
+
+    /**
+     * Évalue l'activité des pièces - nombre de déplacements possibles (hors pions et roi)
+     */
+    private evaluatePieceActivity(chess: Chess): { white: number; black: number } {
+        // Sauvegarder la position originale
+        const originalFen = chess.fen();
+        const currentTurn = chess.turn();
+
+        let whiteActivity = 0;
+        let blackActivity = 0;
+
+        // Calculer l'activité des blancs
+        if (currentTurn === 'w') {
+            whiteActivity = this.countLegalMoves(chess, 'w');
+            // Changer le tour pour les noirs
+            chess.load(originalFen.replace(' w ', ' b '));
+            blackActivity = this.countLegalMoves(chess, 'b');
+        } else {
+            blackActivity = this.countLegalMoves(chess, 'b');
+            // Changer le tour pour les blancs
+            chess.load(originalFen.replace(' b ', ' w '));
+            whiteActivity = this.countLegalMoves(chess, 'w');
+        }
+
+        // Restaurer la position originale
+        chess.load(originalFen);
+
+        return { white: whiteActivity, black: blackActivity };
+    }
+
+    private countLegalMoves(chess: Chess, color: 'w' | 'b'): number {
+        const moves = chess.moves({ verbose: true });
+        let count = 0;
+
+        moves.forEach(move => {
+            const piece = chess.get(move.from as Square);
+            if (piece && piece.type !== 'p' && piece.type !== 'k' && piece.color === color) {
+                count++;
             }
         });
 
-        return shieldScore;
+        return count;
+    }
+
+    /**
+     * Évalue la sécurité du roi - présence de 3 pions à leur position initiale devant le roi
+     */
+    private evaluateKingSafety(chess: Chess): { white: number; black: number } {
+        const whiteSafety = this.checkKingSafety(chess, 'w');
+        const blackSafety = this.checkKingSafety(chess, 'b');
+
+        return { white: whiteSafety, black: blackSafety };
+    }
+
+    private checkKingSafety(chess: Chess, color: 'w' | 'b'): number {
+        const kingSquare = this.findKingSquare(chess, color);
+        if (!kingSquare) return 0;
+
+        const kingFile = kingSquare.charCodeAt(0) - 'a'.charCodeAt(0);
+        const kingRank = parseInt(kingSquare[1]);
+        let safetyCount = 0;
+
+        if (color === 'w') {
+            // Pour les blancs : chercher les pions blancs devant le roi (rang supérieur)
+            const protectorRank = kingRank + 1;
+            if (protectorRank <= 8) {
+                const protectorSquares = this.getProtectorSquares(kingFile, protectorRank);
+                protectorSquares.forEach(square => {
+                    const piece = chess.get(square as Square);
+                    if (piece && piece.type === 'p' && piece.color === 'w') {
+                        safetyCount++;
+                    }
+                });
+            }
+        } else {
+            // Pour les noirs : chercher les pions noirs devant le roi (rang inférieur)
+            const protectorRank = kingRank - 1;
+            if (protectorRank >= 1) {
+                const protectorSquares = this.getProtectorSquares(kingFile, protectorRank);
+                protectorSquares.forEach(square => {
+                    const piece = chess.get(square as Square);
+                    if (piece && piece.type === 'p' && piece.color === 'b') {
+                        safetyCount++;
+                    }
+                });
+            }
+        }
+
+        return safetyCount;
+    }
+
+    private getProtectorSquares(kingFile: number, rank: number): string[] {
+        const squares: string[] = [];
+
+        // Ajouter les 3 colonnes autour du roi (ou moins si au bord)
+        for (let file = Math.max(0, kingFile - 1); file <= Math.min(7, kingFile + 1); file++) {
+            squares.push(String.fromCharCode('a'.charCodeAt(0) + file) + rank);
+        }
+
+        return squares;
+    }
+
+    /**
+     * Évalue la structure de pions - nombre d'îlots de pions
+     */
+    private evaluatePawnStructure(chess: Chess): { white: number; black: number } {
+        const whiteIslands = this.countPawnIslands(chess, 'w');
+        const blackIslands = this.countPawnIslands(chess, 'b');
+
+        return { white: whiteIslands, black: blackIslands };
+    }
+
+    private countPawnIslands(chess: Chess, color: 'w' | 'b'): number {
+        const board = chess.board();
+        const pawnFiles: boolean[] = new Array(8).fill(false);
+
+        // Marquer les colonnes qui ont des pions
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = board[i][j];
+                if (piece && piece.type === 'p' && piece.color === color) {
+                    pawnFiles[j] = true;
+                }
+            }
+        }
+
+        // Compter les îlots (groupes de colonnes adjacentes avec des pions)
+        let islands = 0;
+        let inIsland = false;
+
+        for (let file = 0; file < 8; file++) {
+            if (pawnFiles[file]) {
+                if (!inIsland) {
+                    islands++;
+                    inIsland = true;
+                }
+            } else {
+                inIsland = false;
+            }
+        }
+
+        return islands;
     }
 
     private findKingSquare(chess: Chess, color: 'w' | 'b'): string | null {
@@ -177,51 +254,4 @@ export class PositionEvaluatorService {
         }
         return null;
     }
-
-    private isKingCastled(kingSquare: string): boolean {
-        // Roi considéré comme roqué s'il est en g1, c1 (ou positions similaires)
-        return kingSquare === 'g1' || kingSquare === 'c1';
-    }
-
-    // Méthodes d'évaluation pour les autres indicateurs (à implémenter)
-    private evaluateKingExposedInCenter(chess: Chess): number { return 0.5; }
-    private evaluateOpenLinesAgainstKing(chess: Chess): number { return 0.5; }
-    private evaluateKingCastlingSafety(chess: Chess): number { return 0.5; }
-    private evaluateKingEscapeSquares(chess: Chess): number { return 0.5; }
-    private evaluateAttackersVsDefenders(chess: Chess): number { return 0.5; }
-
-    private evaluateMaterialAdvantage(chess: Chess): number { return 0.5; }
-    private evaluateBishopPair(chess: Chess): number { return 0.5; }
-    private evaluateLightSquareAdvantage(chess: Chess): number { return 0.5; }
-    private evaluateDarkSquareAdvantage(chess: Chess): number { return 0.5; }
-    private evaluateQueenVsMinorPieces(chess: Chess): number { return 0.5; }
-    private evaluateRookVsMinorPieces(chess: Chess): number { return 0.5; }
-    private evaluateExchangeQuality(chess: Chess): number { return 0.5; }
-
-    private evaluateActivePieces(chess: Chess): number { return 0.5; }
-    private evaluatePieceMobility(chess: Chess): number { return 0.5; }
-    private evaluatePieceCoordination(chess: Chess): number { return 0.5; }
-    private evaluateRookColumnControl(chess: Chess): number { return 0.5; }
-    private evaluateOverloadedPieces(chess: Chess): number { return 0.5; }
-    private evaluateBadlyPlacedPieces(chess: Chess): number { return 0.5; }
-    private evaluateBishopVsKnight(chess: Chess): number { return 0.5; }
-
-    private evaluateCenterControl(chess: Chess): number { return 0.5; }
-    private evaluateSpaceAdvantage(chess: Chess): number { return 0.5; }
-    private evaluateWeakSquares(chess: Chess): number { return 0.5; }
-    private evaluateOutposts(chess: Chess): number { return 0.5; }
-    private evaluateHoles(chess: Chess): number { return 0.5; }
-    private evaluateCenterTension(chess: Chess): number { return 0.5; }
-
-    private evaluatePassedPawns(chess: Chess): number { return 0.5; }
-    private evaluateProtectedPassedPawns(chess: Chess): number { return 0.5; }
-    private evaluateDistantPassedPawns(chess: Chess): number { return 0.5; }
-    private evaluateIsolatedPawns(chess: Chess): number { return 0.5; }
-    private evaluateBackwardPawns(chess: Chess): number { return 0.5; }
-    private evaluateBackwardPawnsOnSemiOpen(chess: Chess): number { return 0.5; }
-    private evaluatePawnMajority(chess: Chess): number { return 0.5; }
-    private evaluateDoubledPawns(chess: Chess): number { return 0.5; }
-    private evaluatePawnIslands(chess: Chess): number { return 0.5; }
-    private evaluateHangingPawns(chess: Chess): number { return 0.5; }
-    private evaluatePawnChains(chess: Chess): number { return 0.5; }
-} 
+}

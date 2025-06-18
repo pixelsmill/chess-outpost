@@ -11,8 +11,6 @@ import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
 
-type AnalysisSection = 'kingSafety' | 'material' | 'pieceActivity' | 'spaceControl' | 'pawnStructure';
-
 @Component({
   selector: 'app-analyze',
   standalone: true,
@@ -27,27 +25,6 @@ type AnalysisSection = 'kingSafety' | 'material' | 'pieceActivity' | 'spaceContr
 })
 export class AnalyzeComponent implements OnInit {
   @ViewChild('chessBoardWithControls') chessBoardWithControls!: ChessBoardWithControlsComponent;
-
-  // État d'expansion des sections
-  expandedSections = signal<Set<AnalysisSection>>(new Set(['kingSafety'])); // Par défaut, la première section est ouverte
-
-  // Méthodes pour gérer l'expansion des sections
-  toggleSection(section: AnalysisSection): void {
-    const currentExpanded = this.expandedSections();
-    const newExpanded = new Set(currentExpanded);
-
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section);
-    } else {
-      newExpanded.add(section);
-    }
-
-    this.expandedSections.set(newExpanded);
-  }
-
-  isSectionExpanded(section: AnalysisSection): boolean {
-    return this.expandedSections().has(section);
-  }
 
   // Signal pour le mode d'analyse (libre ou PGN)
   analysisMode = signal<AnalysisMode>('free');
@@ -65,12 +42,6 @@ export class AnalyzeComponent implements OnInit {
   // Computed properties
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
   isPgnMode = computed(() => this.analysisMode() === 'pgn');
-
-  // Computed pour les indicateurs spécifiques
-  kingPawnShieldScore = computed(() => {
-    const evaluation = this.currentEvaluation();
-    return evaluation ? evaluation.kingPawnShield : 0;
-  });
 
   constructor(
     private chessService: ChessService,
@@ -285,7 +256,22 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   getCurrentMoveDisplay(): string {
-    return this.gameNavigationService.getCurrentMoveDisplay();
+    const currentMove = this.gameNavigationService.currentMove();
+    const totalMoves = this.gameNavigationService.totalMoves();
+
+    if (currentMove === 0) {
+      return "Position initiale";
+    }
+
+    // Calculer le numéro de coup en notation échiquéenne
+    const moveNumber = Math.ceil(currentMove / 2);
+    const totalFullMoves = Math.ceil(totalMoves / 2);
+
+    // Déterminer la couleur qui vient de jouer
+    const isWhiteMove = (currentMove % 2) === 1;
+    const colorPlayed = isWhiteMove ? "Blancs" : "Noirs";
+
+    return `${moveNumber}/${totalFullMoves}. ${colorPlayed}`;
   }
 
   get currentMove(): number {
@@ -304,26 +290,94 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       const evaluation = this.positionEvaluator.evaluatePosition(position);
       this.currentEvaluation.set(evaluation);
     } catch (error) {
-      console.error('Erreur lors de l\'évaluation de la position:', error);
+      console.error('Error evaluating position:', error);
       this.currentEvaluation.set(null);
     }
   }
 
   /**
-   * Obtient le score formaté pour l'affichage
+   * Fonction générique pour calculer les barres d'évaluation avec seuil critique
    */
-  getFormattedScore(score: number): string {
-    return (score * 100).toFixed(0) + '%';
+  private calculateBarPercentage(
+    whiteValue: number,
+    blackValue: number,
+    side: 'white' | 'black',
+    threshold: number,
+    isInverted = false
+  ): number {
+    const difference = Math.abs(whiteValue - blackValue);
+
+    if (difference >= threshold) {
+      // Écart critique : barre complète pour le meilleur
+      const whiteAdvantage = isInverted ? whiteValue < blackValue : whiteValue > blackValue;
+      if (whiteAdvantage) {
+        return side === 'white' ? 100 : 0;
+      } else {
+        return side === 'black' ? 100 : 0;
+      }
+    } else {
+      // Écart < seuil : proportionnel avec amplification
+      const total = whiteValue + blackValue;
+      if (total === 0) return 50;
+
+      let adjustedWhite = whiteValue;
+      let adjustedBlack = blackValue;
+
+      // Inverser les valeurs si nécessaire (pour structure de pions)
+      if (isInverted) {
+        adjustedWhite = blackValue;
+        adjustedBlack = whiteValue;
+      }
+
+      const adjustedTotal = adjustedWhite + adjustedBlack;
+      const basePercentage = side === 'white' ? (adjustedWhite / adjustedTotal) * 100 : (adjustedBlack / adjustedTotal) * 100;
+      const amplificationFactor = 1 + (difference / threshold);
+
+      if (side === 'white') {
+        const hasAdvantage = isInverted ? whiteValue < blackValue : whiteValue > blackValue;
+        return hasAdvantage ?
+          Math.min(basePercentage * amplificationFactor, 100) :
+          Math.max(basePercentage / amplificationFactor, 0);
+      } else {
+        const hasAdvantage = isInverted ? blackValue < whiteValue : blackValue > whiteValue;
+        return hasAdvantage ?
+          Math.min(basePercentage * amplificationFactor, 100) :
+          Math.max(basePercentage / amplificationFactor, 0);
+      }
+    }
   }
 
   /**
-   * Obtient la classe CSS basée sur le score
+   * Calcule le pourcentage pour la barre d'évaluation
    */
-  getScoreClass(score: number): string {
-    if (score >= 0.8) return 'score-excellent';
-    if (score >= 0.6) return 'score-good';
-    if (score >= 0.4) return 'score-average';
-    if (score >= 0.2) return 'score-poor';
-    return 'score-critical';
+  getPercentage(whiteValue: number, blackValue: number, side: 'white' | 'black', metric?: string): number {
+    switch (metric) {
+      case 'materialBalance':
+        // 4 points d'écart = barre complète
+        return this.calculateBarPercentage(whiteValue, blackValue, side, 4);
+
+      case 'spaceControl':
+        // 4 cases d'écart = barre complète
+        return this.calculateBarPercentage(whiteValue, blackValue, side, 4);
+
+      case 'pieceActivity':
+        // 8 coups d'écart = barre complète
+        return this.calculateBarPercentage(whiteValue, blackValue, side, 8);
+
+      case 'pawnStructure':
+        // 2 îlots d'écart = barre complète (moins d'îlots = mieux)
+        return this.calculateBarPercentage(whiteValue, blackValue, side, 2, true);
+
+      default:
+        // Pour les autres métriques : proportionnel simple
+        const total = whiteValue + blackValue;
+        if (total === 0) return 50;
+
+        if (side === 'white') {
+          return (whiteValue / total) * 100;
+        } else {
+          return (blackValue / total) * 100;
+        }
+    }
   }
 }

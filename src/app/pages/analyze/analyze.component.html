@@ -1,527 +1,202 @@
 <div class="layout-with-sidebar">
-  <!-- Nouveau panneau de gauche -->
+  <!-- Panneau de gauche simplifié -->
   <div class="side-panel left-panel">
     <div class="panel-content">
       <div class="sidebar-body">
         <!-- Sécurité du roi -->
         <div class="analysis-section">
-          <h3
-            (click)="toggleSection('kingSafety')"
-            [class.expanded]="isSectionExpanded('kingSafety')"
-          >
-            Sécurité du roi
-            <span class="expand-icon">{{
-              isSectionExpanded("kingSafety") ? "▼" : "▶"
-            }}</span>
-          </h3>
+          <h3>Sécurité</h3>
           <div
-            class="indicator-list"
-            [class.expanded]="isSectionExpanded('kingSafety')"
+            class="metric-bar"
+            [title]="
+              'Blancs: ' +
+              (currentEvaluation()?.kingSafety?.white || 0) +
+              '/3 pions - Noirs: ' +
+              (currentEvaluation()?.kingSafety?.black || 0) +
+              '/3 pions'
+            "
           >
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.attackersVsDefenders || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Attaquants vs défenseurs<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(
-                  currentEvaluation()?.attackersVsDefenders || 0
-                )
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.kingExposedInCenter || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Roi exposé au centre<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.kingExposedInCenter || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.openLinesAgainstKing || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Lignes ouvertes vers le roi<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(
-                  currentEvaluation()?.openLinesAgainstKing || 0
-                )
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.kingCastlingSafety || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Sécurité du roque<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.kingCastlingSafety || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.kingEscapeSquares || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Cases de fuite du roi<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.kingEscapeSquares || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(kingPawnShieldScore())"
-            >
-              <span class="indicator-title"
-                >Pions de protection du roi<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(kingPawnShieldScore())
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rapport matériel -->
-        <div class="analysis-section">
-          <h3
-            (click)="toggleSection('material')"
-            [class.expanded]="isSectionExpanded('material')"
-          >
-            Rapport matériel
-            <span class="expand-icon">{{
-              isSectionExpanded("material") ? "▼" : "▶"
-            }}</span>
-          </h3>
-          <div
-            class="indicator-list"
-            [class.expanded]="isSectionExpanded('material')"
-          >
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.materialAdvantage || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Avantage matériel<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.materialAdvantage || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.exchangeQuality || 0)"
-            >
-              <span class="indicator-title"
-                >Qualité d'échange<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.exchangeQuality || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.bishopPair || 0)"
-            >
-              <span class="indicator-title">Paire de fou<sup>(1)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.bishopPair || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.queenVsMinorPieces || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Dame vs pièces mineures<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.queenVsMinorPieces || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.rookVsMinorPieces || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Tour vs pièces mineures<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.rookVsMinorPieces || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.lightSquareAdvantage || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Avantage sur cases blanches<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(
-                  currentEvaluation()?.lightSquareAdvantage || 0
-                )
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.darkSquareAdvantage || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Avantage sur cases noires<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.darkSquareAdvantage || 0)
-              }}</span>
+            <div class="evaluation-bar">
+              <div
+                class="white-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.kingSafety?.white || 0,
+                    currentEvaluation()?.kingSafety?.black || 0,
+                    'white'
+                  )
+                "
+              ></div>
+              <div
+                class="black-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.kingSafety?.white || 0,
+                    currentEvaluation()?.kingSafety?.black || 0,
+                    'black'
+                  )
+                "
+              ></div>
             </div>
           </div>
         </div>
 
         <!-- Activité des pièces -->
         <div class="analysis-section">
-          <h3
-            (click)="toggleSection('pieceActivity')"
-            [class.expanded]="isSectionExpanded('pieceActivity')"
-          >
-            Activité des pièces
-            <span class="expand-icon">{{
-              isSectionExpanded("pieceActivity") ? "▼" : "▶"
-            }}</span>
-          </h3>
+          <h3>Activité</h3>
           <div
-            class="indicator-list"
-            [class.expanded]="isSectionExpanded('pieceActivity')"
+            class="metric-bar"
+            [title]="
+              'Blancs: ' +
+              (currentEvaluation()?.pieceActivity?.white || 0) +
+              ' coups - Noirs: ' +
+              (currentEvaluation()?.pieceActivity?.black || 0) +
+              ' coups'
+            "
           >
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.activePieces || 0)"
-            >
-              <span class="indicator-title"
-                >Pièces actives vs passives<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.activePieces || 0)
-              }}</span>
+            <div class="evaluation-bar">
+              <div
+                class="white-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.pieceActivity?.white || 0,
+                    currentEvaluation()?.pieceActivity?.black || 0,
+                    'white',
+                    'pieceActivity'
+                  )
+                "
+              ></div>
+              <div
+                class="black-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.pieceActivity?.white || 0,
+                    currentEvaluation()?.pieceActivity?.black || 0,
+                    'black',
+                    'pieceActivity'
+                  )
+                "
+              ></div>
             </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.pieceMobility || 0)"
-            >
-              <span class="indicator-title"
-                >Mobilité des pièces<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.pieceMobility || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.pieceCoordination || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Coordination des pièces<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.pieceCoordination || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.rookColumnControl || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Contrôle de colonne par la tour<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.rookColumnControl || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.overloadedPieces || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Pièces surchargées<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.overloadedPieces || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.badlyPlacedPieces || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Pièces mal placées<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.badlyPlacedPieces || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.bishopVsKnight || 0)"
-            >
-              <span class="indicator-title"
-                >Fou contre cavalier<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.bishopVsKnight || 0)
-              }}</span>
+          </div>
+        </div>
+
+        <!-- Évaluation matérielle -->
+        <div class="analysis-section">
+          <h3>Matériel</h3>
+          <div
+            class="metric-bar"
+            [title]="
+              'Blancs: ' +
+              (currentEvaluation()?.materialBalance?.white || 0) +
+              ' points - Noirs: ' +
+              (currentEvaluation()?.materialBalance?.black || 0) +
+              ' points'
+            "
+          >
+            <div class="evaluation-bar">
+              <div
+                class="white-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.materialBalance?.white || 0,
+                    currentEvaluation()?.materialBalance?.black || 0,
+                    'white',
+                    'materialBalance'
+                  )
+                "
+              ></div>
+              <div
+                class="black-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.materialBalance?.white || 0,
+                    currentEvaluation()?.materialBalance?.black || 0,
+                    'black',
+                    'materialBalance'
+                  )
+                "
+              ></div>
             </div>
           </div>
         </div>
 
         <!-- Prise d'espace -->
         <div class="analysis-section">
-          <h3
-            (click)="toggleSection('spaceControl')"
-            [class.expanded]="isSectionExpanded('spaceControl')"
-          >
-            Prise d'espace
-            <span class="expand-icon">{{
-              isSectionExpanded("spaceControl") ? "▼" : "▶"
-            }}</span>
-          </h3>
+          <h3>Espace</h3>
           <div
-            class="indicator-list"
-            [class.expanded]="isSectionExpanded('spaceControl')"
+            class="metric-bar"
+            [title]="
+              'Blancs: ' +
+              (currentEvaluation()?.spaceControl?.white || 0) +
+              ' espaces - Noirs: ' +
+              (currentEvaluation()?.spaceControl?.black || 0) +
+              ' espaces'
+            "
           >
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.centerControl || 0)"
-            >
-              <span class="indicator-title"
-                >Contrôle du centre<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.centerControl || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.spaceAdvantage || 0)"
-            >
-              <span class="indicator-title"
-                >Avantage d'espace<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.spaceAdvantage || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.weakSquares || 0)"
-            >
-              <span class="indicator-title">Cases faibles<sup>(3)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.weakSquares || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.outposts || 0)"
-            >
-              <span class="indicator-title">Avant-postes<sup>(2)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.outposts || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.holes || 0)"
-            >
-              <span class="indicator-title"
-                >Trous dans la position<sup>(3)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.holes || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.centerTension || 0)"
-            >
-              <span class="indicator-title"
-                >Tension au centre<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.centerTension || 0)
-              }}</span>
+            <div class="evaluation-bar">
+              <div
+                class="white-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.spaceControl?.white || 0,
+                    currentEvaluation()?.spaceControl?.black || 0,
+                    'white',
+                    'spaceControl'
+                  )
+                "
+              ></div>
+              <div
+                class="black-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.spaceControl?.white || 0,
+                    currentEvaluation()?.spaceControl?.black || 0,
+                    'black',
+                    'spaceControl'
+                  )
+                "
+              ></div>
             </div>
           </div>
         </div>
 
         <!-- Structure de pions -->
         <div class="analysis-section">
-          <h3
-            (click)="toggleSection('pawnStructure')"
-            [class.expanded]="isSectionExpanded('pawnStructure')"
-          >
-            Structure de pions
-            <span class="expand-icon">{{
-              isSectionExpanded("pawnStructure") ? "▼" : "▶"
-            }}</span>
-          </h3>
+          <h3>Structure</h3>
           <div
-            class="indicator-list"
-            [class.expanded]="isSectionExpanded('pawnStructure')"
+            class="metric-bar"
+            [title]="
+              'Blancs: ' +
+              (currentEvaluation()?.pawnStructure?.white || 0) +
+              ' îlots - Noirs: ' +
+              (currentEvaluation()?.pawnStructure?.black || 0) +
+              ' îlots'
+            "
           >
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.passedPawns || 0)"
-            >
-              <span class="indicator-title">Pion passé<sup>(2)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.passedPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.protectedPassedPawns || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Pion passé protégé<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(
-                  currentEvaluation()?.protectedPassedPawns || 0
-                )
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.distantPassedPawns || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Pion passé éloigné<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.distantPassedPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.isolatedPawns || 0)"
-            >
-              <span class="indicator-title">Pions isolés<sup>(1)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.isolatedPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.backwardPawns || 0)"
-            >
-              <span class="indicator-title">Pion arrièré<sup>(2)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.backwardPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="
-                getScoreClass(currentEvaluation()?.backwardPawnsOnSemiOpen || 0)
-              "
-            >
-              <span class="indicator-title"
-                >Pion arrière sur colonne semi-ouverte<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(
-                  currentEvaluation()?.backwardPawnsOnSemiOpen || 0
-                )
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.pawnMajority || 0)"
-            >
-              <span class="indicator-title"
-                >Majorité de pions<sup>(1)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.pawnMajority || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.doubledPawns || 0)"
-            >
-              <span class="indicator-title">Pions doublés<sup>(1)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.doubledPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.pawnIslands || 0)"
-            >
-              <span class="indicator-title"
-                >Nb d'îlots de pions<sup>(2)</sup></span
-              >
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.pawnIslands || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.hangingPawns || 0)"
-            >
-              <span class="indicator-title">Pions pendants<sup>(2)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.hangingPawns || 0)
-              }}</span>
-            </div>
-            <div
-              class="indicator-item"
-              [class]="getScoreClass(currentEvaluation()?.pawnChains || 0)"
-            >
-              <span class="indicator-title">Chaîne de pions<sup>(2)</sup></span>
-              <span class="score">{{
-                getFormattedScore(currentEvaluation()?.pawnChains || 0)
-              }}</span>
+            <div class="evaluation-bar">
+              <div
+                class="white-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.pawnStructure?.white || 0,
+                    currentEvaluation()?.pawnStructure?.black || 0,
+                    'white',
+                    'pawnStructure'
+                  )
+                "
+              ></div>
+              <div
+                class="black-portion"
+                [style.width.%]="
+                  getPercentage(
+                    currentEvaluation()?.pawnStructure?.white || 0,
+                    currentEvaluation()?.pawnStructure?.black || 0,
+                    'black',
+                    'pawnStructure'
+                  )
+                "
+              ></div>
             </div>
           </div>
         </div>
