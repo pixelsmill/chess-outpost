@@ -79,30 +79,4 @@
       </button>
     </div>
   </div>
-
-  <!-- Contenu principal -->
-  <div class="hero-section">
-    <img src="assets/chess-outpost.png" alt="Chess Outpost Logo" class="logo" />
-    <h1>Chess Outpost</h1>
-    <p class="subtitle">Votre compagnon d'analyse d'échecs avancé</p>
-  </div>
-
-  <div class="features-grid">
-    <div class="feature-card" (click)="navigateToAnalyze()">
-      <h2>Analyser</h2>
-      <p>Analysez vos parties et positions avec des outils avancés</p>
-    </div>
-
-    <div class="feature-card" (click)="navigateToPlay()">
-      <h2>Jouer</h2>
-      <p>Jouez contre d'autres joueurs en temps réel</p>
-    </div>
-  </div>
-
-  <!-- Section de connexion -->
-  <div class="auth-section" *ngIf="!(user$ | async)">
-    <button (click)="signInWithGoogle()" class="google-signin-button">
-      Se connecter avec Google
-    </button>
-  </div>
 </div>
