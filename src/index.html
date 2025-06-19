@@ -4,9 +4,13 @@
     <meta charset="utf-8" />
     <title>Chess Outpost</title>
     <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
     <meta name="description" content="Application d'analyse d'échecs avancée" />
     <meta name="theme-color" content="#2C2C2C" />
+    <meta name="msapplication-TileColor" content="#2C2C2C" />
 
     <!-- Icônes et manifest PWA -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
@@ -31,6 +35,16 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="Chess Outpost" />
+
+    <!-- Métadonnées pour le partage iOS -->
+    <meta property="og:title" content="Chess Outpost" />
+    <meta
+      property="og:description"
+      content="Application d'analyse d'échecs avancée"
+    />
+    <meta property="og:image" content="assets/chess-outpost.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <app-root></app-root>

@@ -7,6 +7,9 @@
   "background_color": "#2C2C2C",
   "theme_color": "#2C2C2C",
   "orientation": "portrait-primary",
+  "categories": ["games", "utilities"],
+  "lang": "fr",
+  "scope": "/",
   "icons": [
     {
       "src": "assets/icons/icon-144x144.png",
@@ -27,6 +30,12 @@
       "purpose": "maskable any"
     },
     {
+      "src": "assets/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
       "src": "assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
@@ -42,5 +51,11 @@
       "text": "pgn",
       "url": "url"
     }
-  }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+chess",
+      "url": "/analyze?url=%s"
+    }
+  ]
 } 

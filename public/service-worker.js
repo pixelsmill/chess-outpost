@@ -53,6 +53,13 @@ self.addEventListener('activate', (event) => {
 
 // Stratégie de cache : d'abord le réseau, puis le cache si hors ligne
 self.addEventListener('fetch', (event) => {
+  // Gérer spécialement les requêtes vers /analyze avec paramètres (partage iOS)
+  if (event.request.url.includes('/analyze') && event.request.url.includes('?')) {
+    // Laisser passer la requête normalement pour le partage iOS
+    event.respondWith(fetch(event.request).catch(() => caches.match('/index.html')));
+    return;
+  }
+
   // Pour les requêtes d'API ou externes, toujours aller au réseau
   if (event.request.url.includes('/api/') || 
       !event.request.url.startsWith(self.location.origin)) {
@@ -76,32 +83,51 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         // Si échec réseau, essayer le cache
-        return caches.match(event.request);
+        return caches.match(event.request).then(response => {
+          // Si pas trouvé en cache et c'est une navigation, retourner index.html
+          if (!response && event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return response;
+        });
       })
   );
 });
 
-// Gérer les événements de partage
+// Gérer les événements de partage (principalement pour Android/Chrome)
 self.addEventListener('share_target', (event) => {
   event.respondWith((async () => {
-    // Extraire les données partagées
-    const formData = await event.request.formData();
-    const text = formData.get('text') || '';
-    const url = formData.get('url') || '';
-    const title = formData.get('title') || '';
+    try {
+      // Extraire les données partagées
+      const formData = await event.request.formData();
+      const text = formData.get('text') || '';
+      const url = formData.get('url') || '';
+      const title = formData.get('title') || '';
 
-    // Rediriger vers la page d'analyse avec les données partagées
-    let shareUrl = '/analyze';
-    const params = new URLSearchParams();
-    
-    if (text) params.set('pgn', text);
-    if (url) params.set('url', url);
-    if (title) params.set('title', title);
-    
-    if (params.toString()) {
-      shareUrl += '?' + params.toString();
+      // Rediriger vers la page d'analyse avec les données partagées
+      let shareUrl = '/analyze';
+      const params = new URLSearchParams();
+      
+      if (text) params.set('pgn', text);
+      if (url) params.set('url', url);
+      if (title) params.set('title', title);
+      
+      if (params.toString()) {
+        shareUrl += '?' + params.toString();
+      }
+
+      return Response.redirect(shareUrl, 303);
+    } catch (error) {
+      console.error('Erreur dans share_target:', error);
+      return Response.redirect('/analyze', 303);
     }
-
-    return Response.redirect(shareUrl, 303);
   })());
+});
+
+// Gérer les messages depuis l'app principale (communication bidirectionnelle)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHARE_DATA') {
+    // Répondre avec confirmation
+    event.ports[0].postMessage({ success: true });
+  }
 }); 
