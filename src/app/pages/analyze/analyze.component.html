@@ -162,7 +162,73 @@
 
           <!-- Informations sur l'analyse PGN -->
           <div class="sidebar-card">
-            <h3>Analysis Information</h3>
+            <h3>Game Information</h3>
+
+            @if (pgnMetadata(); as metadata) {
+            <!-- Event et Site -->
+            @if (metadata.Event) {
+            <div class="info-item">
+              <span class="label">Event</span>
+              <span class="value">{{ metadata.Event }}</span>
+            </div>
+            } @if (metadata.Site) {
+            <div class="info-item">
+              <span class="label">Site</span>
+              <span class="value">{{ metadata.Site }}</span>
+            </div>
+            }
+
+            <!-- Date -->
+            @if (metadata.Date) {
+            <div class="info-item">
+              <span class="label">Date</span>
+              <span class="value">{{ metadata.Date }}</span>
+            </div>
+            }
+
+            <!-- Joueurs -->
+            @if (metadata.White) {
+            <div class="info-item">
+              <span class="label">White</span>
+              <span class="value">
+                {{ metadata.White }}
+                @if (metadata.WhiteElo) {
+                <span class="elo">({{ metadata.WhiteElo }})</span>
+                }
+              </span>
+            </div>
+            } @if (metadata.Black) {
+            <div class="info-item">
+              <span class="label">Black</span>
+              <span class="value">
+                {{ metadata.Black }}
+                @if (metadata.BlackElo) {
+                <span class="elo">({{ metadata.BlackElo }})</span>
+                }
+              </span>
+            </div>
+            }
+
+            <!-- Résultat et autres infos -->
+            @if (metadata.Result) {
+            <div class="info-item">
+              <span class="label">Result</span>
+              <span class="value">{{ metadata.Result }}</span>
+            </div>
+            } @if (metadata.ECO) {
+            <div class="info-item">
+              <span class="label">Opening</span>
+              <span class="value">{{ metadata.ECO }}</span>
+            </div>
+            } @if (metadata.TimeControl) {
+            <div class="info-item">
+              <span class="label">Time Control</span>
+              <span class="value">{{
+                getReadableTimeControl(metadata.TimeControl)
+              }}</span>
+            </div>
+            } } @else {
+            <!-- Fallback si pas de métadonnées -->
             <div class="info-item">
               <span class="label">Mode</span>
               <span class="value">PGN Analysis</span>
@@ -171,12 +237,10 @@
               <span class="label">Position</span>
               <span class="value">{{ getCurrentMoveDisplay() }}</span>
             </div>
-            <div class="info-item">
-              <span class="label">Navigation</span>
-              <span class="value">{{ canGoBack ? "Active" : "Start" }}</span>
-            </div>
+            }
+
             <button (click)="newPgnAnalysis()" class="sidebar-btn">
-              New PGN Analysis
+              Clear
             </button>
           </div>
         </div>

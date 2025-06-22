@@ -348,10 +348,13 @@ export class ChessService {
 
   // === GESTION PGN ET NAVIGATION ===
 
-  loadPgnIntoChess(chess: Chess, pgnText: string): boolean {
+  loadPgnIntoChess(chess: Chess, pgnText: string): { success: boolean; metadata?: any } {
     try {
       // Réinitialiser l'échiquier
       chess.reset();
+
+      // Extraire les métadonnées avant le nettoyage
+      const metadata = this.extractPgnMetadata(pgnText);
 
       // Nettoyer et corriger le PGN
       let cleanedPgn = this.cleanPgn(pgnText);
@@ -359,11 +362,35 @@ export class ChessService {
       // Charger le PGN
       chess.loadPgn(cleanedPgn);
 
-      return true;
+      return { success: true, metadata };
     } catch (error) {
       console.error('Erreur lors du chargement du PGN:', error);
-      return false;
+      return { success: false };
     }
+  }
+
+  extractPgnMetadata(pgnText: string): any {
+    const metadata: any = {};
+    const lines = pgnText.split('\n');
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      // Arrêter à la première ligne qui n'est pas un header
+      if (trimmedLine === '' || !trimmedLine.startsWith('[') || !trimmedLine.endsWith(']')) {
+        break;
+      }
+
+      // Extraire la clé et la valeur du header
+      const match = trimmedLine.match(/\[(\w+)\s+"(.*)"\]/);
+      if (match) {
+        const key = match[1];
+        const value = match[2];
+        metadata[key] = value;
+      }
+    }
+
+    return metadata;
   }
 
   private cleanPgn(pgnText: string): string {

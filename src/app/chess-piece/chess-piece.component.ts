@@ -58,8 +58,8 @@ export interface PiecePosition {
       font-size: var(--piece-font-size, 48px);
       cursor: pointer;
       user-select: none;
-      transition: transform 0.5s ease, box-shadow 0.15s ease, 
-                  left 0.5s ease, top 0.5s ease;
+      transition: transform 0.2s ease, box-shadow 0.15s ease, 
+                  left 0.2s ease, top 0.2s ease;
       border-radius: 8px;
       transform-origin: center;
       pointer-events: auto;
@@ -70,6 +70,11 @@ export interface PiecePosition {
       -khtml-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
+    }
+
+    /* Désactiver les transitions pendant le drag pour éviter les lags */
+    .chess-piece.dragging {
+      transition: none !important;
     }
 
     .piece-image {
@@ -108,6 +113,7 @@ export interface PiecePosition {
     .chess-piece.dragging {
       transform: scale(1.15);
       z-index: 1000;
+      /* Transitions déjà désactivées par la règle précédente */
     }
 
     /* Styles spécifiques pour mobile */
@@ -122,6 +128,7 @@ export interface PiecePosition {
       
       .chess-piece.dragging {
         transform: scale(1.1);
+        /* Transitions déjà désactivées par la règle précédente */
       }
     }
   `]

@@ -12,6 +12,24 @@ import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
 
+// Interface pour les métadonnées PGN
+export interface PgnMetadata {
+  Event?: string;
+  Site?: string;
+  Date?: string;
+  Round?: string;
+  White?: string;
+  Black?: string;
+  Result?: string;
+  WhiteElo?: string;
+  BlackElo?: string;
+  TimeControl?: string;
+  Termination?: string;
+  ECO?: string;
+  Tournament?: string;
+  [key: string]: string | undefined; // Pour les autres headers non-standard
+}
+
 @Component({
   selector: 'app-analyze',
   standalone: true,
@@ -33,6 +51,7 @@ export class AnalyzeComponent implements OnInit {
   // Gestion PGN (mode PGN seulement)
   pgnText = '';
   isNavigationMode = signal(false);
+  pgnMetadata = signal<PgnMetadata | null>(null);
 
   // Instance Chess locale pour le chargement PGN et le mode libre
   private localChess = new Chess();
@@ -121,6 +140,58 @@ export class AnalyzeComponent implements OnInit {
       'pawnStructure': "Structure de pions"
     };
     return displayNames[factor] || factor;
+  }
+
+  /**
+   * Traduit le TimeControl en format lisible
+   */
+  getReadableTimeControl(timeControl: string): string {
+    if (!timeControl) return timeControl;
+
+    // Format Chess.com daily : "1/86400" = 1 jour par coup
+    if (timeControl === '1/86400') {
+      return '1 jour par coup';
+    }
+
+    // Autres formats daily courants
+    if (timeControl === '3/86400') {
+      return '3 jours par coup';
+    }
+    if (timeControl === '7/86400') {
+      return '7 jours par coup';
+    }
+    if (timeControl === '14/86400') {
+      return '14 jours par coup';
+    }
+
+    // Format standard : "600+5" = 10min + 5sec par coup
+    const standardMatch = timeControl.match(/^(\d+)\+(\d+)$/);
+    if (standardMatch) {
+      const baseTime = parseInt(standardMatch[1]);
+      const increment = parseInt(standardMatch[2]);
+
+      if (baseTime >= 60) {
+        const minutes = Math.floor(baseTime / 60);
+        return `${minutes}min + ${increment}sec`;
+      } else {
+        return `${baseTime}sec + ${increment}sec`;
+      }
+    }
+
+    // Format simple : "180" = 3 minutes
+    const simpleMatch = timeControl.match(/^(\d+)$/);
+    if (simpleMatch) {
+      const seconds = parseInt(simpleMatch[1]);
+      if (seconds >= 60) {
+        const minutes = Math.floor(seconds / 60);
+        return `${minutes}min`;
+      } else {
+        return `${seconds}sec`;
+      }
+    }
+
+    // Si aucun format reconnu, retourner tel quel
+    return timeControl;
   }
 
   /**
@@ -326,9 +397,12 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       return;
     }
 
-    const success = this.chessService.loadPgnIntoChess(this.localChess, this.pgnText);
+    const result = this.chessService.loadPgnIntoChess(this.localChess, this.pgnText);
 
-    if (success) {
+    if (result.success) {
+      // Stocker les métadonnées
+      this.pgnMetadata.set(result.metadata);
+
       // Convertir l'historique PGN en GameHistory centralisé via le service
       const moves = this.localChess.history();
       const pgnMoves = moves.map(san => ({ san }));
@@ -342,6 +416,8 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   newPgnAnalysis(): void {
+    this.pgnText = '';
+    this.pgnMetadata.set(null);
     this.isNavigationMode.set(false);
     this.resetToStartingPosition();
   }
