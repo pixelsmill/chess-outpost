@@ -7,6 +7,7 @@ import { ChessService } from '../../services/chess.service';
 import { GameNavigationService } from '../../services/game-navigation.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { PositionEvaluatorService, PositionEvaluation } from '../../services/position-evaluator.service';
+import { PositionAdviceService, PositionAdvantage, AdviceResult } from '../../services/position-advice.service';
 import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
@@ -38,6 +39,16 @@ export class AnalyzeComponent implements OnInit {
 
   // Évaluation de la position actuelle
   currentEvaluation = signal<PositionEvaluation | null>(null);
+  currentAdvantages = signal<PositionAdvantage[]>([]);
+
+  // État de l'onglet sélectionné pour le conseil stratégique
+  selectedColorTab = signal<'white' | 'black'>('white');
+
+  // Signaux pour les conseils et avantages par couleur
+  whiteAdvice = signal<string>('');
+  blackAdvice = signal<string>('');
+  whiteAdvantages = signal<string>('');
+  blackAdvantages = signal<string>('');
 
   // Computed properties
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
@@ -48,9 +59,9 @@ export class AnalyzeComponent implements OnInit {
     public boardDisplay: BoardDisplayService,
     public gameNavigationService: GameNavigationService,
     private route: ActivatedRoute,
-    private positionEvaluator: PositionEvaluatorService
+    private positionEvaluator: PositionEvaluatorService,
+    private positionAdvice: PositionAdviceService
   ) {
-    // Effect qui se déclenche quand la position change
     effect(() => {
       const currentPosition = this.gameNavigationService.currentPosition();
       if (currentPosition) {
@@ -59,7 +70,110 @@ export class AnalyzeComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  // === GESTION DES ONGLETS DE COULEUR ===
+
+  setSelectedColorTab(color: 'white' | 'black'): void {
+    this.selectedColorTab.set(color);
+  }
+
+  getAdviceForSelectedColor(): string {
+    const advice = this.selectedColorTab() === 'white' ? this.whiteAdvice() : this.blackAdvice();
+    return advice || ''; // Retourne une chaîne vide si pas de conseil
+  }
+
+  getAdviceKeyForSelectedColor(): string {
+    const avantages = [
+      this.whiteAdvantages().split(', ').filter(a => a.trim() !== ''),
+      this.blackAdvantages().split(', ').filter(a => a.trim() !== '')
+    ]
+
+    if (this.selectedColorTab() === 'black') {
+      avantages.reverse();
+    }
+
+    // Les deux ont des avantages : mes_avantages_vs_leurs_avantages
+    return `${avantages[0].join('_')}_vs_${avantages[1].join('_')}`;
+  }
+
+  // === GESTION DES ONGLETS DU BILAN STRATÉGIQUE ===
+
+  // Méthodes pour les avantages par couleur (bilan stratégique)
+  getWhiteAdvantageTagsList(): string[] {
+    const advantages = this.whiteAdvantages();
+    return advantages ? this.getAdvantagesList(advantages) : [];
+  }
+
+  getBlackAdvantageTagsList(): string[] {
+    const advantages = this.blackAdvantages();
+    return advantages ? this.getAdvantagesList(advantages) : [];
+  }
+
+  private getAdvantagesList(advantages: string): string[] {
+    return advantages.split(', ').filter(advantage => advantage.trim() !== '');
+  }
+
+  getDisplayName(factor: string): string {
+    const displayNames: { [key: string]: string } = {
+      'kingSafety': "Sécurité du roi",
+      'materialBalance': "Avantage matériel",
+      'pieceActivity': "Activité des pièces",
+      'spaceControl': "Contrôle de l'espace",
+      'pawnStructure': "Structure de pions"
+    };
+    return displayNames[factor] || factor;
+  }
+
+  /**
+   * Convertit un nom d'affichage vers sa clé technique
+   */
+  private getKeyFromDisplayName(displayName: string): string {
+    const reverseMapping: { [key: string]: string } = {
+      "Sécurité du roi": "kingSafety",
+      "Avantage matériel": "materialBalance",
+      "Activité des pièces": "pieceActivity",
+      "Contrôle de l'espace": "spaceControl",
+      "Structure de pions": "pawnStructure"
+    };
+    return reverseMapping[displayName] || '';
+  }
+
+  /**
+   * Génère une clé situationnelle pour une couleur spécifique
+   */
+  getAdviceKeyForColor(color: 'white' | 'black'): string {
+    const whiteAdvs = this.whiteAdvantages().split(', ').filter(a => a.trim() !== '');
+    const blackAdvs = this.blackAdvantages().split(', ').filter(a => a.trim() !== '');
+
+    // Convertir les noms d'affichage vers les clés techniques
+    const whiteKeys = whiteAdvs.map(adv => this.getKeyFromDisplayName(adv)).filter(key => key !== '');
+    const blackKeys = blackAdvs.map(adv => this.getKeyFromDisplayName(adv)).filter(key => key !== '');
+
+    // IMPORTANT: Respecter l'ordre EVALUATION_ORDER pour la cohérence avec PositionAdviceService
+    const evaluationOrder = [
+      'materialBalance',
+      'spaceControl',
+      'pieceActivity',
+      'kingSafety',
+      'pawnStructure'
+    ];
+
+    // Trier les clés selon l'ordre d'évaluation
+    const whiteKeysOrdered = evaluationOrder.filter(key => whiteKeys.includes(key));
+    const blackKeysOrdered = evaluationOrder.filter(key => blackKeys.includes(key));
+
+    const avantages = [whiteKeysOrdered, blackKeysOrdered];
+
+    if (color === 'black') {
+      avantages.reverse();
+    }
+
+    // Format toujours : mesAvantages_vs_leursAvantages
+    return `${avantages[0].join('_')}_vs_${avantages[1].join('_')}`;
+  }
+
+  // === RESTE DU CODE ===
+
+  ngOnInit(): void {
     // Initialiser l'historique vide pour le mode libre
     this.gameNavigationService.initializeHistory();
 
@@ -178,15 +292,12 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   onMoveChange(move: { from: string; to: string; promotion?: string }): void {
     if (!this.isFreeMoveEnabled() || this.gameNavigationService.isCurrentlyNavigating()) return;
 
-    // Synchroniser this.localChess avec la position actuelle de navigation
     const currentPosition = this.gameNavigationService.currentPosition();
     this.localChess.load(currentPosition);
 
-    // Faire le coup sur l'échiquier local pour capturer les informations
     try {
       const moveResult = this.localChess.move(move);
       if (moveResult) {
-        // Ajouter le coup à l'historique centralisé via le service
         this.gameNavigationService.addMove({
           san: moveResult.san,
           from: moveResult.from,
@@ -202,11 +313,9 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   // === GESTION COMMUNE ===
 
   onPositionChange(newPosition: string): void {
-    // En mode navigation (PGN ou historique), on ne met pas à jour la position depuis l'échiquier
     if ((this.isPgnMode() && this.isNavigationMode()) || this.gameNavigationService.isCurrentlyNavigating()) {
       return;
     }
-    // En mode libre, la position est gérée par le service via onMoveChange
   }
 
   // === GESTION PGN ===
@@ -283,101 +392,55 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   /**
-   * Met à jour l'évaluation de la position
+   * Met à jour l'évaluation de la position - VERSION SIMPLIFIÉE
    */
   private updatePositionEvaluation(position: string): void {
     try {
       const evaluation = this.positionEvaluator.evaluatePosition(position);
+      console.log('Évaluation de la position:', evaluation);
       this.currentEvaluation.set(evaluation);
+
+      // Récupérer les avantages directement de l'évaluation (pas d'ajustement)
+      const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation);
+      console.log('Résultat des conseils:', adviceResult);
+
+      // Définir les avantages pour chaque couleur
+      const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
+      const blackAdvantagesList = adviceResult.blackAdvantages.map(adv => this.getDisplayName(adv));
+
+      this.whiteAdvantages.set(whiteAdvantagesList.join(', '));
+      this.blackAdvantages.set(blackAdvantagesList.join(', '));
+
+      // Générer les conseils spécifiques pour chaque couleur avec les clés 
+      const whiteKey = this.getAdviceKeyForColor('white');
+      const blackKey = this.getAdviceKeyForColor('black');
+
+      console.log('Clé pour les blancs:', whiteKey);
+      console.log('Clé pour les noirs:', blackKey);
+
+      const whiteAdvice = this.positionAdvice.getAdviceByKey(whiteKey);
+      const blackAdvice = this.positionAdvice.getAdviceByKey(blackKey);
+
+      // Formatter les conseils pour l'affichage
+      const whiteFullAdvice = whiteAdvice && whiteAdvice.diagnosis && whiteAdvice.prescription
+        ? `${whiteAdvice.diagnosis} : ${whiteAdvice.prescription}`
+        : whiteAdvice?.diagnosis || whiteAdvice?.prescription || '';
+
+      const blackFullAdvice = blackAdvice && blackAdvice.diagnosis && blackAdvice.prescription
+        ? `${blackAdvice.diagnosis} : ${blackAdvice.prescription}`
+        : blackAdvice?.diagnosis || blackAdvice?.prescription || '';
+
+      this.whiteAdvice.set(whiteFullAdvice);
+      this.blackAdvice.set(blackFullAdvice);
+
+      this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(evaluation));
+
     } catch (error) {
       console.error('Error evaluating position:', error);
       this.currentEvaluation.set(null);
-    }
-  }
-
-  /**
-   * Fonction générique pour calculer les barres d'évaluation avec seuil critique
-   */
-  private calculateBarPercentage(
-    whiteValue: number,
-    blackValue: number,
-    side: 'white' | 'black',
-    threshold: number,
-    isInverted = false
-  ): number {
-    const difference = Math.abs(whiteValue - blackValue);
-
-    if (difference >= threshold) {
-      // Écart critique : barre complète pour le meilleur
-      const whiteAdvantage = isInverted ? whiteValue < blackValue : whiteValue > blackValue;
-      if (whiteAdvantage) {
-        return side === 'white' ? 100 : 0;
-      } else {
-        return side === 'black' ? 100 : 0;
-      }
-    } else {
-      // Écart < seuil : proportionnel avec amplification
-      const total = whiteValue + blackValue;
-      if (total === 0) return 50;
-
-      let adjustedWhite = whiteValue;
-      let adjustedBlack = blackValue;
-
-      // Inverser les valeurs si nécessaire (pour structure de pions)
-      if (isInverted) {
-        adjustedWhite = blackValue;
-        adjustedBlack = whiteValue;
-      }
-
-      const adjustedTotal = adjustedWhite + adjustedBlack;
-      const basePercentage = side === 'white' ? (adjustedWhite / adjustedTotal) * 100 : (adjustedBlack / adjustedTotal) * 100;
-      const amplificationFactor = 1 + (difference / threshold);
-
-      if (side === 'white') {
-        const hasAdvantage = isInverted ? whiteValue < blackValue : whiteValue > blackValue;
-        return hasAdvantage ?
-          Math.min(basePercentage * amplificationFactor, 100) :
-          Math.max(basePercentage / amplificationFactor, 0);
-      } else {
-        const hasAdvantage = isInverted ? blackValue < whiteValue : blackValue > whiteValue;
-        return hasAdvantage ?
-          Math.min(basePercentage * amplificationFactor, 100) :
-          Math.max(basePercentage / amplificationFactor, 0);
-      }
-    }
-  }
-
-  /**
-   * Calcule le pourcentage pour la barre d'évaluation
-   */
-  getPercentage(whiteValue: number, blackValue: number, side: 'white' | 'black', metric?: string): number {
-    switch (metric) {
-      case 'materialBalance':
-        // 4 points d'écart = barre complète
-        return this.calculateBarPercentage(whiteValue, blackValue, side, 4);
-
-      case 'spaceControl':
-        // 4 cases d'écart = barre complète
-        return this.calculateBarPercentage(whiteValue, blackValue, side, 4);
-
-      case 'pieceActivity':
-        // 8 coups d'écart = barre complète
-        return this.calculateBarPercentage(whiteValue, blackValue, side, 8);
-
-      case 'pawnStructure':
-        // 2 îlots d'écart = barre complète (moins d'îlots = mieux)
-        return this.calculateBarPercentage(whiteValue, blackValue, side, 2, true);
-
-      default:
-        // Pour les autres métriques : proportionnel simple
-        const total = whiteValue + blackValue;
-        if (total === 0) return 50;
-
-        if (side === 'white') {
-          return (whiteValue / total) * 100;
-        } else {
-          return (blackValue / total) * 100;
-        }
+      this.currentAdvantages.set([]);
+      this.whiteAdvice.set('');
+      this.blackAdvice.set('');
     }
   }
 }

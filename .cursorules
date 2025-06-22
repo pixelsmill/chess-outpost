@@ -58,3 +58,35 @@ This is an Angular chess application with the following key features:
 - Explain the impact of changes on gameplay
 - Mention mobile compatibility when relevant
 - Use French for user-facing text and comments in French files 
+
+/**
+ * Génère une clé situationnelle globale basée sur les avantages détectés
+ * Format : "avantagesBlancs_vs_avantagesNoirs" ou juste les avantages dominants
+ */
+getGlobalSituationKey(): string {
+  const whiteAdvs = this.whiteAdvantages().split(', ').filter(a => a.trim() !== '');
+  const blackAdvs = this.blackAdvantages().split(', ').filter(a => a.trim() !== '');
+  
+  // Aucun avantage significatif
+  if (whiteAdvs.length === 0 && blackAdvs.length === 0) {
+    return '';
+  }
+  
+  // Seuls les noirs ont des avantages
+  if (whiteAdvs.length === 0) {
+    return blackAdvs.join('_');
+  }
+  
+  // Seuls les blancs ont des avantages
+  if (blackAdvs.length === 0) {
+    return whiteAdvs.join('_');
+  }
+  
+  // Les deux couleurs ont des avantages
+  return `${whiteAdvs.join('_')}_vs_${blackAdvs.join('_')}`;
+}
+
+getAdviceKeyForSelectedColor(): string {
+  return this.getGlobalSituationKey();
+}
+

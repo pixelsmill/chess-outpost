@@ -13,32 +13,40 @@
   overflow: auto;
 }
 
-/* Section échiquier au centre - occupe tout l'espace restant */
+/* Section échiquier au centre - contient maintenant le panneau gauche et l'échiquier */
 .board-section {
   flex: 1 1 auto;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  align-items: stretch;
   padding: 0;
   overflow: hidden;
   min-height: 0; /* Important pour éviter les problèmes de flex */
   
-  .game-board {
+  /* L'échiquier lui-même */
+  app-chess-board-with-controls {
+    flex: 1 1 auto;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    min-height: 0;
     
-    /* Assurer un centrage parfait même en espace réduit */
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    padding-top: 180px;
-    
-    /* L'échiquier lui-même avec ses contraintes de taille */
-    app-board-wrapper {
-      flex-shrink: 0; /* Empêcher la compression */
+    .game-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      
+      /* Assurer un centrage parfait même en espace réduit */
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      padding-top: 180px;
+      
+      /* L'échiquier lui-même avec ses contraintes de taille */
+      app-board-wrapper {
+        flex-shrink: 0; /* Empêcher la compression */
+      }
     }
   }
 }
@@ -51,10 +59,12 @@
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   
-  /* Panneau de gauche - bordure à droite au lieu de gauche */
+  /* Panneau de gauche - bordure à droite au lieu de gauche, et maintenant dans board-section */
   &.left-panel {
     border-left: none;
     border-right: 1px solid rgba(255, 255, 255, 0.2);
+    flex: 1 1 320px;
+    order: -1; /* S'assurer qu'il apparaît à gauche dans le flex */
   }
 }
 
@@ -255,18 +265,27 @@
   .board-section {
     flex: 0 0 auto;
     height: 100%;
-  }
-  
-  .game-board {
-    padding-top: 180px;
-    max-width: 90vw;
-    max-height: 70vh;
+    flex-direction: column; /* Empiler le panneau gauche au-dessus de l'échiquier */
+    
+    app-chess-board-with-controls {
+      .game-board {
+        padding-top: 20px; /* Réduire le padding sur mobile */
+        max-width: 90vw;
+        max-height: 70vh;
+      }
+    }
   }
   
   .side-panel {
     flex: 0 0 auto;
     border-left: none;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
+    
+    &.left-panel {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      order: 0; /* Remettre l'ordre normal sur mobile */
+    }
   }
 
   .panel-content {
@@ -275,8 +294,431 @@
     padding: 10px;
     background-color: transparent;
     .sidebar-body {
-      gap: 10px;
+      gap: 5px;
       padding: 0;
+    }
+  }
+}
+
+/* Styles pour la section de bilan stratégique */
+.strategic-balance-section {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+
+  h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: white;
+    font-weight: 400;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+
+  .balance-content {
+    padding: 0.5rem;
+    min-height: 40px;
+  }
+
+  .advantage-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .advantage-tag {
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+
+    &.white-tag {
+      background: white;
+      color: black;
+      border-color: rgba(248, 250, 252, 0.3);
+    }
+
+    &.black-tag {
+      background: black;
+      color: white;
+      border-color: rgba(100, 116, 139, 0.4);
+    }
+  }
+
+  .no-advantages-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    text-align: center;
+    font-style: italic;
+    padding: 1rem 0;
+  }
+}
+
+/* =========================================== */
+/* COMPOSANTS UI GÉNÉRIQUES (ex-analyze.scss) */
+/* =========================================== */
+
+/* Système de cartes génériques pour sidebar */
+.sidebar-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  &.center-content {
+    text-align: center;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 1rem;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      color: white;
+      opacity: 0.7;
+      font-weight: 300;
+    }
+
+    .value {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: white;
+      opacity: 0.8;
+    }
+  }
+
+  .move-info {
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 1rem;
+    font-weight: 300;
+  }
+}
+
+/* Boutons de mode/sélecteur génériques */
+.mode-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+
+  .mode-btn {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 300;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      font-weight: 400;
+    }
+  }
+}
+
+/* Système d'onglets couleur générique */
+.color-tabs {
+  display: flex;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: white;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  &.active {
+    border-bottom: 3px solid #3f51b5;
+    color: white;
+    background-color: rgba(63, 81, 181, 0.2);
+  }
+}
+
+/* Section des avantages générique */
+.advantages-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  .advantages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .advantage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateX(2px);
+    }
+
+    &.white-advantage {
+      border-left: 3px solid #f8fafc;
+      .advantage-value {
+        color: #f8fafc;
+      }
+    }
+
+    &.black-advantage {
+      border-left: 3px solid #1e293b;
+      .advantage-value {
+        color: #64748b;
+      }
+    }
+
+    .advantage-type {
+      font-size: 0.85rem;
+      color: white;
+      opacity: 0.9;
+    }
+
+    .advantage-value {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  }
+}
+
+/* Actions génériques (ex: PGN) */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+
+  .action-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* Contenu de conseil générique */
+.advice-content {
+  font-size: 0.9rem;
+  color: white;
+  opacity: 0.8;
+  padding: 10px 0;
+  line-height: 1.5;
+  min-height: 40px;
+}
+
+/* Section de conseil générique */
+.advice-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+
+  h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: white;
+    font-weight: 400;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .advice-content {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: center;
+    padding: 0.5rem;
+    font-style: italic;
+    
+    .debug-key {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: normal;
+      font-family: monospace;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .debug-info {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    text-align: center;
+    font-family: monospace;
+  }
+}
+
+/* Interface de chargement PGN compacte générique */
+.pgn-input-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: white;
+    opacity: 0.8;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  .pgn-textarea-compact {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+    backdrop-filter: blur(5px);
+    margin-bottom: 0.8rem;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.75rem;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .load-btn-compact {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 300;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+.no-advice-text {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* Responsive pour les nouveaux composants */
+@media (max-width: 1024px) {
+  .sidebar-card {
+    padding: 0.5rem 0;
+    
+    h3 {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .move-info {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-item {
+      padding: 0.3rem 0;
+      
+      .label,
+      .value {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .mode-buttons {
+    gap: 0.3rem;
+    
+    .mode-btn {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.75rem;
     }
   }
 }

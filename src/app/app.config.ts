@@ -5,6 +5,7 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideDatabase, getDatabase } from '@angular/fire/database';
 import { provideServiceWorker, ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideServiceWorker('service-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
-    })
+    }),
+    provideHttpClient()
   ]
 };

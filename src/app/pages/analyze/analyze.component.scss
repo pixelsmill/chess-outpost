@@ -1,227 +1,50 @@
 /* Styles spécifiques à la page d'analyse */
 
-/* Styles pour les métriques simplifiées */
-.analysis-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
+/* NOTES :
+ * Les styles génériques suivants ont été déplacés vers shared-layout.scss :
+ * - .sidebar-card (remplace .navigation-card, .analyze-info-card, .game-info-card, .mode-selector-card, .game-status-card)
+ * - .mode-buttons et .mode-btn
+ * - .color-tabs et .tab-btn
+ * - .advantages-section
+ * - .action-buttons et .action-btn (remplace .pgn-actions)
+ * - .advice-section et .advice-content
+ * - .pgn-input-card
+ * - .no-advice-text
+ */
 
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
-    color: white;
-    font-weight: 400;
-    text-align: center;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
+/* Styles spécifiques encore nécessaires pour la page d'analyse */
 
-  .metric-bar {
-    cursor: help;
+/* Responsive design spécifique à analyze */
+@media (max-width: 1024px) {
+  .board-section {
+    flex-direction: column-reverse;
+    align-items: stretch;
     
-    .evaluation-bar {
-      height: 24px;
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: all 0.3s ease;
-
-      &:hover {
-        border-color: rgba(255, 255, 255, 0.4);
-        transform: scale(1.02);
-      }
-
-      .white-portion {
-        background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
-        transition: width 0.5s ease;
-        border-right: 2px solid rgba(0, 0, 0, 0.3);
-      }
-
-      .black-portion {
-        background: linear-gradient(90deg, #64748b 0%, #1e293b 100%);
-        transition: width 0.5s ease;
-      }
-    }
-  }
-
-  .metric-bar {
-    cursor: help;
-    
-    .evaluation-bar {
-      height: 24px;
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: all 0.3s ease;
-
-      &:hover {
-        border-color: rgba(255, 255, 255, 0.4);
-        transform: scale(1.02);
-      }
-
-      .white-portion {
-        background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
-        transition: width 0.5s ease;
-        border-right: 2px solid rgba(0, 0, 0, 0.3);
-      }
-
-      .black-portion {
-        background: linear-gradient(90deg, #64748b 0%, #1e293b 100%);
-        transition: width 0.5s ease;
+    .left-panel {
+      // Panneau gauche adaptatif sur mobile - spécifique à analyze
+      flex: 0 0 auto;
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      
+      .panel-content {
+        padding: 0.5rem;
+        
+        .sidebar-body {
+          padding: 0.5rem;
+          justify-content: flex-start;
+        }
       }
     }
   }
 }
 
-/* Carte de navigation et contrôles */
-.navigation-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .move-info {
-    font-size: 0.9rem;
-    color: white;
-    margin-bottom: 1rem;
-    font-weight: 300;
-  }
+/* Styles spécifiques aux boutons de la page d'analyse qui ne peuvent pas être généralisés */
+.analyze-specific-btn {
+  /* Styles pour des boutons spécifiques à cette page si nécessaire */
 }
 
-/* Carte d'informations d'analyse */
-.analyze-info-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
-    &:last-child {
-      border-bottom: none;
-      margin-bottom: 1rem;
-    }
-
-    .label {
-      font-size: 0.85rem;
-      color: white;
-      opacity: 0.7;
-      font-weight: 300;
-    }
-
-    .value {
-      font-size: 0.85rem;
-      font-weight: 300;
-      color: white;
-      opacity: 0.8;
-    }
-  }
-
-  .back-home-btn {
-    padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 300;
-    transition: all 0.2s ease;
-    width: 100%;
-    letter-spacing: 0.5px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-  }
-}
-
-/* Carte de sélecteur de mode d'analyse */
-.mode-selector-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .mode-buttons {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-
-    .mode-btn {
-      flex: 1;
-      padding: 0.8rem 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.05);
-      color: white;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 300;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
-      }
-
-      &.active {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.4);
-        font-weight: 400;
-      }
-    }
-  }
-}
-
-/* Styles pour les cartes de statut de partie (mode libre) */
-.game-status-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
+/* Styles spécifiques aux états de la page d'analyse */
+.analyze-status {
   h2 {
     color: white;
     font-size: 1.2rem;
@@ -238,435 +61,28 @@
       text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
     }
   }
-
-  .reset-btn {
-    padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 300;
-    transition: all 0.2s ease;
-    width: 100%;
-    letter-spacing: 0.5px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-  }
 }
 
-/* Styles pour les informations de partie */
-.game-info-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Ces styles ont été déplacés vers shared-layout.scss :
+ * Utilisez .advice-section et .advice-content depuis shared-layout.scss
+ */
 
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
+/* Navigation : utilisez .sidebar-card.center-content depuis shared-layout.scss */
 
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+/* Info cards : utilisez .sidebar-card depuis shared-layout.scss */
 
-    &:last-child {
-      border-bottom: none;
-    }
+/* Mode selector : utilisez .sidebar-card.center-content + .mode-buttons depuis shared-layout.scss */
 
-    .label {
-      font-size: 0.8rem;
-      color: white;
-      opacity: 0.7;
-      font-weight: 300;
-    }
+/* Game cards : utilisez .sidebar-card.center-content depuis shared-layout.scss
+ * Pour les styles spécifiques des statuts de jeu, voir .analyze-status ci-dessus
+ */
 
-    .value {
-      font-size: 0.8rem;
-      color: white;
-      font-weight: 400;
-    }
-  }
+/* PGN input : utilisez .pgn-input-card depuis shared-layout.scss */
 
-  .back-home-btn {
-    margin-top: 1rem;
-    padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 300;
-    transition: all 0.2s ease;
-    width: 100%;
-    letter-spacing: 0.5px;
+/* Advantages : utilisez .advantages-section depuis shared-layout.scss */
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-  }
-}
+/* Actions PGN : utilisez .action-buttons depuis shared-layout.scss */
 
-/* Interface de chargement PGN compacte dans la sidebar */
-.pgn-input-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Onglets : utilisez .color-tabs et .tab-btn depuis shared-layout.scss */
 
-  h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.9rem;
-    color: white;
-    opacity: 0.8;
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
-
-  .pgn-textarea-compact {
-    width: 100%;
-    min-height: 80px;
-    padding: 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 0.8rem;
-    resize: vertical;
-    backdrop-filter: blur(5px);
-    margin-bottom: 0.8rem;
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.75rem;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  .load-btn-compact {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 300;
-    transition: all 0.2s ease;
-    letter-spacing: 0.5px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-  }
-}
-
-/* Styles pour les sections d'analyse dans le panneau de gauche */
-.analysis-section {
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  margin-bottom: 1rem;
-
-  h3 {
-    cursor: pointer;
-    padding: 0.5rem;
-    margin: 0 0 0.8rem 0;
-    font-size: 0.85rem;
-    color: white;
-    opacity: 0.9;
-    font-weight: 400;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      opacity: 1;
-    }
-
-    &.expanded {
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-
-    .expand-icon {
-      font-size: 0.8em;
-      transition: transform 0.2s ease;
-    }
-  }
-
-  .indicator-list {
-    display: none;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-
-    &.expanded {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-  }
-
-  .indicator-item {
-    font-size: 0.75rem;
-    color: white;
-    opacity: 0.7;
-    padding: 0.4rem 0.6rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-    border-left: 2px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-
-    .indicator-title {
-      display: flex;
-      align-items: center;
-      gap: 0.2rem;
-    }
-
-    &:hover {
-      opacity: 0.9;
-      background: rgba(255, 255, 255, 0.08);
-      border-left-color: rgba(255, 255, 255, 0.4);
-      transform: translateX(2px);
-    }
-
-    &.active {
-      background: rgba(59, 130, 246, 0.2);
-      border-left-color: #3b82f6;
-      opacity: 1;
-    }
-
-    &.positive {
-      border-left-color: rgba(34, 197, 94, 0.6);
-      &:hover {
-        border-left-color: #22c55e;
-      }
-    }
-
-    &.negative {
-      border-left-color: rgba(239, 68, 68, 0.6);
-      &:hover {
-        border-left-color: #ef4444;
-      }
-    }
-
-    // Classes d'évaluation de performance
-    &.score-excellent {
-      background: rgba(34, 197, 94, 0.15);
-      border-left-color: #22c55e;
-      
-      .score {
-        color: #22c55e;
-        font-weight: 600;
-      }
-    }
-
-    &.score-good {
-      background: rgba(59, 130, 246, 0.15);
-      border-left-color: #3b82f6;
-
-      .score {
-        color: #3b82f6;
-        font-weight: 600;
-      }
-    }
-
-    &.score-average {
-      background: rgba(249, 115, 22, 0.15);
-      border-left-color: #f97316;
-      
-      .score {
-        color: #f97316;
-        font-weight: 600;
-      }
-    }
-
-    &.score-poor {
-      background: rgba(239, 68, 68, 0.15);
-      border-left-color: #ef4444;
-      
-      .score {
-        color: #ef4444;
-        font-weight: 600;
-      }
-    }
-
-    &.score-critical {
-      background: rgba(190, 18, 60, 0.15);
-      border-left-color: #be123c;
-      
-      .score {
-        color: #be123c;
-        font-weight: 600;
-      }
-    }
-
-    // Score d'évaluation
-    .score {
-      font-size: 0.7rem;
-      font-weight: 500;
-      padding: 0.15rem 0.4rem;
-      border-radius: 2px;
-      min-width: 36px;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      flex-shrink: 0;
-    }
-
-    // Style pour les exposants de difficulté
-    sup {
-      font-size: 0.6rem;
-      opacity: 0.6;
-      margin-left: 0.2rem;
-      font-weight: 400;
-    }
-  }
-}
-
-/* Responsive design */
-
-/* Mobile optimizations */
-@media (max-width: 1024px) {
-  .layout-with-sidebar {
-    .left-panel {
-      // Sidebar en overlay mobile
-      position: relative;
-      height: 0;
-      overflow: visible;
-      z-index: 1000;
-      
-      .panel-content {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        max-height: 70vh;
-        overflow-y: auto;
-        
-        .sidebar-body {
-          padding: 0.5rem;
-          justify-content: flex-start;
-        }
-      }
-    }
-  }
-
-  // Barres d'évaluation compactes
-  .analysis-section {
-    margin-bottom: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    
-    // Maintenir le layout horizontal
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    
-    h3 {
-      font-size: 0.75rem;
-      margin: 0;
-      padding: 0;
-      min-width: 80px; // Largeur fixe à 80px comme demandé
-    }
-    
-    .metric-bar {
-      flex: 1;
-      
-      .evaluation-bar {
-        height: 14px; // Encore plus compact
-        border-radius: 7px;
-      }
-    }
-  }
-
-  // Navigation compacte
-  .navigation-card {
-    padding: 0.5rem 0;
-    
-    h3 {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .move-info {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-  }
-
-  // Mode selector compact
-  .mode-selector-card {
-    padding: 0.5rem 0;
-    
-    h3 {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .mode-buttons {
-      gap: 0.3rem;
-      
-      .mode-btn {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.75rem;
-      }
-    }
-  }
-
-  // Info card compact
-  .analyze-info-card {
-    padding: 0.5rem 0;
-    
-    h3 {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .info-item {
-      padding: 0.3rem 0;
-      
-      .label,
-      .value {
-        font-size: 0.75rem;
-      }
-    }
-    
-    .back-home-btn {
-      padding: 0.6rem 0.8rem;
-      font-size: 0.75rem;
-    }
-  }
-}
+/* Conseil : utilisez .advice-content et .no-advice-text depuis shared-layout.scss */

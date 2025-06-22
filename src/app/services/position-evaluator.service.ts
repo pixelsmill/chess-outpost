@@ -1,21 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 
+export interface NormalizedEvaluation {
+    raw: { white: number; black: number };
+    percentage: number;  // -100 à +100, >0 = avantage blanc, <0 = avantage noir
+}
+
 export interface PositionEvaluation {
-    // Évaluation matérielle (non relative) - somme des points sur l'échiquier
-    materialBalance: { white: number; black: number };
-
-    // Prise d'espace - nombre d'espaces sous chacun des pions jusqu'au bord
-    spaceControl: { white: number; black: number };
-
-    // Activité des pièces - nombre de déplacements possibles (hors pions et roi)
-    pieceActivity: { white: number; black: number };
-
-    // Sécurité du roi - présence de 3 pions à leur position initiale devant le roi
-    kingSafety: { white: number; black: number };
-
-    // Structure de pions - nombre d'îlots de pions
-    pawnStructure: { white: number; black: number };
+    materialBalance: NormalizedEvaluation;
+    spaceControl: NormalizedEvaluation;
+    pieceActivity: NormalizedEvaluation;
+    kingSafety: NormalizedEvaluation;
+    pawnStructure: NormalizedEvaluation;
 }
 
 @Injectable({
@@ -27,26 +23,73 @@ export class PositionEvaluatorService {
         'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0
     };
 
+    // Seuils pour l'amplification des pourcentages
+    private readonly THRESHOLDS = {
+        materialBalance: 4,  // 4 points d'écart = amplification maximale
+        spaceControl: 6,    // 6 cases d'écart = amplification maximale
+        pieceActivity: 8,   // 8 coups d'écart = amplification maximale
+        kingSafety: 4,      // 4 points d'écart = amplification maximale (inclut bonus ailes)
+        pawnStructure: 3    // 3 îlots d'écart = amplification maximale
+    };
+
     constructor() { }
 
     /**
-     * Évalue une position complète
+     * Évalue une position complète avec des métriques normalisées
      */
     evaluatePosition(position: string): PositionEvaluation {
         const chess = new Chess();
         chess.load(position);
 
+        const rawMaterial = this.evaluateMaterialBalance(chess);
+        const rawSpace = this.evaluateSpaceControl(chess);
+        const rawActivity = this.evaluatePieceActivity(chess);
+        const rawSafety = this.evaluateKingSafety(chess);
+        const rawStructure = this.evaluatePawnStructure(chess);
+
         return {
-            materialBalance: this.evaluateMaterialBalance(chess),
-            spaceControl: this.evaluateSpaceControl(chess),
-            pieceActivity: this.evaluatePieceActivity(chess),
-            kingSafety: this.evaluateKingSafety(chess),
-            pawnStructure: this.evaluatePawnStructure(chess)
+            materialBalance: this.normalizeEvaluation(rawMaterial, 'materialBalance'),
+            spaceControl: this.normalizeEvaluation(rawSpace, 'spaceControl'),
+            pieceActivity: this.normalizeEvaluation(rawActivity, 'pieceActivity'),
+            kingSafety: this.normalizeEvaluation(rawSafety, 'kingSafety'),
+            pawnStructure: this.normalizeEvaluation(rawStructure, 'pawnStructure', true) // true = inversé (moins = mieux)
         };
     }
 
     /**
-     * Évalue l'équilibre matériel - somme des points sur l'échiquier
+     * Normalise une évaluation brute en pourcentage
+     */
+    private normalizeEvaluation(
+        raw: { white: number; black: number },
+        metric: keyof typeof this.THRESHOLDS,
+        isInverted: boolean = false
+    ): NormalizedEvaluation {
+        let whiteValue = raw.white;
+        let blackValue = raw.black;
+
+        if (isInverted) {
+            // Pour les métriques où moins = mieux (comme la structure de pions)
+            whiteValue = blackValue;
+            blackValue = raw.white;
+        }
+
+        const total = whiteValue + blackValue;
+        let percentage = total === 0 ? 0 : ((whiteValue - blackValue) / total) * 100;
+
+        // Amplification basée sur la différence
+        const diff = Math.abs(whiteValue - blackValue);
+        const threshold = this.THRESHOLDS[metric];
+
+        if (diff > 0) {
+            const amplificationFactor = 1 + (diff / threshold);
+            percentage = Math.max(-100, Math.min(100, percentage * amplificationFactor));
+        }
+
+        return { raw, percentage };
+    }
+
+    /**
+     * Évalue l'équilibre matériel
      */
     private evaluateMaterialBalance(chess: Chess): { white: number; black: number } {
         let whitePoints = 0;
@@ -71,7 +114,7 @@ export class PositionEvaluatorService {
     }
 
     /**
-     * Évalue la prise d'espace - nombre d'espaces sous chacun des pions jusqu'au bord
+     * Évalue le contrôle de l'espace
      */
     private evaluateSpaceControl(chess: Chess): { white: number; black: number } {
         let whiteSpace = 0;
@@ -82,13 +125,10 @@ export class PositionEvaluatorService {
             for (let j = 0; j < 8; j++) {
                 const piece = board[i][j];
                 if (piece && piece.type === 'p') {
-                    const rank = 8 - i; // rang réel (1-8)
-
+                    const rank = 8 - i;
                     if (piece.color === 'w') {
-                        // Blancs: compter toutes les cases jusqu'au rang 1 (leur bord)
                         whiteSpace += (rank - 1);
                     } else {
-                        // Noirs: compter toutes les cases jusqu'au rang 8 (leur bord)  
                         blackSpace += (8 - rank);
                     }
                 }
@@ -99,32 +139,26 @@ export class PositionEvaluatorService {
     }
 
     /**
-     * Évalue l'activité des pièces - nombre de déplacements possibles (hors pions et roi)
+     * Évalue l'activité des pièces
      */
     private evaluatePieceActivity(chess: Chess): { white: number; black: number } {
-        // Sauvegarder la position originale
         const originalFen = chess.fen();
         const currentTurn = chess.turn();
 
         let whiteActivity = 0;
         let blackActivity = 0;
 
-        // Calculer l'activité des blancs
         if (currentTurn === 'w') {
             whiteActivity = this.countLegalMoves(chess, 'w');
-            // Changer le tour pour les noirs
             chess.load(originalFen.replace(' w ', ' b '));
             blackActivity = this.countLegalMoves(chess, 'b');
         } else {
             blackActivity = this.countLegalMoves(chess, 'b');
-            // Changer le tour pour les blancs
             chess.load(originalFen.replace(' b ', ' w '));
             whiteActivity = this.countLegalMoves(chess, 'w');
         }
 
-        // Restaurer la position originale
         chess.load(originalFen);
-
         return { white: whiteActivity, black: blackActivity };
     }
 
@@ -143,7 +177,7 @@ export class PositionEvaluatorService {
     }
 
     /**
-     * Évalue la sécurité du roi - présence de 3 pions à leur position initiale devant le roi
+     * Évalue la sécurité du roi
      */
     private evaluateKingSafety(chess: Chess): { white: number; black: number } {
         const whiteSafety = this.checkKingSafety(chess, 'w');
@@ -160,8 +194,12 @@ export class PositionEvaluatorService {
         const kingRank = parseInt(kingSquare[1]);
         let safetyCount = 0;
 
+        // Bonus pour roi sur colonnes des ailes (a=0, b=1, c=2, g=6, h=7)
+        if (kingFile <= 2 || kingFile >= 6) {
+            safetyCount += 1;
+        }
+
         if (color === 'w') {
-            // Pour les blancs : chercher les pions blancs devant le roi (rang supérieur)
             const protectorRank = kingRank + 1;
             if (protectorRank <= 8) {
                 const protectorSquares = this.getProtectorSquares(kingFile, protectorRank);
@@ -173,7 +211,6 @@ export class PositionEvaluatorService {
                 });
             }
         } else {
-            // Pour les noirs : chercher les pions noirs devant le roi (rang inférieur)
             const protectorRank = kingRank - 1;
             if (protectorRank >= 1) {
                 const protectorSquares = this.getProtectorSquares(kingFile, protectorRank);
@@ -191,17 +228,14 @@ export class PositionEvaluatorService {
 
     private getProtectorSquares(kingFile: number, rank: number): string[] {
         const squares: string[] = [];
-
-        // Ajouter les 3 colonnes autour du roi (ou moins si au bord)
         for (let file = Math.max(0, kingFile - 1); file <= Math.min(7, kingFile + 1); file++) {
             squares.push(String.fromCharCode('a'.charCodeAt(0) + file) + rank);
         }
-
         return squares;
     }
 
     /**
-     * Évalue la structure de pions - nombre d'îlots de pions
+     * Évalue la structure de pions
      */
     private evaluatePawnStructure(chess: Chess): { white: number; black: number } {
         const whiteIslands = this.countPawnIslands(chess, 'w');
@@ -214,7 +248,6 @@ export class PositionEvaluatorService {
         const board = chess.board();
         const pawnFiles: boolean[] = new Array(8).fill(false);
 
-        // Marquer les colonnes qui ont des pions
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 const piece = board[i][j];
@@ -224,7 +257,6 @@ export class PositionEvaluatorService {
             }
         }
 
-        // Compter les îlots (groupes de colonnes adjacentes avec des pions)
         let islands = 0;
         let inIsland = false;
 
