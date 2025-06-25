@@ -1,10 +1,10 @@
 import { Component, OnInit, OnChanges, SimpleChanges, input, output, signal, computed, ViewChild, ElementRef, QueryList, ViewChildren, effect, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess, Square } from 'chess.js';
-import { ChessService, ChessSquare } from '../services/chess.service';
+import { ChessService } from '../services/chess.service';
 import { ChessSquareComponent, ChessSquareData } from '../chess-square/chess-square.component';
 import { ChessPieceComponent, PiecePosition, ChessPiece } from '../chess-piece/chess-piece.component';
-import { take, timer } from 'rxjs';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-echiquier',
@@ -43,12 +43,14 @@ export class EchiquierComponent implements OnInit, OnChanges {
   moveChange = output<{ from: string, to: string, promotion?: string }>();
 
   constructor(private chessService: ChessService) {
-    // Effect pour surveiller les changements d'orientation depuis l'input
-    effect(() => {
-      const currentOrientation = this.orientation();
-      // Forcer le recalcul des positions quand l'orientation change
-      this.updatePieces();
-    });
+    // Écouter les changements d'orientation avec debounce pour éviter les appels répétés
+    toObservable(this.orientation)
+      .pipe(
+        takeUntilDestroyed() // Cleanup automatique à la destruction du composant
+      ).subscribe(() => {
+        console.log('orientation changed');
+        this.updatePieces();
+      });
   }
 
   ngOnInit() {
@@ -72,7 +74,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
       }
     }
 
-    // Le changement d'orientation est maintenant géré par l'effect dans le constructor
   }
 
   // Calculer les coordonnées pixel d'une case avec orientation spécifique
@@ -120,8 +121,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
     } else {
       square = String.fromCharCode(97 + (7 - file)) + (rank + 1);
     }
-
-
 
     return square;
   }
@@ -359,7 +358,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
     const squares: ChessSquareData[] = [];
     const currentOrientation = this.orientation();
 
-
     // Générer les cases dans le même ordre que pour les pièces
     for (let rank = 1; rank <= 8; rank++) {
       for (let file = 1; file <= 8; file++) {
@@ -402,7 +400,6 @@ export class EchiquierComponent implements OnInit, OnChanges {
         }
       }
     }
-
 
     return gridSquares;
   }
@@ -537,12 +534,32 @@ export class EchiquierComponent implements OnInit, OnChanges {
       }
     }
 
-    // Calculer les IDs intelligents avec ordre stable
-    const piecesWithSmartIds = this.computeIds(this.pieces(), newPieces);
+    // Vérifier si c'est un changement d'orientation (flip board)
+    const oldPieces = this.pieces();
+    const isOrientationChange = oldPieces.length > 0 && newPieces.length > 0 &&
+      oldPieces.some(oldP => {
+        const newP = newPieces.find(newPiece =>
+          newPiece.square === oldP.square &&
+          newPiece.piece.type === oldP.piece.type &&
+          newPiece.piece.color === oldP.piece.color
+        );
+        return newP && (newP.x !== oldP.x || newP.y !== oldP.y);
+      });
 
-    timer(200).pipe(take(1)).subscribe(() => {
-      this.pieces.set(piecesWithSmartIds);
-    });
+    let piecesWithSmartIds: PiecePosition[];
+
+    if (isOrientationChange) {
+      // Pour un flip board, forcer de nouveaux IDs pour déclencher les transitions
+      piecesWithSmartIds = newPieces.map(piece => ({
+        ...piece,
+        id: this.generateRandomId()
+      }));
+    } else {
+      // Comportement normal avec IDs intelligents
+      piecesWithSmartIds = this.computeIds(oldPieces, newPieces);
+    }
+
+    this.pieces.set(piecesWithSmartIds);
   }
 }
 
