@@ -1,4 +1,4 @@
-import { Component, input, output, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, input, output, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
@@ -48,8 +48,15 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
     goToNext = output<void>();
     goToEnd = output<void>();
 
+    // Board orientation output
+    flipBoard = output<void>();
+
     // Service d'affichage de l'échiquier
     public boardDisplay = inject(BoardDisplayService);
+
+    constructor() {
+        // Initialization if needed
+    }
 
     ngOnInit() {
         // Initialisation du composant
@@ -144,5 +151,9 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
 
     onGoToEnd() {
         this.goToEnd.emit();
+    }
+
+    onFlipBoard() {
+        this.flipBoard.emit();
     }
 } 

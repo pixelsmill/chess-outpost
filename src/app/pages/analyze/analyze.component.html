@@ -63,6 +63,7 @@
     <app-chess-board-with-controls
       #chessBoardWithControls
       [position]="currentPosition"
+      [orientation]="boardDisplay.boardOrientation()"
       [disableClicks]="!isFreeMoveEnabled()"
       [showNavigationControls]="true"
       [canGoBack]="canGoBack"
@@ -73,6 +74,7 @@
       (goToPrevious)="goToPrevious()"
       (goToNext)="goToNext()"
       (goToEnd)="goToEnd()"
+      (flipBoard)="flipBoard()"
     ></app-chess-board-with-controls>
   </div>
 

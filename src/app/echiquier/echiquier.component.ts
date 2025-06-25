@@ -43,10 +43,11 @@ export class EchiquierComponent implements OnInit, OnChanges {
   moveChange = output<{ from: string, to: string, promotion?: string }>();
 
   constructor(private chessService: ChessService) {
-    // Effect pour surveiller les changements d'orientation
+    // Effect pour surveiller les changements d'orientation depuis l'input
     effect(() => {
-      const orientationChangeValue = this.orientationChange();
-      // Cet effet force le recalcul des getPieces() quand orientationChange change
+      const currentOrientation = this.orientation();
+      // Forcer le recalcul des positions quand l'orientation change
+      this.updatePieces();
     });
   }
 
@@ -71,19 +72,7 @@ export class EchiquierComponent implements OnInit, OnChanges {
       }
     }
 
-    // Synchroniser l'orientation avec le signal
-    if (changes['orientation']) {
-      this.orientationChange.set(this.orientationChange() + 1);
-
-      // Forcer le repositionnement de toutes les pièces
-      this.updatePieces();
-      this.pieceComponents.forEach(piece => {
-        const newPos = this.pieces().find(p => p.square === piece.position().square);
-        if (newPos) {
-          piece.resetPosition();
-        }
-      });
-    }
+    // Le changement d'orientation est maintenant géré par l'effect dans le constructor
   }
 
   // Calculer les coordonnées pixel d'une case avec orientation spécifique

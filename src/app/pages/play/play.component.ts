@@ -580,7 +580,17 @@ export class PlayComponent implements OnInit, OnDestroy {
     }
 
     get currentMoveDisplay(): string {
-        return this.gameNavigationService.getCurrentMoveDisplay();
+        return `${this.currentMove}/${this.totalMoves}`;
+    }
+
+    /**
+     * Retourne l'orientation actuelle de l'échiquier en fonction du joueur
+     */
+    flipBoard(): void {
+        const currentOrientation = this.boardOrientation();
+        const newOrientation: 'white' | 'black' = currentOrientation === 'white' ? 'black' : 'white';
+        this.boardOrientation.set(newOrientation);
+        console.log('🎯 Board manually flipped to:', newOrientation);
     }
 
     private calculateBoardOrientation(game: GameState): 'white' | 'black' {

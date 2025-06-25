@@ -3,7 +3,7 @@
   <div class="board-section">
     <app-chess-board-with-controls
       [position]="currentPosition()"
-      [orientation]="boardOrientation()"
+      [orientation]="boardDisplay.boardOrientation()"
       [disableClicks]="!(user$ | async) || !isPlayerTurn() || isGameFinished()"
       [isMultiplayer]="true"
       [showNavigationControls]="true"
@@ -14,6 +14,7 @@
       (goToPrevious)="onGoToPrevious()"
       (goToNext)="onGoToNext()"
       (goToEnd)="onGoToEnd()"
+      (flipBoard)="flipBoard()"
     ></app-chess-board-with-controls>
   </div>
 

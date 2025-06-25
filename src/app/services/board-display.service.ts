@@ -1,4 +1,4 @@
-import { Injectable, signal, ElementRef, effect } from '@angular/core';
+import { Injectable, signal, ElementRef, effect, computed } from '@angular/core';
 import { timer, Subject, Subscription } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
@@ -13,6 +13,21 @@ export class BoardDisplayService {
     brightness = signal<number>(25);
     boardScale = signal<number>(1);
 
+    // Gestion intelligente de l'orientation
+    private automaticOrientation = signal<'white' | 'black'>('white');
+    private userOrientationOverride = signal<'white' | 'black' | null>(this.loadOrientationOverrideFromStorage());
+
+    // Orientation effective (computed) - priorité à l'override utilisateur
+    boardOrientation = computed(() => {
+        const override = this.userOrientationOverride();
+        const automatic = this.automaticOrientation();
+
+        if (override !== null) {
+            return override; // L'utilisateur a une préférence
+        }
+        return automatic; // Utiliser l'automatique
+    });
+
     private resizeObserver?: ResizeObserver;
     private resizeSubject = new Subject<ElementRef<HTMLElement>>();
     private resizeSubscription?: Subscription;
@@ -22,6 +37,16 @@ export class BoardDisplayService {
         effect(() => {
             const background = this.selectedBackground();
             localStorage.setItem('hotpawn-background', background);
+        });
+
+        // Sauvegarder l'override d'orientation automatiquement
+        effect(() => {
+            const override = this.userOrientationOverride();
+            if (override !== null) {
+                localStorage.setItem('hotpawn-orientation-override', override);
+            } else {
+                localStorage.removeItem('hotpawn-orientation-override');
+            }
         });
 
         // Configuration du debounce pour les recalculs de scale
@@ -45,6 +70,58 @@ export class BoardDisplayService {
             console.warn('Erreur lors du chargement des préférences:', error);
         }
         return 'classic'; // Valeur par défaut changée
+    }
+
+    /**
+     * Charge l'override d'orientation depuis le localStorage
+     */
+    private loadOrientationOverrideFromStorage(): 'white' | 'black' | null {
+        try {
+            const stored = localStorage.getItem('hotpawn-orientation-override');
+            if (stored === 'white' || stored === 'black') {
+                return stored;
+            }
+        } catch (error) {
+            console.warn('Erreur lors du chargement de l\'orientation override:', error);
+        }
+        return null; // Pas d'override par défaut
+    }
+
+    /**
+     * Définit l'orientation automatique (utilisée par le mode play)
+     */
+    setAutomaticOrientation(orientation: 'white' | 'black'): void {
+        this.automaticOrientation.set(orientation);
+    }
+
+    /**
+     * Bascule l'orientation manuelle (flip board)
+     */
+    flipBoardOrientation(): void {
+        const current = this.boardOrientation();
+        const newOrientation = current === 'white' ? 'black' : 'white';
+        this.userOrientationOverride.set(newOrientation);
+    }
+
+    /**
+     * Remet l'orientation en mode automatique (supprime l'override)
+     */
+    resetToAutomaticOrientation(): void {
+        this.userOrientationOverride.set(null);
+    }
+
+    /**
+     * Indique si l'utilisateur a un override actif
+     */
+    hasOrientationOverride(): boolean {
+        return this.userOrientationOverride() !== null;
+    }
+
+    /**
+     * Force un override d'orientation (pour le mode analyze)
+     */
+    setOrientationOverride(orientation: 'white' | 'black'): void {
+        this.userOrientationOverride.set(orientation);
     }
 
     /**

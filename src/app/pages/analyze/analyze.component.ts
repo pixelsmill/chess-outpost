@@ -95,6 +95,13 @@ export class AnalyzeComponent implements OnInit {
     this.selectedColorTab.set(color);
   }
 
+  /**
+   * Bascule l'orientation de l'échiquier via le BoardDisplayService
+   */
+  flipBoard(): void {
+    this.boardDisplay.flipBoardOrientation();
+  }
+
   getAdviceForSelectedColor(): string {
     const advice = this.selectedColorTab() === 'white' ? this.whiteAdvice() : this.blackAdvice();
     return advice || ''; // Retourne une chaîne vide si pas de conseil
@@ -247,6 +254,11 @@ export class AnalyzeComponent implements OnInit {
   ngOnInit(): void {
     // Initialiser l'historique vide pour le mode libre
     this.gameNavigationService.initializeHistory();
+
+    // En mode analyze, toujours utiliser un override d'orientation (créer un si n'existe pas)
+    if (!this.boardDisplay.hasOrientationOverride()) {
+      this.boardDisplay.setOrientationOverride('white');
+    }
 
     // Vérifier si un PGN a été partagé via l'API Web Share Target
     this.route.queryParams.subscribe(params => {

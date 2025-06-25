@@ -34,7 +34,7 @@
         [externalPosition]="position()"
         [disableClicks]="disableClicks()"
         [isMultiplayer]="isMultiplayer()"
-        [orientation]="orientation()"
+        [orientation]="boardDisplay.boardOrientation()"
         [boardScale]="boardDisplay.boardScale()"
         (positionChange)="onPositionChange($event)"
         (moveChange)="onMoveChange($event)"
@@ -95,5 +95,16 @@
       </button>
     </div>
     }
+
+    <!-- Bouton flip board - à droite -->
+    <div class="flip-board">
+      <button
+        (click)="onFlipBoard()"
+        class="flip-btn"
+        title="Retourner l'échiquier"
+      >
+        ⟲
+      </button>
+    </div>
   </div>
 </div>
