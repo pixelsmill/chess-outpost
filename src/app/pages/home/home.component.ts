@@ -20,7 +20,6 @@ export class HomeComponent implements OnInit {
   user$: Observable<User | null> = this.authService.user$;
 
   isIOSDevice = signal(false);
-  showInstallPrompt = signal(false);
   canInstall = signal(false);
 
   private deferredPrompt: any;
@@ -37,13 +36,6 @@ export class HomeComponent implements OnInit {
       this.deferredPrompt = e;
       this.canInstall.set(true);
     });
-
-    // Vérifier si l'app est déjà installée
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      this.showInstallPrompt.set(false);
-    } else {
-      this.showInstallPrompt.set(true);
-    }
   }
 
   async installApp() {
@@ -52,14 +44,9 @@ export class HomeComponent implements OnInit {
       const choiceResult = await this.deferredPrompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
         this.canInstall.set(false);
-        this.showInstallPrompt.set(false);
       }
       this.deferredPrompt = null;
     }
-  }
-
-  dismissInstallPrompt() {
-    this.showInstallPrompt.set(false);
   }
 
   navigateToPlay() {

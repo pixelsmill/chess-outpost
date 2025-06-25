@@ -32,51 +32,64 @@
           </p>
         </div>
 
+        <!-- Bloc d'installation fixe -->
+        <div class="install-app-section">
+          <h2>📱 Install Chess Outpost</h2>
+          <p>Get the full experience! Install Chess Outpost as an app for:</p>
+          <ul class="install-benefits">
+            <li>
+              🚀 <strong>Faster access</strong> - Launch directly from your home
+              screen
+            </li>
+            <li>
+              🔗 <strong>Easy game sharing</strong> - Share Chess.com games
+              instantly
+            </li>
+            <li>
+              📱 <strong>Native app feel</strong> - Works offline and loads
+              faster
+            </li>
+            <li>
+              🔔 <strong>Better performance</strong> - Optimized for mobile
+              devices
+            </li>
+          </ul>
+
+          <!-- Instructions pour iOS -->
+          <div *ngIf="isIOSDevice()" class="install-instructions ios">
+            <h3>📲 For iPhone/iPad users:</h3>
+            <ol>
+              <li>
+                Tap the <strong>Share</strong> button
+                <span class="share-icon">⬆️</span> in Safari
+              </li>
+              <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+              <li>Tap <strong>"Add"</strong> to confirm</li>
+            </ol>
+          </div>
+
+          <!-- Instructions pour Android/Desktop -->
+          <div *ngIf="!isIOSDevice()" class="install-instructions desktop">
+            <h3>💻 For Desktop/Android users:</h3>
+            <div *ngIf="canInstall()" class="can-install">
+              <p>Click the button below to install Chess Outpost:</p>
+              <button (click)="installApp()" class="primary-install-button">
+                📥 Install Chess Outpost
+              </button>
+            </div>
+            <div *ngIf="!canInstall()" class="cannot-install">
+              <p>
+                Look for the <strong>install icon</strong> in your browser's
+                address bar, or check your browser menu for "Install" or "Add to
+                Home Screen" options.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- add copyright here -->
         <p class="copyright">&copy; Hub1000 2025</p>
       </div>
-    </div>
-  </div>
-
-  <!-- Bannière d'installation PWA -->
-  <div *ngIf="showInstallPrompt()" class="install-prompt">
-    <div class="install-content">
-      <h3>Installez Chess Outpost</h3>
-
-      <!-- Instructions pour iOS -->
-      <div *ngIf="isIOSDevice()" class="ios-instructions">
-        <p>Pour installer l'application sur votre appareil iOS :</p>
-        <ol>
-          <li>
-            Appuyez sur le bouton <strong>Partager</strong>
-            <span class="ios-share-icon">⬆️</span> en bas de Safari
-          </li>
-          <li>
-            Faites défiler et appuyez sur
-            <strong>"Sur l'écran d'accueil"</strong>
-          </li>
-          <li>Appuyez sur <strong>"Ajouter"</strong> en haut à droite</li>
-        </ol>
-        <p>
-          Une fois installée, vous pourrez facilement partager des parties
-          depuis Chess.com !
-        </p>
-      </div>
-
-      <!-- Instructions pour autres navigateurs -->
-      <div *ngIf="!isIOSDevice() && canInstall()" class="other-instructions">
-        <p>
-          Installez l'application pour un accès rapide et le partage de parties
-          !
-        </p>
-        <button (click)="installApp()" class="install-button">
-          Installer l'application
-        </button>
-      </div>
-
-      <button (click)="dismissInstallPrompt()" class="dismiss-button">
-        Plus tard
-      </button>
     </div>
   </div>
 </div>
