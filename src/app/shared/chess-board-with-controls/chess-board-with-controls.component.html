@@ -3,6 +3,14 @@
   #chessBoardContainer
   (window:resize)="onWindowResize()"
 >
+  <!-- Timeline Stratégique (Desktop uniquement) -->
+  <app-strategic-timeline
+    [gameHistory]="gameNavigationService.getPositionHistory()"
+    [currentMoveIndex]="gameNavigationService.currentMove()"
+    [maxMoves]="gameNavigationService.totalMoves()"
+    (moveSelected)="onTimelineMoveSelected($event)"
+  ></app-strategic-timeline>
+
   <!-- Échiquier principal -->
   <div class="game-board">
     <!-- Échiquier avec background dynamique -->

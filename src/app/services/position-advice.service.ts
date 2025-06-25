@@ -45,9 +45,6 @@ export class PositionAdviceService {
     };
 
     constructor() {
-        console.log('Service PositionAdvice initialisé');
-        console.log('Données de conseils disponibles:', this.adviceData);
-        console.log('Situations disponibles:', Object.keys(this.adviceData.situations).length);
     }
 
     getPositionAdvantages(evaluation: PositionEvaluation): PositionAdvantage[] {
@@ -92,8 +89,6 @@ export class PositionAdviceService {
     }
 
     getPositionAdviceWithDebug(evaluation: PositionEvaluation): AdviceResult {
-        console.log('État actuel des données de conseils:', this.adviceData);
-        console.log('Situations disponibles:', Object.keys(this.adviceData.situations));
 
         // Identifier les avantages significatifs en utilisant l'ordre fixe
         const whiteAdvantages: string[] = [];
@@ -149,8 +144,6 @@ export class PositionAdviceService {
         const adviceData: PositionAdvice | undefined = this.adviceData.situations[situationKey];
 
         if (!adviceData) {
-            console.log(`Situation ${situationKey} non trouvée`);
-            console.log('Situations disponibles:', Object.keys(this.adviceData.situations));
             return {
                 diagnosis: "",
                 prescription: "",

@@ -4,7 +4,9 @@ import { EchiquierComponent } from '../../echiquier/echiquier.component';
 import { BoardWrapperComponent } from '../../board-wrapper/board-wrapper.component';
 import { HeatmapBoardComponent } from '../../backgrounds/heatmap-board/heatmap-board.component';
 import { ClassicBoardComponent } from '../../backgrounds/classic-board/classic-board.component';
+import { StrategicTimelineComponent } from '../strategic-timeline/strategic-timeline.component';
 import { BoardDisplayService } from '../../services/board-display.service';
+import { GameNavigationService } from '../../services/game-navigation.service';
 import { inject } from '@angular/core';
 
 @Component({
@@ -15,7 +17,8 @@ import { inject } from '@angular/core';
         EchiquierComponent,
         BoardWrapperComponent,
         HeatmapBoardComponent,
-        ClassicBoardComponent
+        ClassicBoardComponent,
+        StrategicTimelineComponent
     ],
     templateUrl: './chess-board-with-controls.component.html',
     styleUrl: './chess-board-with-controls.component.scss'
@@ -38,6 +41,11 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
     canGoBack = input<boolean>(false);
     canGoForward = input<boolean>(false);
 
+    // Timeline inputs - connectées au service de navigation
+    gameHistory = input<string[]>([]);
+    currentMoveIndex = input<number>(0);
+    maxMoves = input<number>(50);
+
     // Outputs
     positionChange = output<string>();
     moveChange = output<{ from: string; to: string; promotion?: string }>();
@@ -51,8 +59,14 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
     // Board orientation output
     flipBoard = output<void>();
 
+    // Timeline output
+    timelineMoveSelected = output<number>();
+
     // Service d'affichage de l'échiquier
     public boardDisplay = inject(BoardDisplayService);
+
+    // Service de navigation de jeu
+    public gameNavigationService = inject(GameNavigationService);
 
     constructor() {
         // Initialization if needed
@@ -155,5 +169,12 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
 
     onFlipBoard() {
         this.flipBoard.emit();
+    }
+
+    // Timeline methods
+    onTimelineMoveSelected(moveIndex: number) {
+        // Naviguer directement via le service
+        this.gameNavigationService.goToMove(moveIndex);
+        this.timelineMoveSelected.emit(moveIndex);
     }
 } 

@@ -148,18 +148,55 @@ export class PositionEvaluatorService {
         let whiteActivity = 0;
         let blackActivity = 0;
 
-        if (currentTurn === 'w') {
-            whiteActivity = this.countLegalMoves(chess, 'w');
-            chess.load(originalFen.replace(' w ', ' b '));
-            blackActivity = this.countLegalMoves(chess, 'b');
-        } else {
-            blackActivity = this.countLegalMoves(chess, 'b');
-            chess.load(originalFen.replace(' b ', ' w '));
-            whiteActivity = this.countLegalMoves(chess, 'w');
+        try {
+            if (currentTurn === 'w') {
+                whiteActivity = this.countLegalMoves(chess, 'w');
+
+                // Créer un FEN pour le tour des noirs en nettoyant l'en-passant
+                const modifiedFen = this.switchTurnInFen(originalFen, 'b');
+                chess.load(modifiedFen);
+                blackActivity = this.countLegalMoves(chess, 'b');
+            } else {
+                blackActivity = this.countLegalMoves(chess, 'b');
+
+                // Créer un FEN pour le tour des blancs en nettoyant l'en-passant
+                const modifiedFen = this.switchTurnInFen(originalFen, 'w');
+                chess.load(modifiedFen);
+                whiteActivity = this.countLegalMoves(chess, 'w');
+            }
+        } catch (error) {
+            console.warn('Erreur dans evaluatePieceActivity:', error);
+            // Fallback : utiliser seulement les mouvements du joueur actuel
+            if (currentTurn === 'w') {
+                whiteActivity = this.countLegalMoves(chess, 'w');
+                blackActivity = whiteActivity; // Approximation
+            } else {
+                blackActivity = this.countLegalMoves(chess, 'b');
+                whiteActivity = blackActivity; // Approximation
+            }
+        } finally {
+            // Toujours restaurer la position originale
+            chess.load(originalFen);
         }
 
-        chess.load(originalFen);
         return { white: whiteActivity, black: blackActivity };
+    }
+
+    /**
+     * Change le tour dans un FEN en nettoyant l'en-passant pour éviter les FENs invalides
+     */
+    private switchTurnInFen(fen: string, newTurn: 'w' | 'b'): string {
+        const parts = fen.split(' ');
+        if (parts.length !== 6) {
+            throw new Error('FEN invalide');
+        }
+
+        // parts[1] = tour actuel
+        // parts[3] = carré en-passant
+        parts[1] = newTurn;
+        parts[3] = '-'; // Nettoyer l'en-passant pour éviter les conflits
+
+        return parts.join(' ');
     }
 
     private countLegalMoves(chess: Chess, color: 'w' | 'b'): number {

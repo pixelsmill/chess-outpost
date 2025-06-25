@@ -1,6 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Chess } from 'chess.js';
 import { ChessService, GameHistory, GameNavigation } from './chess.service';
+import { GameAnalysisService, GameAnalysisResult } from './game-analysis.service';
 
 @Injectable({
     providedIn: 'root'
@@ -10,6 +11,12 @@ export class GameNavigationService {
     private gameHistory: GameHistory | null = null;
     private localChess = new Chess();
     private isNavigating = false;
+
+    // Service d'analyse complète
+    private gameAnalysisService = inject(GameAnalysisService);
+
+    // Résultat de l'analyse complète (stocké pour la timeline)
+    private completeAnalysis: GameAnalysisResult | null = null;
 
     // === SIGNALS RÉACTIFS ===
     gameNavigation = signal<GameNavigation>({
@@ -75,6 +82,9 @@ export class GameNavigationService {
             this.localChess.load(startingFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
             this.currentPosition.set(startingFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
+
+        // Pré-analyser toute la partie pour la timeline
+        this.preAnalyzeGame();
     }
 
     /**
@@ -222,6 +232,65 @@ export class GameNavigationService {
      */
     isCurrentlyNavigating(): boolean {
         return this.isNavigating;
+    }
+
+    /**
+     * Obtient l'historique des positions FEN pour la timeline
+     */
+    getPositionHistory(): string[] {
+        if (!this.gameHistory) return [];
+
+        const positions = [this.gameHistory.startingFen];
+
+        this.gameHistory.moves.forEach(move => {
+            positions.push(move.fen);
+        });
+
+        return positions;
+    }
+
+    /**
+     * Va à un coup spécifique (pour la timeline)
+     */
+    goToMove(moveIndex: number): void {
+        if (!this.gameHistory) return;
+
+        this.isNavigating = true;
+        try {
+            this.gameHistory = this.chessService.goToMoveInHistory(this.localChess, this.gameHistory, moveIndex - 1);
+            this.updateNavigation();
+            this.currentPosition.set(this.localChess.fen());
+        } catch (error) {
+            console.error('Error navigating to move:', error);
+        } finally {
+            this.isNavigating = false;
+        }
+    }
+
+    /**
+     * Pré-analyse toute la partie pour la timeline
+     */
+    private preAnalyzeGame(): void {
+        if (!this.gameHistory || this.gameHistory.moves.length === 0) {
+            this.completeAnalysis = null;
+            return;
+        }
+
+        console.log('🔍 GameNavigation: Pré-analyse de la partie complète');
+
+        const positions = this.getPositionHistory();
+        const sanMoves = this.gameHistory.moves.map(move => move.san);
+
+        this.completeAnalysis = this.gameAnalysisService.analyzeCompleteGame(positions, sanMoves);
+
+        console.log('📊 Analyse terminée:', this.completeAnalysis.periods.length, 'périodes,', this.completeAnalysis.criticalMoments.length, 'moments critiques');
+    }
+
+    /**
+     * Obtient le résultat de l'analyse complète
+     */
+    getCompleteAnalysis(): GameAnalysisResult | null {
+        return this.completeAnalysis;
     }
 
     // === MÉTHODES PRIVÉES ===

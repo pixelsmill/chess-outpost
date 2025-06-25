@@ -1,0 +1,163 @@
+<div class="strategic-timeline-container">
+  <!-- Bilan de la partie -->
+  <div class="game-summary">
+    <div class="summary-stats">
+      <div class="stat-item">
+        <span class="stat-number">{{ maxMoves() }}</span>
+        <span class="stat-label">coups</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ segments.length }}</span>
+        <span class="stat-label">phases</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ events.length }}</span>
+        <span class="stat-label">transitions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getAveragePhaseLength() }}</span>
+        <span class="stat-label">coups/phase</span>
+      </div>
+    </div>
+    <div class="summary-description">
+      {{ getGameDescription() }}
+    </div>
+  </div>
+
+  <!-- Timeline principale -->
+  <div
+    class="timeline-bar"
+    #timeline
+    (click)="onTimelineClick($event)"
+    (mousemove)="onTimelineHover($event)"
+    (mouseleave)="onTimelineLeave()"
+  >
+    <!-- Segments colorés représentant les phases stratégiques -->
+    @for (segment of segments; track segment.startMove) {
+    <div
+      class="timeline-segment"
+      [style.width.%]="getSegmentWidth(segment)"
+      [style.background-color]="getSegmentColor(segment)"
+      [attr.data-description]="segment.description"
+      [attr.data-advice-key]="segment.adviceKey"
+    >
+      <!-- Bordure pour indiquer la situation stratégique -->
+      <div
+        class="segment-border"
+        [class]="'situation-' + segment.advantageColor"
+      ></div>
+    </div>
+    }
+
+    <!-- Événements importants (changements de situation) -->
+    @for (event of events; track event.move) {
+    <div
+      class="timeline-event"
+      [style.left.%]="(event.move / maxMoves()) * 100"
+      [class]="'event-' + event.type"
+      [attr.data-significance]="event.significance"
+    >
+      <div class="event-marker"></div>
+    </div>
+    }
+
+    <!-- Indicateur de position actuelle -->
+    <div class="current-position" [style.left.%]="getCurrentPosition()">
+      <div class="position-marker"></div>
+      <div class="position-line"></div>
+    </div>
+
+    <!-- Graduations des coups -->
+    <div class="timeline-graduations">
+      @for (graduation of [10, 20, 30, 40]; track graduation) { @if (graduation
+      <= maxMoves()) {
+      <div class="graduation" [style.left.%]="(graduation / maxMoves()) * 100">
+        <span class="graduation-label">{{ graduation }}</span>
+      </div>
+      } }
+    </div>
+  </div>
+
+  <!-- Tooltip au survol -->
+  @if (tooltipVisible && (getHoveredSegment() || getHoveredEvent())) {
+  <div
+    class="timeline-tooltip"
+    [style.left.px]="tooltipPosition.x"
+    [style.top.px]="tooltipPosition.y"
+  >
+    @if (getHoveredSegment(); as segment) {
+    <div class="tooltip-content">
+      <div class="tooltip-title">
+        Coups {{ segment.startMove }}-{{ segment.endMove }}
+      </div>
+      <div class="tooltip-description">
+        {{ segment.description }}
+      </div>
+
+      <!-- Indicateur de force de l'avantage -->
+      <div class="advantage-strength">
+        <div class="strength-bar">
+          <div
+            class="strength-fill"
+            [style.width.%]="segment.strength"
+            [class]="'advantage-' + segment.advantageColor"
+          ></div>
+        </div>
+        <span class="strength-text"
+          >Force: {{ segment.strength | number : "1.0-0" }}%</span
+        >
+      </div>
+
+      <!-- Avantages spécifiques -->
+      @if (segment.whiteAdvantages || segment.blackAdvantages) {
+      <div class="tooltip-advantages">
+        @if (segment.whiteAdvantages) {
+        <div class="advantages-section">
+          <span class="advantages-label">Blancs:</span>
+          <span class="advantages-text">{{ segment.whiteAdvantages }}</span>
+        </div>
+        } @if (segment.blackAdvantages) {
+        <div class="advantages-section">
+          <span class="advantages-label">Noirs:</span>
+          <span class="advantages-text">{{ segment.blackAdvantages }}</span>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Conseils stratégiques -->
+      @if (segment.whiteAdvice || segment.blackAdvice) {
+      <div class="tooltip-advice">
+        @if (segment.whiteAdvice) {
+        <div class="advice-section">
+          <span class="advice-label">Conseil Blancs:</span>
+          <span class="advice-text">{{ segment.whiteAdvice }}</span>
+        </div>
+        } @if (segment.blackAdvice) {
+        <div class="advice-section">
+          <span class="advice-label">Conseil Noirs:</span>
+          <span class="advice-text">{{ segment.blackAdvice }}</span>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Clé de conseil (pour debug) -->
+      <div class="tooltip-debug">
+        <small>Clé: {{ segment.adviceKey }}</small>
+      </div>
+    </div>
+    } @if (getHoveredEvent(); as event) {
+    <div class="tooltip-content event-tooltip">
+      <div class="tooltip-title">Coup {{ event.move }}</div>
+      <div class="tooltip-description">
+        {{ event.description }}
+      </div>
+      <div class="event-significance">
+        Importance: {{ "★".repeat(event.significance) }}
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

@@ -115,9 +115,40 @@
             rows="4"
           ></textarea>
           <div class="action-buttons">
-            <button class="action-btn" (click)="loadPgn()">Load</button>
-            <button class="action-btn" (click)="newPgnAnalysis()">Clear</button>
+            <button
+              class="action-btn"
+              (click)="loadPgn()"
+              [disabled]="isAnalyzingPgn()"
+            >
+              @if (isAnalyzingPgn()) { Analyzing... } @else { Load }
+            </button>
+            <button
+              class="action-btn"
+              (click)="newPgnAnalysis()"
+              [disabled]="isAnalyzingPgn()"
+            >
+              Clear
+            </button>
           </div>
+
+          <!-- Indicateur de progression -->
+          @if (isAnalyzingPgn()) {
+          <div class="analysis-progress">
+            <div class="progress-info">
+              <span>🔍 Analyse en cours...</span>
+              <span class="progress-percentage">{{ analysisProgress() }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width.%]="analysisProgress()"
+              ></div>
+            </div>
+            <p class="progress-description">
+              Pré-calcul de toutes les analyses pour navigation instantanée
+            </p>
+          </div>
+          }
         </div>
         }
 
@@ -244,6 +275,19 @@
             <button (click)="newPgnAnalysis()" class="sidebar-btn">
               Clear
             </button>
+
+            <!-- Indicateur de performance du cache -->
+            @if (useCache()) {
+            <div class="cache-performance-indicator">
+              <div class="cache-status">
+                <span class="cache-icon">⚡</span>
+                <span class="cache-text">Cache actif</span>
+              </div>
+              <div class="cache-benefits">
+                <small>Navigation instantanée • Analyses pré-calculées</small>
+              </div>
+            </div>
+            }
           </div>
         </div>
         }

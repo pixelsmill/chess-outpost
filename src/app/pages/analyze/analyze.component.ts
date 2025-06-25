@@ -8,6 +8,7 @@ import { GameNavigationService } from '../../services/game-navigation.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { PositionEvaluatorService, PositionEvaluation } from '../../services/position-evaluator.service';
 import { PositionAdviceService, PositionAdvantage, AdviceResult } from '../../services/position-advice.service';
+import { GameAnalysisCacheService, CachedMoveAnalysis } from '../../services/game-analysis-cache.service';
 import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
@@ -69,6 +70,11 @@ export class AnalyzeComponent implements OnInit {
   whiteAdvantages = signal<string>('');
   blackAdvantages = signal<string>('');
 
+  // État du cache et analyse
+  isAnalyzingPgn = signal(false);
+  analysisProgress = signal(0);
+  useCache = signal(false);
+
   // Computed properties
   isFreeMoveEnabled = computed(() => this.analysisMode() === 'free');
   isPgnMode = computed(() => this.analysisMode() === 'pgn');
@@ -79,13 +85,20 @@ export class AnalyzeComponent implements OnInit {
     public gameNavigationService: GameNavigationService,
     private route: ActivatedRoute,
     private positionEvaluator: PositionEvaluatorService,
-    private positionAdvice: PositionAdviceService
+    private positionAdvice: PositionAdviceService,
+    private gameAnalysisCache: GameAnalysisCacheService
   ) {
     effect(() => {
       const currentPosition = this.gameNavigationService.currentPosition();
       if (currentPosition) {
         this.updatePositionEvaluation(currentPosition);
       }
+    });
+
+    // Surveiller l'état du cache
+    effect(() => {
+      this.isAnalyzingPgn.set(this.gameAnalysisCache.isAnalyzing$());
+      this.analysisProgress.set(this.gameAnalysisCache.analysisProgress$());
     });
   }
 
@@ -403,9 +416,9 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
   // === GESTION PGN ===
 
-  loadPgn(): void {
+  async loadPgn(): Promise<void> {
     if (!this.pgnText.trim()) {
-      alert('Please enter a valid PGN');
+      alert('Veuillez entrer un PGN valide');
       return;
     }
 
@@ -420,17 +433,55 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       const pgnMoves = moves.map(san => ({ san }));
       this.gameNavigationService.loadFromMoves(pgnMoves);
 
+      // Préparer les positions pour le cache
+      const positions = this.getPositionHistory();
+
+      console.log('🚀 Démarrage de l\'analyse complète du PGN...');
+      console.log(`📊 ${positions.length} positions à analyser`);
+
+      try {
+        // Pré-analyser TOUTES les positions et les mettre en cache
+        await this.gameAnalysisCache.analyzeAndCacheGame(this.pgnText, positions, moves);
+        this.useCache.set(true);
+        console.log('✅ Cache créé avec succès !');
+      } catch (error) {
+        console.error('❌ Erreur lors de la création du cache:', error);
+        this.useCache.set(false);
+      }
+
       this.goToStart();
       this.isNavigationMode.set(true);
     } else {
-      alert('Error loading PGN. Please check the format.');
+      alert('Erreur lors du chargement du PGN. Vérifiez le format.');
     }
+  }
+
+  /**
+   * Génère l'historique de toutes les positions de la partie
+   */
+  private getPositionHistory(): string[] {
+    const positions: string[] = [];
+    const tempChess = new Chess();
+
+    // Position initiale
+    positions.push(tempChess.fen());
+
+    // Toutes les positions après chaque coup
+    const moves = this.localChess.history();
+    for (const move of moves) {
+      tempChess.move(move);
+      positions.push(tempChess.fen());
+    }
+
+    return positions;
   }
 
   newPgnAnalysis(): void {
     this.pgnText = '';
     this.pgnMetadata.set(null);
     this.isNavigationMode.set(false);
+    this.useCache.set(false);
+    this.gameAnalysisCache.clearCurrentCache();
     this.resetToStartingPosition();
   }
 
@@ -480,17 +531,31 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
   }
 
   /**
-   * Met à jour l'évaluation de la position - VERSION SIMPLIFIÉE
+   * Met à jour l'évaluation de la position - VERSION OPTIMISÉE AVEC CACHE
    */
   private updatePositionEvaluation(position: string): void {
     try {
+      // Tentative d'utilisation du cache en premier
+      if (this.useCache() && this.isPgnMode()) {
+        const currentMoveIndex = this.gameNavigationService.currentMove();
+        const cachedAnalysis = this.gameAnalysisCache.getMoveAnalysis(currentMoveIndex);
+
+        if (cachedAnalysis) {
+          console.log('📦 Utilisation du cache pour la position', currentMoveIndex);
+          this.applyCachedAnalysis(cachedAnalysis);
+          return;
+        } else {
+          console.log('⚠️ Pas de cache disponible pour la position', currentMoveIndex);
+        }
+      }
+
+      // Fallback : calcul classique en temps réel
+      console.log('🔄 Calcul en temps réel de l\'évaluation');
       const evaluation = this.positionEvaluator.evaluatePosition(position);
-      console.log('Évaluation de la position:', evaluation);
       this.currentEvaluation.set(evaluation);
 
       // Récupérer les avantages directement de l'évaluation (pas d'ajustement)
       const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation);
-      console.log('Résultat des conseils:', adviceResult);
 
       // Définir les avantages pour chaque couleur
       const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
@@ -502,9 +567,6 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       // Générer les conseils spécifiques pour chaque couleur avec les clés 
       const whiteKey = this.getAdviceKeyForColor('white');
       const blackKey = this.getAdviceKeyForColor('black');
-
-      console.log('Clé pour les blancs:', whiteKey);
-      console.log('Clé pour les noirs:', blackKey);
 
       const whiteAdvice = this.positionAdvice.getAdviceByKey(whiteKey);
       const blackAdvice = this.positionAdvice.getAdviceByKey(blackKey);
@@ -530,5 +592,19 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       this.whiteAdvice.set('');
       this.blackAdvice.set('');
     }
+  }
+
+  /**
+   * Applique les données du cache à l'interface
+   */
+  private applyCachedAnalysis(cachedAnalysis: CachedMoveAnalysis): void {
+    this.currentEvaluation.set(cachedAnalysis.evaluation);
+    this.whiteAdvantages.set(cachedAnalysis.whiteAdvantages);
+    this.blackAdvantages.set(cachedAnalysis.blackAdvantages);
+    this.whiteAdvice.set(cachedAnalysis.whiteAdvice);
+    this.blackAdvice.set(cachedAnalysis.blackAdvice);
+
+    // Reconstituer les avantages pour l'affichage
+    this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(cachedAnalysis.evaluation));
   }
 }
