@@ -15,6 +15,8 @@ export interface CachedMoveAnalysis {
     // Conseils détaillés par couleur
     whiteAdvice: string;
     blackAdvice: string;
+    whiteAdviceIcon: string;
+    blackAdviceIcon: string;
     whiteAdvantages: string;
     blackAdvantages: string;
 
@@ -120,6 +122,8 @@ export class GameAnalysisCacheService {
 
                     whiteAdvice: whiteFullAdvice,
                     blackAdvice: blackFullAdvice,
+                    whiteAdviceIcon: whiteAdviceDetail?.icon || '',
+                    blackAdviceIcon: blackAdviceDetail?.icon || '',
                     whiteAdvantages: whiteAdvantagesList.join(', '),
                     blackAdvantages: blackAdvantagesList.join(', '),
 

@@ -67,6 +67,8 @@ export class AnalyzeComponent implements OnInit {
   // Signaux pour les conseils et avantages par couleur
   whiteAdvice = signal<string>('');
   blackAdvice = signal<string>('');
+  whiteAdviceIcon = signal<string>('');
+  blackAdviceIcon = signal<string>('');
   whiteAdvantages = signal<string>('');
   blackAdvantages = signal<string>('');
 
@@ -118,6 +120,11 @@ export class AnalyzeComponent implements OnInit {
   getAdviceForSelectedColor(): string {
     const advice = this.selectedColorTab() === 'white' ? this.whiteAdvice() : this.blackAdvice();
     return advice || ''; // Retourne une chaîne vide si pas de conseil
+  }
+
+  getAdviceIconForSelectedColor(): string {
+    const icon = this.selectedColorTab() === 'white' ? this.whiteAdviceIcon() : this.blackAdviceIcon();
+    return icon || ''; // Retourne une chaîne vide si pas d'icône
   }
 
   getAdviceKeyForSelectedColor(): string {
@@ -582,6 +589,8 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
       this.whiteAdvice.set(whiteFullAdvice);
       this.blackAdvice.set(blackFullAdvice);
+      this.whiteAdviceIcon.set(whiteAdvice?.icon || '');
+      this.blackAdviceIcon.set(blackAdvice?.icon || '');
 
       this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(evaluation));
 
@@ -603,6 +612,8 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
     this.blackAdvantages.set(cachedAnalysis.blackAdvantages);
     this.whiteAdvice.set(cachedAnalysis.whiteAdvice);
     this.blackAdvice.set(cachedAnalysis.blackAdvice);
+    this.whiteAdviceIcon.set(cachedAnalysis.whiteAdviceIcon);
+    this.blackAdviceIcon.set(cachedAnalysis.blackAdviceIcon);
 
     // Reconstituer les avantages pour l'affichage
     this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(cachedAnalysis.evaluation));

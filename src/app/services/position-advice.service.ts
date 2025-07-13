@@ -11,6 +11,7 @@ export interface PositionAdvantage {
 export interface AdviceResult {
     diagnosis: string;
     prescription: string;
+    icon: string;
     debugInfo: string;
     situationKey: string;
     whiteAdvantages: string[];
@@ -114,6 +115,7 @@ export class PositionAdviceService {
             return {
                 diagnosis: "",
                 prescription: "",
+                icon: "⚖️",
                 debugInfo: "Aucun avantage significatif détecté",
                 situationKey: "",
                 whiteAdvantages: [],
@@ -147,6 +149,7 @@ export class PositionAdviceService {
             return {
                 diagnosis: "",
                 prescription: "",
+                icon: "❓",
                 debugInfo: `Situation non trouvée: ${situationKey}`,
                 situationKey: situationKey,
                 whiteAdvantages: whiteAdvantages,
@@ -157,6 +160,7 @@ export class PositionAdviceService {
         return {
             diagnosis: adviceData.diagnosis,
             prescription: adviceData.prescription,
+            icon: adviceData.icon,
             debugInfo: myAdvantages.join(', '),
             situationKey: situationKey,
             whiteAdvantages: whiteAdvantages,

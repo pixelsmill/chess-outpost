@@ -26,8 +26,20 @@
               </div>
 
               <div class="advice-content">
-                <div *ngIf="getAdviceForSelectedColor(); else noAdvice">
-                  {{ getAdviceForSelectedColor() }}
+                <div
+                  *ngIf="getAdviceForSelectedColor(); else noAdvice"
+                  class="advice-with-icon"
+                  [class.no-icon]="!getAdviceIconForSelectedColor()"
+                >
+                  <div
+                    class="advice-icon"
+                    *ngIf="getAdviceIconForSelectedColor()"
+                  >
+                    {{ getAdviceIconForSelectedColor() }}
+                  </div>
+                  <div class="advice-text">
+                    {{ getAdviceForSelectedColor() }}
+                  </div>
                 </div>
                 <ng-template #noAdvice>
                   <div class="no-advice-text">
@@ -52,6 +64,70 @@
                   >
                     {{ getDisplayName(advantage) }}
                   </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Boussole stratégique -->
+          <div class="strategic-compass-section">
+            <div class="compass-container">
+              <div class="compass-circle">
+                <!-- Image de fond de la boussole -->
+                <div class="compass-background"></div>
+
+                <!-- Pictos stratégiques positionnés autour -->
+                <div class="compass-direction north" title="Attaque du roi">
+                  <div class="direction-icon">🔥</div>
+                </div>
+
+                <div
+                  class="compass-direction northeast"
+                  title="Activer les pièces / ouvrir"
+                >
+                  <div class="direction-icon">🚀</div>
+                </div>
+
+                <div
+                  class="compass-direction east"
+                  title="Créer du déséquilibre"
+                >
+                  <div class="direction-icon">⚡</div>
+                </div>
+
+                <div
+                  class="compass-direction southeast"
+                  title="Réorganiser / préparer un plan"
+                >
+                  <div class="direction-icon">♻️</div>
+                </div>
+
+                <div
+                  class="compass-direction south"
+                  title="Consolidation / Défense"
+                >
+                  <div class="direction-icon">🛡️</div>
+                </div>
+
+                <div
+                  class="compass-direction southwest"
+                  title="Fermer / Neutraliser l'adversaire"
+                >
+                  <div class="direction-icon">🔒</div>
+                </div>
+
+                <div
+                  class="compass-direction west"
+                  title="Simplification / Transition vers finale"
+                >
+                  <div class="direction-icon">⏳</div>
+                </div>
+
+                <div
+                  class="compass-direction northwest"
+                  title="Maintenir la pression / exploiter faiblesse"
+                >
+                  <div class="direction-icon">🎯</div>
                 </div>
               </div>
             </div>
