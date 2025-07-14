@@ -6,6 +6,11 @@ import { DOMINANT_SITUATIONS } from './position-comments-dominant';
 
 export const POSITION_COMMENTS: PositionComments = {
     "situations": {
+        initial_position: {
+            "diagnosis": "Position de départ",
+            "prescription": "développez vos pièces et contrôlez le centre",
+            "direction": "init"
+        },
         ...DEFENSIVE_SITUATIONS,
         ...BALANCED_SITUATIONS,
         ...ADVANTAGEOUS_SITUATIONS,

@@ -89,23 +89,50 @@ export class GameAnalysisCacheService {
                 // Évaluation de la position
                 const evaluation = this.positionEvaluator.evaluatePosition(fen);
 
-                // Conseils détaillés
-                const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation);
+                // Conseils détaillés avec FEN
+                const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation, fen);
 
-                // Déterminer les avantages pour chaque couleur
-                const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
-                const blackAdvantagesList = adviceResult.blackAdvantages.map(adv => this.getDisplayName(adv));
+                let whiteFullAdvice: string;
+                let blackFullAdvice: string;
+                let whiteAdviceIcon: string;
+                let blackAdviceIcon: string;
+                let whiteDirection: string;
+                let blackDirection: string;
+                let whiteAdvantages: string;
+                let blackAdvantages: string;
 
-                // Générer les conseils spécifiques pour chaque couleur
-                const whiteKey = this.getAdviceKeyForColor('white', adviceResult.whiteAdvantages, adviceResult.blackAdvantages);
-                const blackKey = this.getAdviceKeyForColor('black', adviceResult.whiteAdvantages, adviceResult.blackAdvantages);
+                // KISS : Si position initiale, même conseil pour les deux couleurs
+                if (adviceResult.situationKey === 'initial_position') {
+                    const initAdvice = `${adviceResult.diagnosis} : ${adviceResult.prescription}`;
+                    whiteFullAdvice = initAdvice;
+                    blackFullAdvice = initAdvice;
+                    whiteAdviceIcon = adviceResult.icon;
+                    blackAdviceIcon = adviceResult.icon;
+                    whiteDirection = 'init';
+                    blackDirection = 'init';
+                    whiteAdvantages = '';
+                    blackAdvantages = '';
+                } else {
+                    // Position normale : conseils par couleur
+                    const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
+                    const blackAdvantagesList = adviceResult.blackAdvantages.map(adv => this.getDisplayName(adv));
 
-                const whiteAdviceDetail = this.positionAdvice.getAdviceByKey(whiteKey);
-                const blackAdviceDetail = this.positionAdvice.getAdviceByKey(blackKey);
+                    // Générer les conseils spécifiques pour chaque couleur
+                    const whiteKey = this.getAdviceKeyForColor('white', adviceResult.whiteAdvantages, adviceResult.blackAdvantages);
+                    const blackKey = this.getAdviceKeyForColor('black', adviceResult.whiteAdvantages, adviceResult.blackAdvantages);
 
-                // Formatter les conseils
-                const whiteFullAdvice = this.formatAdvice(whiteAdviceDetail);
-                const blackFullAdvice = this.formatAdvice(blackAdviceDetail);
+                    const whiteAdviceDetail = this.positionAdvice.getAdviceByKey(whiteKey);
+                    const blackAdviceDetail = this.positionAdvice.getAdviceByKey(blackKey);
+
+                    whiteFullAdvice = this.formatAdvice(whiteAdviceDetail);
+                    blackFullAdvice = this.formatAdvice(blackAdviceDetail);
+                    whiteAdviceIcon = whiteAdviceDetail?.direction ? getDirectionIcon(whiteAdviceDetail.direction) : '';
+                    blackAdviceIcon = blackAdviceDetail?.direction ? getDirectionIcon(blackAdviceDetail.direction) : '';
+                    whiteDirection = whiteAdviceDetail?.direction || '';
+                    blackDirection = blackAdviceDetail?.direction || '';
+                    whiteAdvantages = whiteAdvantagesList.join(', ');
+                    blackAdvantages = blackAdvantagesList.join(', ');
+                }
 
                 // Déterminer la phase de jeu
                 const gamePhase = this.determineGamePhase(i, completeAnalysis.gamePhases);
@@ -125,12 +152,12 @@ export class GameAnalysisCacheService {
 
                     whiteAdvice: whiteFullAdvice,
                     blackAdvice: blackFullAdvice,
-                    whiteAdviceIcon: whiteAdviceDetail?.direction ? getDirectionIcon(whiteAdviceDetail.direction) : '',
-                    blackAdviceIcon: blackAdviceDetail?.direction ? getDirectionIcon(blackAdviceDetail.direction) : '',
-                    whiteDirection: whiteAdviceDetail?.direction || '',
-                    blackDirection: blackAdviceDetail?.direction || '',
-                    whiteAdvantages: whiteAdvantagesList.join(', '),
-                    blackAdvantages: blackAdvantagesList.join(', '),
+                    whiteAdviceIcon: whiteAdviceIcon,
+                    blackAdviceIcon: blackAdviceIcon,
+                    whiteDirection: whiteDirection,
+                    blackDirection: blackDirection,
+                    whiteAdvantages: whiteAdvantages,
+                    blackAdvantages: blackAdvantages,
 
                     advice: adviceResult.diagnosis + (adviceResult.prescription ? ' : ' + adviceResult.prescription : ''),
                     diagnosis: adviceResult.diagnosis,

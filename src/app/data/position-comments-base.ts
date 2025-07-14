@@ -1,7 +1,7 @@
 export interface PositionAdvice {
     diagnosis: string;    // Description de la situation stratégique
     prescription: string; // Action recommandée
-    direction: string;    // Direction de la boussole stratégique (attack, activation, imbalance, reorganization, defense, blocking, simplification, pressure)
+    direction: string;    // Direction de la boussole stratégique (attack, activation, imbalance, reorganization, defense, blocking, simplification, pressure, init)
 }
 
 // Table de correspondance direction -> Material Icons de la boussole
@@ -13,7 +13,8 @@ export const DIRECTION_ICONS: { [key: string]: string } = {
     'defense': 'shield',          // South - Consolidation/Défense
     'blocking': 'lock',           // Southwest - Fermer/Neutraliser
     'simplification': 'hourglass_empty', // West - Simplification/Transition finale
-    'pressure': 'compress'  // Northwest - Maintenir pression/exploiter faiblesse
+    'pressure': 'compress',       // Northwest - Maintenir pression/exploiter faiblesse
+    'init': 'circle'                // Center - Position initiale
 };
 
 // Table de correspondance direction -> Couleurs HSL (cercle chromatique)
@@ -25,7 +26,8 @@ export const DIRECTION_COLORS: { [key: string]: string } = {
     'defense': 'hsla(180, 100%, 50%, 0.9)',     // South - Cyan (180°)
     'blocking': 'hsla(225, 100%, 50%, 0.9)',    // Southwest - Bleu-Cyan (225°)
     'simplification': 'hsla(270, 100%, 50%, 0.9)', // West - Bleu (270°)
-    'pressure': 'hsla(315, 100%, 50%, 0.9)'     // Northwest - Magenta (315°)
+    'pressure': 'hsla(315, 100%, 50%, 0.9)',    // Northwest - Magenta (315°)
+    'init': 'hsla(0, 0%, 60%, 0.9)'             // Center - Gris neutre
 };
 
 

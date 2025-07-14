@@ -619,36 +619,47 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       const evaluation = this.positionEvaluator.evaluatePosition(position);
       this.currentEvaluation.set(evaluation);
 
-      // Récupérer les avantages directement de l'évaluation (pas d'ajustement)
-      const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation);
+      // Récupérer les avantages directement de l'évaluation
+      const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation, position);
 
-      // Définir les avantages pour chaque couleur
-      const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
-      const blackAdvantagesList = adviceResult.blackAdvantages.map(adv => this.getDisplayName(adv));
+      // Si c'est la position initiale, utiliser le conseil "init" pour les deux couleurs
+      if (adviceResult.situationKey === 'initial_position') {
+        const initAdvice = `${adviceResult.diagnosis} : ${adviceResult.prescription}`;
+        this.whiteAdvice.set(initAdvice);
+        this.blackAdvice.set(initAdvice);
+        this.whiteAdviceIcon.set(adviceResult.icon);
+        this.blackAdviceIcon.set(adviceResult.icon);
+        this.whiteAdvantages.set('');
+        this.blackAdvantages.set('');
+      } else {
+        // Position normale : logique existante
+        const whiteAdvantagesList = adviceResult.whiteAdvantages.map(adv => this.getDisplayName(adv));
+        const blackAdvantagesList = adviceResult.blackAdvantages.map(adv => this.getDisplayName(adv));
 
-      this.whiteAdvantages.set(whiteAdvantagesList.join(', '));
-      this.blackAdvantages.set(blackAdvantagesList.join(', '));
+        this.whiteAdvantages.set(whiteAdvantagesList.join(', '));
+        this.blackAdvantages.set(blackAdvantagesList.join(', '));
 
-      // Générer les conseils spécifiques pour chaque couleur avec les clés 
-      const whiteKey = this.getAdviceKeyForColor('white');
-      const blackKey = this.getAdviceKeyForColor('black');
+        // Générer les conseils spécifiques pour chaque couleur avec les clés 
+        const whiteKey = this.getAdviceKeyForColor('white');
+        const blackKey = this.getAdviceKeyForColor('black');
 
-      const whiteAdvice = this.positionAdvice.getAdviceByKey(whiteKey);
-      const blackAdvice = this.positionAdvice.getAdviceByKey(blackKey);
+        const whiteAdvice = this.positionAdvice.getAdviceByKey(whiteKey);
+        const blackAdvice = this.positionAdvice.getAdviceByKey(blackKey);
 
-      // Formatter les conseils pour l'affichage
-      const whiteFullAdvice = whiteAdvice && whiteAdvice.diagnosis && whiteAdvice.prescription
-        ? `${whiteAdvice.diagnosis} : ${whiteAdvice.prescription}`
-        : whiteAdvice?.diagnosis || whiteAdvice?.prescription || '';
+        // Formatter les conseils pour l'affichage
+        const whiteFullAdvice = whiteAdvice && whiteAdvice.diagnosis && whiteAdvice.prescription
+          ? `${whiteAdvice.diagnosis} : ${whiteAdvice.prescription}`
+          : whiteAdvice?.diagnosis || whiteAdvice?.prescription || '';
 
-      const blackFullAdvice = blackAdvice && blackAdvice.diagnosis && blackAdvice.prescription
-        ? `${blackAdvice.diagnosis} : ${blackAdvice.prescription}`
-        : blackAdvice?.diagnosis || blackAdvice?.prescription || '';
+        const blackFullAdvice = blackAdvice && blackAdvice.diagnosis && blackAdvice.prescription
+          ? `${blackAdvice.diagnosis} : ${blackAdvice.prescription}`
+          : blackAdvice?.diagnosis || blackAdvice?.prescription || '';
 
-      this.whiteAdvice.set(whiteFullAdvice);
-      this.blackAdvice.set(blackFullAdvice);
-      this.whiteAdviceIcon.set(whiteAdvice?.direction ? getDirectionIcon(whiteAdvice.direction) : '');
-      this.blackAdviceIcon.set(blackAdvice?.direction ? getDirectionIcon(blackAdvice.direction) : '');
+        this.whiteAdvice.set(whiteFullAdvice);
+        this.blackAdvice.set(blackFullAdvice);
+        this.whiteAdviceIcon.set(whiteAdvice?.direction ? getDirectionIcon(whiteAdvice.direction) : '');
+        this.blackAdviceIcon.set(blackAdvice?.direction ? getDirectionIcon(blackAdvice.direction) : '');
+      }
 
       this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(evaluation));
 

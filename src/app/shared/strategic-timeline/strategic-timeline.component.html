@@ -39,12 +39,11 @@
 
     <!-- Graduations des coups -->
     <div class="timeline-graduations">
-      @for (graduation of [10, 20, 30, 40]; track graduation) { @if (graduation
-      <= maxMoves()) {
-      <div class="graduation" [style.left.%]="(graduation / maxMoves()) * 100">
-        <span class="graduation-label">{{ graduation }}</span>
+      @for (move of getAllMoves(); track move) {
+      <div class="graduation" [style.left.%]="getMovePosition(move)">
+        <span class="graduation-label">{{ getMoveLabel(move) }}</span>
       </div>
-      } }
+      }
     </div>
   </div>
 

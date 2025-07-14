@@ -25,6 +25,9 @@ export interface AdviceResult {
 export class PositionAdviceService {
     private readonly adviceData = POSITION_COMMENTS;
 
+    // KISS : Une seule constante, un seul endroit
+    private readonly INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
     // Seuils de significativité spécifiques pour chaque type d'avantage
     private readonly SIGNIFICANCE_THRESHOLDS = {
         materialBalance: 5,    // 5% minimum - très sensible pour 1 point d'écart
@@ -98,7 +101,23 @@ export class PositionAdviceService {
         return this.getPositionAdviceWithDebug(evaluation).prescription;
     }
 
-    getPositionAdviceWithDebug(evaluation: PositionEvaluation): AdviceResult {
+    getPositionAdviceWithDebug(evaluation: PositionEvaluation, fen?: string): AdviceResult {
+
+        // KISS : Détecter position initiale par FEN
+        if (fen === this.INITIAL_FEN) {
+            const initAdvice = this.adviceData.situations["initial_position"];
+            if (initAdvice) {
+                return {
+                    diagnosis: initAdvice.diagnosis,
+                    prescription: initAdvice.prescription,
+                    icon: getDirectionIcon(initAdvice.direction),
+                    debugInfo: "Position initiale détectée",
+                    situationKey: "initial_position",
+                    whiteAdvantages: [],
+                    blackAdvantages: []
+                };
+            }
+        }
 
         // Identifier les avantages significatifs en utilisant l'ordre fixe
         const whiteAdvantages: string[] = [];

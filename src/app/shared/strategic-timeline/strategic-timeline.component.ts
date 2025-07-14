@@ -294,8 +294,26 @@ export class StrategicTimelineComponent implements OnInit {
 
     getCurrentPosition(): number {
         const currentMove = this.currentMoveIndex();
+        const maxMoves = (this.maxMoves() + 1);
+        return maxMoves > 0 ? ((currentMove + 0.5) / maxMoves) * 100 : 0;
+    }
+
+    getAllMoves(): number[] {
         const maxMoves = this.maxMoves();
-        return maxMoves > 0 ? (currentMove / maxMoves) * 100 : 0;
+        return Array.from({ length: maxMoves + 1 }, (_, i) => i + 1);
+    }
+
+    getMovePosition(move: number): number {
+        const maxMoves = this.maxMoves();
+        return maxMoves > 0 ? ((move - 1) / (maxMoves + 1)) * 100 : 0;
+    }
+
+    getMoveLabel(move: number): string {
+        // Afficher le chiffre seulement sur les coups pairs (2, 4, 6...)
+        if (move % 2 === 0) {
+            return Math.ceil(move / 2).toString();
+        }
+        return ''; // Pas de label pour les coups impairs
     }
 
     getHoveredSegment(): TimelineSegment | null {

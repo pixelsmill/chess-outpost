@@ -8,7 +8,7 @@
   position: relative;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 2rem;
   
   @media (max-width: 768px) {
     display: none; // Masquer sur mobile comme convenu
@@ -143,7 +143,7 @@
   pointer-events: none;
   
   .material-icons {
-    font-size: 16px;
+    font-size: 26px;
     color: white;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   }
@@ -157,33 +157,31 @@
 
 .current-position {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 100%;
   z-index: 20;
-  pointer-events: none;
+  // pointer-events: none;
   
   .position-marker {
     position: absolute;
-    top: -4px;
+    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-10px);
     width: 0;
     height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 8px solid #60a5fa;
-    filter: drop-shadow(0 2px 4px rgba(96, 165, 250, 0.5));
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 8px solid white;
   }
   
   .position-line {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 100%;
     left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    background: linear-gradient(180deg, #60a5fa, transparent);
-    opacity: 0.8;
+    transform: translateX(-10px);
+    width: 20px;
+    height: 6px;
+    background: white;
+    border-radius: 0 0 3px 3px;
   }
 }
 

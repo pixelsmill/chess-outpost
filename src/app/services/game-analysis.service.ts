@@ -96,7 +96,7 @@ export class GameAnalysisService {
             const advantageColor = this.getAdvantageColor(evaluation);
             const advantageStrength = this.getAdvantageStrength(evaluation);
 
-            const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation);
+            const adviceResult = this.positionAdvice.getPositionAdviceWithDebug(evaluation, fen);
 
             return {
                 moveNumber: index,
