@@ -7,186 +7,186 @@ export const DOMINANT_SITUATIONS: { [key: string]: PositionAdvice } = {
     "materialBalance_spaceControl_vs_pieceActivity_kingSafety": {
         "diagnosis": "Vous avez l'avantage matériel et contrôlez l'espace contre leurs pièces actives et leur roi sûr",
         "prescription": "jouez méthodiquement",
-        "icon": "⚖️"
+        "direction": "simplification"
     },
     "materialBalance_spaceControl_vs_pieceActivity_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et contrôlez l'espace contre leurs pièces actives et leur structure",
         "prescription": "pressez vos avantages",
-        "icon": "💪"
+        "direction": "activation"
     },
     "materialBalance_spaceControl_vs_kingSafety_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et contrôlez l'espace contre leur roi sûr et leur structure",
         "prescription": "créez des pions passés",
-        "icon": "🎯"
+        "direction": "pressure"
     },
     "materialBalance_pieceActivity_vs_spaceControl_kingSafety": {
         "diagnosis": "Vous avez l'avantage matériel et des pièces actives contre leur espace et leur roi sûr",
         "prescription": "attaquez avec précision",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "materialBalance_pieceActivity_vs_spaceControl_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et des pièces actives contre leur espace et leur structure",
         "prescription": "brisez leurs lignes",
-        "icon": "💥"
+        "direction": "imbalance"
     },
     "materialBalance_pieceActivity_vs_kingSafety_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et des pièces actives contre leur roi sûr et leur structure",
         "prescription": "coordonnez l'attaque",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "materialBalance_kingSafety_vs_spaceControl_pieceActivity": {
         "diagnosis": "Vous avez un avantage statique contre leur pression dynamique",
         "prescription": "patientez, neutralisez leur activité puis exploitez votre solidité",
-        "icon": "🛡️"
+        "direction": "defense"
     },
     "materialBalance_kingSafety_vs_spaceControl_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et un roi sûr contre leur espace et leur structure",
         "prescription": "simplifiez vers une finale",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "materialBalance_kingSafety_vs_pieceActivity_pawnStructure": {
         "diagnosis": "Vous avez l'avantage matériel et un roi sûr contre leurs pièces actives et leur structure",
         "prescription": "défendez puis pressez",
-        "icon": "🛡️"
+        "direction": "defense"
     },
     "materialBalance_pawnStructure_vs_spaceControl_pieceActivity": {
         "diagnosis": "Vous avez un avantage statique contre leur pression dynamique",
         "prescription": "résistez à leur pression temporaire puis imposez vos avantages durables",
-        "icon": "💪"
+        "direction": "defense"
     },
     "materialBalance_pawnStructure_vs_spaceControl_kingSafety": {
         "diagnosis": "Vous avez l'avantage matériel et une meilleure structure contre leur espace et leur roi sûr",
         "prescription": "créez un pion passé lointain",
-        "icon": "🎯"
+        "direction": "pressure"
     },
     "materialBalance_pawnStructure_vs_pieceActivity_kingSafety": {
         "diagnosis": "Vous avez l'avantage matériel et une meilleure structure contre leurs pièces actives et leur roi sûr",
         "prescription": "jouez techniquement",
-        "icon": "🎯"
+        "direction": "pressure"
     },
     "spaceControl_pieceActivity_vs_materialBalance_kingSafety": {
         "diagnosis": "Vous avez un avantage dynamique contre leur avantage matériel",
         "prescription": "agissez rapidement avant qu'ils simplifient",
-        "icon": "⚡"
+        "direction": "imbalance"
     },
     "spaceControl_pieceActivity_vs_materialBalance_pawnStructure": {
         "diagnosis": "Vous avez un avantage dynamique contre leur avantage matériel",
         "prescription": "forcez les complications maintenant ou jamais",
-        "icon": "💥"
+        "direction": "imbalance"
     },
     "spaceControl_pieceActivity_vs_kingSafety_pawnStructure": {
         "diagnosis": "Vous avez un avantage dynamique contre leur solidité statique",
         "prescription": "attaquez maintenant, votre fenêtre d'action est limitée",
-        "icon": "⚡"
+        "direction": "attack"
     },
     "spaceControl_kingSafety_vs_materialBalance_pieceActivity": {
         "diagnosis": "Vous contrôlez l'espace et avez un roi sûr contre leur avantage matériel et leurs pièces actives",
         "prescription": "contrôlez puis contre-attaquez",
-        "icon": "🛡️"
+        "direction": "defense"
     },
     "spaceControl_kingSafety_vs_materialBalance_pawnStructure": {
         "diagnosis": "Vous contrôlez l'espace et avez un roi sûr contre leur avantage matériel et leur structure",
         "prescription": "jouez positionellement",
-        "icon": "⚖️"
+        "direction": "reorganization"
     },
     "spaceControl_kingSafety_vs_pieceActivity_pawnStructure": {
         "diagnosis": "Vous contrôlez l'espace et avez un roi sûr contre leurs pièces actives et leur structure",
         "prescription": "limitez puis pressez",
-        "icon": "🔒"
+        "direction": "blocking"
     },
     "spaceControl_pawnStructure_vs_materialBalance_pieceActivity": {
         "diagnosis": "Vous contrôlez l'espace et avez une meilleure structure contre leur avantage matériel et leurs pièces actives",
         "prescription": "consolidez votre position",
-        "icon": "🔒"
+        "direction": "blocking"
     },
     "spaceControl_pawnStructure_vs_materialBalance_kingSafety": {
         "diagnosis": "Vous contrôlez l'espace et avez une meilleure structure contre leur avantage matériel et leur roi sûr",
         "prescription": "avancez vos pions",
-        "icon": "🏃"
+        "direction": "activation"
     },
     "spaceControl_pawnStructure_vs_pieceActivity_kingSafety": {
         "diagnosis": "Vous contrôlez l'espace et avez une meilleure structure contre leurs pièces actives et leur roi sûr",
         "prescription": "préparez une poussée",
-        "icon": "🏃"
+        "direction": "activation"
     },
     "pieceActivity_kingSafety_vs_materialBalance_spaceControl": {
         "diagnosis": "Vous avez des pièces actives et un roi sûr contre leur avantage matériel et leur espace",
         "prescription": "attaquez avec précision",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "pieceActivity_kingSafety_vs_materialBalance_pawnStructure": {
         "diagnosis": "Vous avez des pièces actives et un roi sûr contre leur avantage matériel et leur structure",
         "prescription": "exploitez les faiblesses",
-        "icon": "⚔️"
+        "direction": "pressure"
     },
     "pieceActivity_kingSafety_vs_spaceControl_pawnStructure": {
         "diagnosis": "Vous avez des pièces actives et un roi sûr contre leur espace et leur structure",
         "prescription": "brisez leurs lignes",
-        "icon": "💥"
+        "direction": "imbalance"
     },
     "pieceActivity_pawnStructure_vs_materialBalance_spaceControl": {
         "diagnosis": "Vous avez des pièces actives et une meilleure structure contre leur avantage matériel et leur espace",
         "prescription": "créez des menaces tactiques",
-        "icon": "⚔️"
+        "direction": "attack"
     },
     "pieceActivity_pawnStructure_vs_materialBalance_kingSafety": {
         "diagnosis": "Vous avez des pièces actives et une meilleure structure contre leur avantage matériel et leur roi sûr",
         "prescription": "coordonnez pièces et pions",
-        "icon": "🎛️"
+        "direction": "reorganization"
     },
     "pieceActivity_pawnStructure_vs_spaceControl_kingSafety": {
         "diagnosis": "Vous avez des pièces actives et une meilleure structure contre leur espace et leur roi sûr",
         "prescription": "activez vos pions",
-        "icon": "🎯"
+        "direction": "activation"
     },
     "kingSafety_pawnStructure_vs_materialBalance_spaceControl": {
         "diagnosis": "Vous avez un roi sûr et une meilleure structure contre leur avantage matériel et leur espace",
         "prescription": "patience et solidité",
-        "icon": "🛡️"
+        "direction": "defense"
     },
     "kingSafety_pawnStructure_vs_materialBalance_pieceActivity": {
         "diagnosis": "Vous avez un roi sûr et une meilleure structure contre leur avantage matériel et leurs pièces actives",
         "prescription": "défendez puis exploitez",
-        "icon": "🛡️"
+        "direction": "defense"
     },
     "kingSafety_pawnStructure_vs_spaceControl_pieceActivity": {
         "diagnosis": "Vous avez un avantage statique contre leur pression dynamique",
         "prescription": "défendez solidement, leur activité s'estompera",
-        "icon": "🛡️"
+        "direction": "defense"
     },
 
     // === MES AVANTAGES vs AUCUN AVANTAGE ADVERSE ===
     "materialBalance_vs_": {
         "diagnosis": "Vous avez un avantage matériel sans opposition",
         "prescription": "pressez méthodiquement vers une finale gagnante",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "spaceControl_vs_": {
         "diagnosis": "Vous dominez l'espace sans résistance",
         "prescription": "exploitez votre mobilité supérieure pour créer des faiblesses",
-        "icon": "🚀"
+        "direction": "activation"
     },
     "pieceActivity_vs_": {
         "diagnosis": "Vos pièces sont nettement plus actives",
         "prescription": "convertissez cette activité en gains tangibles",
-        "icon": "⚡"
+        "direction": "imbalance"
     },
     "kingSafety_vs_": {
         "diagnosis": "Votre roi est beaucoup mieux protégé",
         "prescription": "attaquez sans risque, votre position est solide",
-        "icon": "🛡️"
+        "direction": "attack"
     },
     "pawnStructure_vs_": {
         "diagnosis": "Votre structure de pions est nettement supérieure",
         "prescription": "avancez vos pions pour créer des faiblesses durables",
-        "icon": "🏃"
+        "direction": "activation"
     },
 
     // === ÉGALITÉ TOTALE ===
     "_vs_": {
         "diagnosis": "Position parfaitement équilibrée",
         "prescription": "jouez pour de petites améliorations et restez patient",
-        "icon": "⚖️"
+        "direction": "activation"
     },
 
     // === MES MULTIPLES AVANTAGES vs AUCUN AVANTAGE ADVERSE ===
@@ -195,137 +195,138 @@ export const DOMINANT_SITUATIONS: { [key: string]: PositionAdvice } = {
     "materialBalance_spaceControl_vs_": {
         "diagnosis": "Vous dominez avec l'avantage matériel et le contrôle de l'espace",
         "prescription": "convertissez méthodiquement vers une victoire technique",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "materialBalance_pieceActivity_vs_": {
         "diagnosis": "Vous avez l'avantage matériel et des pièces plus actives",
         "prescription": "pressez sur tous les fronts pour une victoire rapide",
-        "icon": "💥"
+        "direction": "attack"
     },
     "materialBalance_kingSafety_vs_": {
         "diagnosis": "Vous avez l'avantage matériel et un roi sûr",
         "prescription": "simplifiez vers une finale gagnante en toute sécurité",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "materialBalance_pawnStructure_vs_": {
         "diagnosis": "Vous dominez avec l'avantage matériel et une meilleure structure",
         "prescription": "créez des pions passés pour accélérer la victoire",
-        "icon": "🚀"
+        "direction": "activation"
     },
     "spaceControl_pieceActivity_vs_": {
         "diagnosis": "Vous contrôlez l'espace avec des pièces actives",
         "prescription": "étouffez l'adversaire et cherchez la décision tactique",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "spaceControl_kingSafety_vs_": {
         "diagnosis": "Vous avez le contrôle de l'espace et un roi sûr",
         "prescription": "avancez méthodiquement sans prendre de risques",
-        "icon": "🛡️"
+        "direction": "activation"
     },
     "spaceControl_pawnStructure_vs_": {
         "diagnosis": "Vous dominez avec le contrôle de l'espace et une meilleure structure",
         "prescription": "poussez vos pions pour créer des faiblesses décisives",
-        "icon": "🏃"
+        "direction": "activation"
     },
     "pieceActivity_kingSafety_vs_": {
         "diagnosis": "Vous avez des pièces actives et un roi sûr",
         "prescription": "attaquez sans retenue, votre position est idéale",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "pieceActivity_pawnStructure_vs_": {
         "diagnosis": "Vous avez des pièces actives et une structure supérieure",
         "prescription": "combinez pression immédiate et plan à long terme",
-        "icon": "🎛️"
+        "direction": "reorganization"
     },
     "kingSafety_pawnStructure_vs_": {
         "diagnosis": "Vous avez un roi sûr et une structure supérieure",
         "prescription": "jouez positionellement pour augmenter votre avantage",
-        "icon": "⚖️"
+        "direction": "reorganization"
     },
 
     // Mes 3 avantages vs rien
     "materialBalance_spaceControl_pieceActivity_vs_": {
         "diagnosis": "Domination totale : matériel, espace et activité",
         "prescription": "la victoire est acquise, jouez avec précision",
-        "icon": "👑"
+        "direction": "attack"
     },
     "materialBalance_spaceControl_kingSafety_vs_": {
         "diagnosis": "Position écrasante : matériel, espace et roi sûr",
         "prescription": "avancez méthodiquement vers une victoire certaine",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "materialBalance_spaceControl_pawnStructure_vs_": {
         "diagnosis": "Domination stratégique : matériel, espace et structure",
         "prescription": "créez des pions passés lointains pour verrouiller la victoire",
-        "icon": "🚀"
+        "direction": "activation"
     },
     "materialBalance_pieceActivity_kingSafety_vs_": {
         "diagnosis": "Avantage décisif : matériel, activité et roi sûr",
         "prescription": "attaquez massivement, l'adversaire est sans défense",
-        "icon": "💥"
+        "direction": "attack"
     },
     "materialBalance_pieceActivity_pawnStructure_vs_": {
         "diagnosis": "Domination technique : matériel, activité et structure",
         "prescription": "combinez pression tactique et avantage positionnel",
-        "icon": "🎯"
+        "direction": "pressure"
     },
     "materialBalance_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Avantage solide : matériel, roi sûr et structure",
         "prescription": "jouez techniquement pour convertir votre supériorité",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "spaceControl_pieceActivity_kingSafety_vs_": {
         "diagnosis": "Domination complète : espace, activité et roi sûr",
         "prescription": "étouffez l'adversaire puis donnez le coup de grâce",
-        "icon": "🎯"
+        "direction": "attack"
     },
     "spaceControl_pieceActivity_pawnStructure_vs_": {
         "diagnosis": "Pression totale : espace, activité et structure",
         "prescription": "avancez vos pions soutenus par vos pièces actives",
-        "icon": "🚀"
+        "direction": "activation"
     },
     "spaceControl_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Domination positionnelle : espace, roi sûr et structure",
         "prescription": "exploitez méthodiquement vos multiples avantages",
-        "icon": "👑"
+        "direction": "activation"
     },
     "pieceActivity_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Supériorité tactique : activité, roi sûr et structure",
         "prescription": "activez vos pièces pour soutenir l'avance de vos pions",
-        "icon": "🎯"
+        "direction": "activation"
     },
 
     // Mes 4 avantages vs rien (domination absolue)
     "materialBalance_spaceControl_pieceActivity_kingSafety_vs_": {
         "diagnosis": "Domination absolue sur tous les plans",
         "prescription": "la partie est virtuellement gagnée, ne gâchez pas",
-        "icon": "👑"
+        "direction": "simplification"
     },
     "materialBalance_spaceControl_pieceActivity_pawnStructure_vs_": {
         "diagnosis": "Écrasement total : tous les avantages sauf sécurité",
         "prescription": "forcez une conclusion rapide avant toute complication",
-        "icon": "💥"
+        "direction": "attack"
     },
     "materialBalance_spaceControl_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Domination stratégique complète",
         "prescription": "avancez méthodiquement vos pions passés soutenus",
-        "icon": "🏆"
+        "direction": "simplification"
     },
     "materialBalance_pieceActivity_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Supériorité écrasante sur tous les fronts",
         "prescription": "coordonnez l'attaque finale avec vos multiples avantages",
-        "icon": "👑"
+        "direction": "attack"
     },
     "spaceControl_pieceActivity_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Domination tactique et positionnelle absolue",
         "prescription": "étouffez progressivement toute résistance adverse",
-        "icon": "💥"
+        "direction": "attack"
     },
 
     // Mes 5 avantages vs rien (domination totale)
     "materialBalance_spaceControl_pieceActivity_kingSafety_pawnStructure_vs_": {
         "diagnosis": "Domination absolue : tous les avantages vous appartiennent",
         "prescription": "victoire acquise, jouez avec précision pour conclure",
-        "icon": "👑"
+        "direction": "simplification"
     }
-}; 
+};
+

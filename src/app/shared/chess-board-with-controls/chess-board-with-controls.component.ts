@@ -25,9 +25,8 @@ import { inject } from '@angular/core';
 })
 export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, AfterViewInit {
     // ViewChild pour accéder à l'échiquier et calculer le scaling
-    @ViewChild('chessBoardContainer', { static: true }) chessBoardContainer!: ElementRef<HTMLElement>;
+    @ViewChild('gameBoard', { static: true }) gameBoardContainer!: ElementRef<HTMLElement>;
     @ViewChild('echiquier') echiquierComponent!: EchiquierComponent;
-    @ViewChild('boardControls', { static: true }) boardControls!: ElementRef<HTMLElement>;
 
     // Inputs
     position = input<string>('');
@@ -77,48 +76,18 @@ export class ChessBoardWithControlsComponent implements OnInit, OnDestroy, After
     }
 
     ngOnDestroy() {
-        // Nettoyage si nécessaire
+        // Nettoyage du service d'affichage
+        this.boardDisplay.cleanup();
     }
 
     ngAfterViewInit() {
-        // Calculer le scaling initial
-        this.calculateBoardScale();
+        // Utiliser le service pour gérer le scaling avec ResizeObserver
+        this.boardDisplay.setupResizeObserver(this.gameBoardContainer);
     }
 
     onWindowResize() {
-        // Recalculer le scaling quand la fenêtre est redimensionnée
-        this.calculateBoardScale();
-    }
-
-    private calculateBoardScale(): void {
-        // Chercher l'élément parent .board-section pour les dimensions
-        const boardSection = this.chessBoardContainer.nativeElement.closest('.board-section') as HTMLElement;
-        const container = boardSection || this.chessBoardContainer.nativeElement;
-
-        const containerRect = container.getBoundingClientRect();
-
-        // Vérifier que les dimensions sont valides
-        if (containerRect.width === 0 || containerRect.height === 0) {
-            return;
-        }
-
-        // Mesurer dynamiquement la hauteur des contrôles
-        const controlsHeight = this.boardControls.nativeElement.getBoundingClientRect().height;
-
-        // Calculer l'échelle en tenant compte de la nouvelle structure :
-        // - Échiquier : 480x484px
-        // - Contrôles sous l'échiquier : hauteur mesurée dynamiquement
-        const boardWidth = 480;
-        const boardHeight = 484;
-        const totalHeight = boardHeight + controlsHeight;
-
-        const scaleX = containerRect.width / boardWidth;
-        const scaleY = containerRect.height / totalHeight;
-
-        // Prendre la plus petite échelle (la plus contraignante)
-        const scale = Math.max(0.5, Math.min(2.0, Math.min(scaleX, scaleY)));
-
-        this.boardDisplay.boardScale.set(scale);
+        // Le ResizeObserver gère automatiquement les redimensionnements
+        // Cette méthode peut être supprimée si elle n'est pas utilisée ailleurs
     }
 
     // Méthodes pour gérer les événements de l'échiquier

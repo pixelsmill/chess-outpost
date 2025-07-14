@@ -1,8 +1,4 @@
-<div
-  class="chess-board-container"
-  #chessBoardContainer
-  (window:resize)="onWindowResize()"
->
+<div class="chess-board-container" (window:resize)="onWindowResize()">
   <!-- Timeline Stratégique (Desktop uniquement) -->
   <app-strategic-timeline
     [gameHistory]="gameNavigationService.getPositionHistory()"
@@ -12,7 +8,7 @@
   ></app-strategic-timeline>
 
   <!-- Échiquier principal -->
-  <div class="game-board">
+  <div class="game-board" #gameBoard>
     <!-- Échiquier avec background dynamique -->
     <app-board-wrapper
       [backgroundColor]="boardDisplay.getBoardBackgroundColor()"
@@ -51,7 +47,7 @@
   </div>
 
   <!-- Contrôles sous l'échiquier -->
-  <div class="board-controls" #boardControls>
+  <div class="board-controls">
     <!-- Toggle experimental -->
     <div class="experimental-toggle">
       <div class="toggle-container">

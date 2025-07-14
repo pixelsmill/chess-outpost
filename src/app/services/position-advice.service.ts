@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { PositionEvaluation } from './position-evaluator.service';
-import { POSITION_COMMENTS, PositionAdvice } from '../data/position-comments';
+import { PositionAdvice, POSITION_COMMENTS } from '../data/position-comments';
+import { getDirectionIcon } from '../data/position-comments-base';
 
 export interface PositionAdvantage {
     type: string;
@@ -24,8 +25,14 @@ export interface AdviceResult {
 export class PositionAdviceService {
     private readonly adviceData = POSITION_COMMENTS;
 
-    // Seuil de significativité : en dessous de ce pourcentage, l'avantage n'est pas déterminant
-    private readonly SIGNIFICANCE_THRESHOLD = 20; // 20% minimum pour qu'un avantage soit considéré comme déterminant
+    // Seuils de significativité spécifiques pour chaque type d'avantage
+    private readonly SIGNIFICANCE_THRESHOLDS = {
+        materialBalance: 5,    // 5% minimum - très sensible pour 1 point d'écart
+        spaceControl: 15,      // 15% minimum 
+        pieceActivity: 15,     // 15% minimum
+        kingSafety: 15,        // 15% minimum
+        pawnStructure: 15      // 15% minimum
+    };
 
     // Ordre fixe des facteurs d'évaluation - IMPORTANT: cet ordre doit correspondre à l'ordre utilisé dans le JSON
     private readonly EVALUATION_ORDER = [
@@ -55,7 +62,9 @@ export class PositionAdviceService {
         for (const key of this.EVALUATION_ORDER) {
             const value = evaluation[key as keyof PositionEvaluation];
             const deviation = Math.abs(value.percentage);
-            if (deviation >= this.SIGNIFICANCE_THRESHOLD) {
+            const threshold = this.SIGNIFICANCE_THRESHOLDS[key as keyof typeof this.SIGNIFICANCE_THRESHOLDS];
+
+            if (deviation >= threshold) {
                 const forWhite = value.percentage > 0;
                 advantages.push({
                     type: this.DISPLAY_NAMES[key] || key,
@@ -98,7 +107,8 @@ export class PositionAdviceService {
         for (const key of this.EVALUATION_ORDER) {
             const value = evaluation[key as keyof PositionEvaluation];
             const deviation = Math.abs(value.percentage);
-            if (deviation >= this.SIGNIFICANCE_THRESHOLD) {
+            const threshold = this.SIGNIFICANCE_THRESHOLDS[key as keyof typeof this.SIGNIFICANCE_THRESHOLDS];
+            if (deviation >= threshold) {
                 if (value.percentage > 0) {
                     whiteAdvantages.push(key);
                 } else {
@@ -106,9 +116,6 @@ export class PositionAdviceService {
                 }
             }
         }
-
-        console.log('Avantages blancs détectés:', whiteAdvantages);
-        console.log('Avantages noirs détectés:', blackAdvantages);
 
         // Si aucun avantage significatif détecté
         if (whiteAdvantages.length === 0 && blackAdvantages.length === 0) {
@@ -140,7 +147,6 @@ export class PositionAdviceService {
 
         // Construire la clé situationnelle
         const situationKey = this.buildSituationKey(myAdvantages, opponentAdvantages);
-        console.log(`Recherche de la situation: ${situationKey}`);
 
         // Chercher le conseil dans les situations
         const adviceData: PositionAdvice | undefined = this.adviceData.situations[situationKey];
@@ -160,7 +166,7 @@ export class PositionAdviceService {
         return {
             diagnosis: adviceData.diagnosis,
             prescription: adviceData.prescription,
-            icon: adviceData.icon,
+            icon: getDirectionIcon(adviceData.direction),
             debugInfo: myAdvantages.join(', '),
             situationKey: situationKey,
             whiteAdvantages: whiteAdvantages,
@@ -212,12 +218,9 @@ export class PositionAdviceService {
 
         const advice = this.adviceData.situations[situationKey];
         if (advice) {
-            console.log(`Conseil trouvé pour la clé "${situationKey}":`, advice);
             return advice;
         }
 
-        console.log(`Aucun conseil trouvé pour la clé "${situationKey}"`);
-        console.log('Clés disponibles:', Object.keys(this.adviceData.situations));
         return null;
     }
 } 

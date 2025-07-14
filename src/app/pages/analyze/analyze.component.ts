@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ChessBoardWithControlsComponent } from '../../shared/chess-board-with-controls/chess-board-with-controls.component';
+import { AdviceContentComponent } from '../../shared/advice-content/advice-content.component';
 import { ChessService } from '../../services/chess.service';
 import { GameNavigationService } from '../../services/game-navigation.service';
 import { BoardDisplayService, BackgroundType } from '../../services/board-display.service';
 import { PositionEvaluatorService, PositionEvaluation } from '../../services/position-evaluator.service';
 import { PositionAdviceService, PositionAdvantage, AdviceResult } from '../../services/position-advice.service';
 import { GameAnalysisCacheService, CachedMoveAnalysis } from '../../services/game-analysis-cache.service';
+import { getDirectionIcon, getDirectionColor } from '../../data/position-comments-base';
 import { Chess } from 'chess.js';
 
 type AnalysisMode = 'free' | 'pgn';
@@ -38,7 +40,8 @@ export interface PgnMetadata {
     CommonModule,
     FormsModule,
     RouterModule,
-    ChessBoardWithControlsComponent
+    ChessBoardWithControlsComponent,
+    AdviceContentComponent
   ],
   templateUrl: './analyze.component.html',
   styleUrls: ['../../styles/shared-layout.scss', './analyze.component.scss']
@@ -61,8 +64,7 @@ export class AnalyzeComponent implements OnInit {
   currentEvaluation = signal<PositionEvaluation | null>(null);
   currentAdvantages = signal<PositionAdvantage[]>([]);
 
-  // État de l'onglet sélectionné pour le conseil stratégique
-  selectedColorTab = signal<'white' | 'black'>('white');
+  // La couleur active est déterminée par l'orientation de l'échiquier (couleur en bas)
 
   // Signaux pour les conseils et avantages par couleur
   whiteAdvice = signal<string>('');
@@ -106,8 +108,11 @@ export class AnalyzeComponent implements OnInit {
 
   // === GESTION DES ONGLETS DE COULEUR ===
 
-  setSelectedColorTab(color: 'white' | 'black'): void {
-    this.selectedColorTab.set(color);
+  /**
+   * Obtient la couleur active basée sur l'orientation de l'échiquier
+   */
+  getActiveColor(): 'white' | 'black' {
+    return this.boardDisplay.boardOrientation();
   }
 
   /**
@@ -118,22 +123,62 @@ export class AnalyzeComponent implements OnInit {
   }
 
   getAdviceForSelectedColor(): string {
-    const advice = this.selectedColorTab() === 'white' ? this.whiteAdvice() : this.blackAdvice();
+    const color = this.getActiveColor();
+    const advice = color === 'white' ? this.whiteAdvice() : this.blackAdvice();
     return advice || ''; // Retourne une chaîne vide si pas de conseil
   }
 
   getAdviceIconForSelectedColor(): string {
-    const icon = this.selectedColorTab() === 'white' ? this.whiteAdviceIcon() : this.blackAdviceIcon();
+    const color = this.getActiveColor();
+    const icon = color === 'white' ? this.whiteAdviceIcon() : this.blackAdviceIcon();
     return icon || ''; // Retourne une chaîne vide si pas d'icône
   }
 
+  getAdviceDirectionForSelectedColor(): string {
+    // Utiliser la direction du cache directement si disponible (plus fiable)
+    const color = this.getActiveColor();
+
+    // Tenter d'utiliser le cache en premier (contient maintenant les directions)
+    if (this.useCache() && this.isPgnMode()) {
+      const currentMoveIndex = this.gameNavigationService.currentMove();
+      const cachedAnalysis = this.gameAnalysisCache.getMoveAnalysis(currentMoveIndex);
+
+      if (cachedAnalysis) {
+        const direction = color === 'white' ? cachedAnalysis.whiteDirection : cachedAnalysis.blackDirection;
+        if (direction) return direction;
+      }
+    }
+
+    // Fallback : logique originale si pas d'icône dans le cache
+    const whiteAdvantages = this.whiteAdvantages().split(', ').filter(a => a.trim() !== '');
+    const blackAdvantages = this.blackAdvantages().split(', ').filter(a => a.trim() !== '');
+
+    if (whiteAdvantages.length === 0 && blackAdvantages.length === 0) {
+      return ''; // Pas de direction disponible
+    }
+
+    const adviceKey = this.getAdviceKeyForColor(color);
+    const advice = this.positionAdvice.getAdviceByKey(adviceKey);
+
+    return advice?.direction || '';
+  }
+
+  getDirectionIcon(direction: string): string {
+    return getDirectionIcon(direction);
+  }
+
+  getDirectionColor(direction: string): string {
+    return getDirectionColor(direction);
+  }
+
   getAdviceKeyForSelectedColor(): string {
+    const color = this.getActiveColor();
     const avantages = [
       this.whiteAdvantages().split(', ').filter(a => a.trim() !== ''),
       this.blackAdvantages().split(', ').filter(a => a.trim() !== '')
     ]
 
-    if (this.selectedColorTab() === 'black') {
+    if (color === 'black') {
       avantages.reverse();
     }
 
@@ -156,6 +201,20 @@ export class AnalyzeComponent implements OnInit {
 
   private getAdvantagesList(advantages: string): string[] {
     return advantages.split(', ').filter(advantage => advantage.trim() !== '');
+  }
+
+  /**
+   * Obtient les avantages blancs formatés pour l'affichage avec noms complets
+   */
+  getWhiteAdvantagesForDisplay(): string {
+    return this.getWhiteAdvantageTagsList().map(adv => this.getDisplayName(adv)).join(', ');
+  }
+
+  /**
+   * Obtient les avantages noirs formatés pour l'affichage avec noms complets
+   */
+  getBlackAdvantagesForDisplay(): string {
+    return this.getBlackAdvantageTagsList().map(adv => this.getDisplayName(adv)).join(', ');
   }
 
   getDisplayName(factor: string): string {
@@ -557,7 +616,6 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
       }
 
       // Fallback : calcul classique en temps réel
-      console.log('🔄 Calcul en temps réel de l\'évaluation');
       const evaluation = this.positionEvaluator.evaluatePosition(position);
       this.currentEvaluation.set(evaluation);
 
@@ -589,8 +647,8 @@ Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0`;
 
       this.whiteAdvice.set(whiteFullAdvice);
       this.blackAdvice.set(blackFullAdvice);
-      this.whiteAdviceIcon.set(whiteAdvice?.icon || '');
-      this.blackAdviceIcon.set(blackAdvice?.icon || '');
+      this.whiteAdviceIcon.set(whiteAdvice?.direction ? getDirectionIcon(whiteAdvice.direction) : '');
+      this.blackAdviceIcon.set(blackAdvice?.direction ? getDirectionIcon(blackAdvice.direction) : '');
 
       this.currentAdvantages.set(this.positionAdvice.getPositionAdvantages(evaluation));
 

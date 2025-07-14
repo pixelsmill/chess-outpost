@@ -1,9 +1,13 @@
-import { Component, input, output, inject, OnInit, ViewChild, ElementRef, effect } from '@angular/core';
+import { Component, input, output, inject, OnInit, ViewChild, ElementRef, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AdviceContentComponent } from '../advice-content/advice-content.component';
 import { GameAnalysisCacheService, CachedMoveAnalysis } from '../../services/game-analysis-cache.service';
 import { PositionAdviceService } from '../../services/position-advice.service';
+import { BoardDisplayService } from '../../services/board-display.service';
+import { getDirectionColor, getDirectionIcon } from '../../data/position-comments-base';
 
 interface TimelineSegment {
+    id: string; // Identifiant unique pour le tracking
     startMove: number;
     endMove: number;
     adviceKey: string;
@@ -14,19 +18,16 @@ interface TimelineSegment {
     blackAdvantages: string;
     whiteAdvice: string;
     blackAdvice: string;
+    whiteDirection: string; // Direction stratégique pour les blancs
+    blackDirection: string; // Direction stratégique pour les noirs
 }
 
-interface TimelineEvent {
-    move: number;
-    type: 'key_change' | 'advantage_shift';
-    description: string;
-    significance: number; // 1-5
-}
+
 
 @Component({
     selector: 'app-strategic-timeline',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, AdviceContentComponent],
     templateUrl: './strategic-timeline.component.html',
     styleUrl: './strategic-timeline.component.scss'
 })
@@ -44,10 +45,11 @@ export class StrategicTimelineComponent implements OnInit {
     // Services
     private gameAnalysisCache = inject(GameAnalysisCacheService);
     private positionAdvice = inject(PositionAdviceService);
+    private boardDisplay = inject(BoardDisplayService);
+    private cdr = inject(ChangeDetectorRef);
 
     // Data
     segments: TimelineSegment[] = [];
-    events: TimelineEvent[] = [];
 
     // UI State
     hoveredMove: number | null = null;
@@ -55,13 +57,10 @@ export class StrategicTimelineComponent implements OnInit {
     tooltipVisible = false;
 
     constructor() {
-        console.log('🚀 Timeline: Initialisation');
-
         // Watcher pour relancer l'analyse quand l'historique change
         effect(() => {
             const history = this.gameHistory();
             if (history.length > 0) {
-                console.log('📈 Timeline: Historique modifié, relance de l\'analyse...', history.length);
                 this.analyzeFromCache();
             }
         });
@@ -70,7 +69,19 @@ export class StrategicTimelineComponent implements OnInit {
         effect(() => {
             const currentMove = this.currentMoveIndex();
             const maxMoves = this.maxMoves();
-            console.log(`📍 Timeline: Position actuelle ${currentMove}/${maxMoves}`);
+        });
+
+        // Watcher pour forcer le rafraîchissement quand l'orientation change
+        effect(() => {
+            const orientation = this.boardDisplay.boardOrientation();
+
+            // Log d'un segment exemple si disponible
+            if (this.segments.length > 0) {
+                const exampleSegment = this.segments[0];
+            }
+
+            // Déclencher une détection de changement complète pour actualiser le tooltip
+            this.cdr.detectChanges();
         });
     }
 
@@ -85,71 +96,35 @@ export class StrategicTimelineComponent implements OnInit {
     private analyzeFromCache() {
         const history = this.gameHistory();
         if (history.length === 0) {
-            console.log('⚠️ Timeline: Pas d\'historique disponible');
             return;
         }
-
-        console.log('🔍 Timeline: Analyse depuis le cache pour', history.length, 'positions');
 
         // Récupérer toutes les analyses en cache
         const cachedAnalyses: (CachedMoveAnalysis | null)[] = [];
         for (let i = 0; i < history.length; i++) {
             const analysis = this.gameAnalysisCache.getMoveAnalysis(i);
             cachedAnalyses.push(analysis);
-
-            // Debug pour les premières positions
-            if (i < 3) {
-                console.log(`📦 Timeline Debug - Position ${i}:`, analysis ? 'Trouvée' : 'Manquante', analysis);
-            }
         }
 
         // Vérifier si on a tout en cache
         const missingCache = cachedAnalyses.some(analysis => analysis === null);
         const availableCount = cachedAnalyses.filter(a => a !== null).length;
 
-        console.log(`📊 Timeline Cache Status: ${availableCount}/${history.length} analyses disponibles`);
-
-        // Debug détaillé du cache
-        if (availableCount > 0) {
-            console.log('🔍 Timeline: Échantillon du cache:');
-            for (let i = 0; i < Math.min(3, availableCount); i++) {
-                const analysis = cachedAnalyses[i];
-                if (analysis) {
-                    console.log(`  Position ${i}: WhiteAdv="${analysis.whiteAdvantages}", BlackAdv="${analysis.blackAdvantages}"`);
-                }
-            }
-        }
-
         if (missingCache) {
-            console.log('⚠️ Timeline: Cache incomplet, essai avec les analyses disponibles...');
 
             // Essayer avec les analyses disponibles seulement
             const validAnalyses = cachedAnalyses.filter((analysis): analysis is CachedMoveAnalysis => analysis !== null);
             if (validAnalyses.length > 0) {
-                console.log(`🔄 Timeline: Génération avec ${validAnalyses.length} analyses partielles`);
                 this.segments = this.generateSegmentsFromCache(validAnalyses);
-                this.events = this.generateEventsFromSegments(this.segments);
-                console.log('📊 Timeline générée (partielle):', this.segments.length, 'segments,', this.events.length, 'événements');
                 return;
             } else {
-                console.log('❌ Timeline: Aucune analyse disponible');
                 this.generateEmptyState();
                 return;
             }
         }
 
-        console.log('✅ Timeline: Cache complet disponible');
-
         // Générer les segments basés sur les clés de conseil
         this.segments = this.generateSegmentsFromCache(cachedAnalyses as CachedMoveAnalysis[]);
-        this.events = this.generateEventsFromSegments(this.segments);
-
-        console.log('📊 Timeline générée:', this.segments.length, 'segments,', this.events.length, 'événements');
-
-        // Debug des premiers segments
-        if (this.segments.length > 0) {
-            console.log('🎯 Premier segment:', this.segments[0]);
-        }
     }
 
     /**
@@ -157,11 +132,8 @@ export class StrategicTimelineComponent implements OnInit {
      */
     private generateSegmentsFromCache(cachedAnalyses: CachedMoveAnalysis[]): TimelineSegment[] {
         if (cachedAnalyses.length === 0) {
-            console.log('⚠️ generateSegmentsFromCache: Aucune analyse fournie');
             return [];
         }
-
-        console.log('🔍 generateSegmentsFromCache: Traitement de', cachedAnalyses.length, 'analyses');
 
         const segments: TimelineSegment[] = [];
         let currentSegment: TimelineSegment | null = null;
@@ -170,22 +142,17 @@ export class StrategicTimelineComponent implements OnInit {
             const analysis = cachedAnalyses[i];
             const adviceKey = this.getAdviceKeyFromAnalysis(analysis);
 
-            // Debug pour les premières analyses
-            if (i < 3) {
-                console.log(`🔍 Analyse ${i}: Key="${adviceKey}", WhiteAdv="${analysis.whiteAdvantages}", BlackAdv="${analysis.blackAdvantages}"`);
-            }
-
             // Si c'est le début ou si la clé change, créer un nouveau segment
             if (!currentSegment || currentSegment.adviceKey !== adviceKey) {
                 // Terminer le segment précédent
                 if (currentSegment) {
                     currentSegment.endMove = i - 1;
                     segments.push(currentSegment);
-                    console.log(`✅ Segment terminé: ${currentSegment.startMove}-${currentSegment.endMove} (${currentSegment.adviceKey})`);
                 }
 
                 // Créer un nouveau segment
                 currentSegment = {
+                    id: `segment-${i}-${adviceKey}`, // ID unique basé sur position et clé
                     startMove: i,
                     endMove: i, // sera mis à jour
                     adviceKey: adviceKey,
@@ -195,10 +162,10 @@ export class StrategicTimelineComponent implements OnInit {
                     whiteAdvantages: analysis.whiteAdvantages,
                     blackAdvantages: analysis.blackAdvantages,
                     whiteAdvice: analysis.whiteAdvice,
-                    blackAdvice: analysis.blackAdvice
+                    blackAdvice: analysis.blackAdvice,
+                    whiteDirection: this.getDirectionFromCache(analysis, 'white'),
+                    blackDirection: this.getDirectionFromCache(analysis, 'black')
                 };
-
-                console.log(`🆕 Nouveau segment créé: ${i} (${adviceKey})`);
             }
         }
 
@@ -206,10 +173,8 @@ export class StrategicTimelineComponent implements OnInit {
         if (currentSegment) {
             currentSegment.endMove = cachedAnalyses.length - 1;
             segments.push(currentSegment);
-            console.log(`✅ Dernier segment terminé: ${currentSegment.startMove}-${currentSegment.endMove} (${currentSegment.adviceKey})`);
         }
 
-        console.log(`📊 Total segments générés: ${segments.length}`);
         return segments;
     }
 
@@ -220,14 +185,7 @@ export class StrategicTimelineComponent implements OnInit {
     private getAdviceKeyFromAnalysis(analysis: CachedMoveAnalysis): string {
         const whiteAdvantages = analysis.whiteAdvantages.split(', ').filter(a => a.trim() !== '');
         const blackAdvantages = analysis.blackAdvantages.split(', ').filter(a => a.trim() !== '');
-
         const key = `${whiteAdvantages.join('_')}_vs_${blackAdvantages.join('_')}`;
-
-        // Debug occasionnel
-        if (Math.random() < 0.1) {
-            console.log(`🔑 Key Debug: "${analysis.whiteAdvantages}" + "${analysis.blackAdvantages}" → "${key}"`);
-        }
-
         return key;
     }
 
@@ -282,60 +240,12 @@ export class StrategicTimelineComponent implements OnInit {
     }
 
     /**
-     * Génère les événements basés sur les changements de segments
-     */
-    private generateEventsFromSegments(segments: TimelineSegment[]): TimelineEvent[] {
-        const events: TimelineEvent[] = [];
-
-        for (let i = 1; i < segments.length; i++) {
-            const previousSegment = segments[i - 1];
-            const currentSegment = segments[i];
-
-            // Événement de changement de clé
-            events.push({
-                move: currentSegment.startMove,
-                type: 'key_change',
-                description: `Changement stratégique: ${currentSegment.description}`,
-                significance: this.calculateSignificance(previousSegment, currentSegment)
-            });
-
-            // Événement de changement d'avantage si applicable
-            if (previousSegment.advantageColor !== currentSegment.advantageColor) {
-                events.push({
-                    move: currentSegment.startMove,
-                    type: 'advantage_shift',
-                    description: `Initiative passe aux ${this.getColorName(currentSegment.advantageColor)}`,
-                    significance: 4
-                });
-            }
-        }
-
-        return events;
-    }
-
-    /**
-     * Calcule l'importance d'un changement de segment
-     */
-    private calculateSignificance(previousSegment: TimelineSegment, currentSegment: TimelineSegment): number {
-        // Plus la différence de force est importante, plus c'est significatif
-        const strengthDiff = Math.abs(currentSegment.strength - previousSegment.strength);
-
-        if (strengthDiff > 40) return 5;
-        if (strengthDiff > 25) return 4;
-        if (strengthDiff > 15) return 3;
-        if (strengthDiff > 5) return 2;
-        return 1;
-    }
-
-    /**
-     * Traduit une couleur en nom français
-     */
-    private getColorName(color: 'white' | 'black' | 'neutral'): string {
-        switch (color) {
-            case 'white': return 'Blancs';
-            case 'black': return 'Noirs';
-            case 'neutral': return 'Position équilibrée';
-        }
+ * Obtient la direction stratégique depuis le cache pour une couleur donnée
+ */
+    private getDirectionFromCache(analysis: CachedMoveAnalysis, color: 'white' | 'black'): string {
+        // Utiliser directement les directions du cache (plus fiable et cohérent)
+        const direction = color === 'white' ? analysis.whiteDirection : analysis.blackDirection;
+        return direction || '';
     }
 
     /**
@@ -343,8 +253,6 @@ export class StrategicTimelineComponent implements OnInit {
      */
     private generateEmptyState() {
         this.segments = [];
-        this.events = [];
-        console.log('📝 Timeline: État vide généré (cache non disponible)');
     }
 
     // === MÉTHODES D'INTERACTION UTILISATEUR ===
@@ -376,62 +284,12 @@ export class StrategicTimelineComponent implements OnInit {
     }
 
     getSegmentColor(segment: TimelineSegment): string {
-        const baseColors = {
-            'white': '#e8f4f8',    // Bleu clair pour les blancs
-            'black': '#f8e8e8',    // Rouge clair pour les noirs
-            'neutral': '#f0f0f0'   // Gris clair pour neutre
-        };
+        // CHANGEMENT : Utiliser la couleur active au lieu de la couleur avantagée
+        const activeColor = this.getActiveColor();
+        const direction = activeColor === 'white' ? segment.whiteDirection : segment.blackDirection;
 
-        const strongColors = {
-            'white': '#4a90a4',    // Bleu plus foncé
-            'black': '#a44a4a',    // Rouge plus foncé
-            'neutral': '#888888'   // Gris foncé
-        };
-
-        // Plus l'avantage est fort, plus la couleur est intense
-        const intensity = segment.strength / 100;
-        const baseColor = baseColors[segment.advantageColor];
-        const strongColor = strongColors[segment.advantageColor];
-
-        // Mélanger les couleurs selon l'intensité
-        if (intensity < 0.3) {
-            return baseColor;
-        } else {
-            // Transition progressive vers la couleur forte
-            const factor = (intensity - 0.3) / 0.7; // Normaliser entre 0 et 1
-            return this.blendColors(baseColor, strongColor, factor);
-        }
-    }
-
-    /**
-     * Mélange deux couleurs hex selon un facteur
-     */
-    private blendColors(color1: string, color2: string, factor: number): string {
-        // Conversion hex vers RGB
-        const rgb1 = this.hexToRgb(color1);
-        const rgb2 = this.hexToRgb(color2);
-
-        if (!rgb1 || !rgb2) return color1;
-
-        // Mélange
-        const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * factor);
-        const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * factor);
-        const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * factor);
-
-        // Reconversion vers hex
-        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    }
-
-    /**
-     * Convertit une couleur hex en RGB
-     */
-    private hexToRgb(hex: string): { r: number, g: number, b: number } | null {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
+        // Obtenir la couleur de base selon la direction de la couleur active
+        return getDirectionColor(direction);
     }
 
     getCurrentPosition(): number {
@@ -448,14 +306,48 @@ export class StrategicTimelineComponent implements OnInit {
         ) || null;
     }
 
-    getHoveredEvent(): TimelineEvent | null {
-        if (this.hoveredMove === null) return null;
 
-        // Tolérance de ±1 coup pour les événements
-        return this.events.find(event =>
-            Math.abs(event.move - this.hoveredMove!) <= 1
-        ) || null;
+
+    // === MÉTHODES POUR LE TOOLTIP SIMPLIFIÉ ===
+
+    /**
+     * Détermine la couleur active basée sur l'orientation de l'échiquier
+     */
+    getActiveColor(): 'white' | 'black' {
+        return this.boardDisplay.boardOrientation() === 'white' ? 'white' : 'black';
     }
+
+    /**
+     * Obtient le conseil pour un segment basé sur la couleur active
+     */
+    getSegmentAdvice(segment: TimelineSegment): string {
+        const activeColor = this.getActiveColor();
+        return activeColor === 'white' ? segment.whiteAdvice : segment.blackAdvice;
+    }
+
+    /**
+     * Obtient l'icône de direction pour un segment basée sur la couleur active
+     */
+    getSegmentDirectionIcon(segment: TimelineSegment): string {
+        const activeColor = this.getActiveColor();
+        const direction = activeColor === 'white' ? segment.whiteDirection : segment.blackDirection;
+        return direction ? getDirectionIcon(direction) : '';
+    }
+
+    /**
+     * Obtient la couleur de direction pour un segment basée sur la couleur active
+     */
+    getSegmentDirectionColor(segment: TimelineSegment): string {
+        const activeColor = this.getActiveColor();
+        const direction = activeColor === 'white' ? segment.whiteDirection : segment.blackDirection;
+        return getDirectionColor(direction);
+    }
+
+
+
+
+
+
 
     // === MÉTHODES POUR LE BILAN DE LA PARTIE ===
 
@@ -493,7 +385,7 @@ export class StrategicTimelineComponent implements OnInit {
             return 'Partie dominée par les Blancs';
         } else if (colorCount.black > colorCount.white * 1.5) {
             return 'Partie dominée par les Noirs';
-        } else if (this.events.length > this.segments.length * 0.8) {
+        } else if (this.segments.length > this.maxMoves() / 2) {
             return 'Partie très dynamique avec de nombreux retournements';
         } else if (this.segments.length > this.maxMoves() / 3) {
             return 'Partie tactique avec de fréquents changements stratégiques';

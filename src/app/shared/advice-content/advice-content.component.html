@@ -1,0 +1,32 @@
+<!-- Conseil avec icône (exactement comme advice-content) -->
+@if (advice(); as adviceText) {
+<div class="advice-with-icon" [class.no-icon]="!adviceIcon()">
+  <!-- <div
+    class="advice-icon material-icons"
+    *ngIf="adviceIcon()"
+    [style.background]="adviceIconColor()"
+  >
+    {{ adviceIcon() }}
+  </div> -->
+  <div class="advice-text">
+    {{ adviceText }}
+  </div>
+</div>
+} @else {
+<div class="no-advice-text">
+  {{ noAdviceMessage() }}
+</div>
+}
+
+<!-- Tags d'avantages (exactement comme advice-content) -->
+@if (whiteAdvantages() || blackAdvantages()) {
+<div class="advantage-tags">
+  @if (whiteAdvantages()) { @for (advantage of
+  getAdvantageTagsList(whiteAdvantages()); track advantage) {
+  <span class="advantage-tag white-tag">{{ advantage }}</span>
+  } } @if (blackAdvantages()) { @for (advantage of
+  getAdvantageTagsList(blackAdvantages()); track advantage) {
+  <span class="advantage-tag black-tag">{{ advantage }}</span>
+  } }
+</div>
+}

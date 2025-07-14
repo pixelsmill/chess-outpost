@@ -128,7 +128,15 @@ export class BoardDisplayService {
      * Configure l'observateur de redimensionnement pour un élément
      */
     setupResizeObserver(element: ElementRef<HTMLElement>): void {
+        // Nettoyer l'ancien observer s'il existe
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
+        // Calcul initial
         this.calculateBoardScale(element);
+
+        // Créer le nouvel observer
         this.resizeObserver = new ResizeObserver(() => {
             // Débouncer les recalculs pour éviter les problèmes lors des changements de focus
             this.resizeSubject.next(element);
@@ -142,11 +150,8 @@ export class BoardDisplayService {
     cleanup(): void {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
+            this.resizeObserver = undefined;
         }
-        if (this.resizeSubscription) {
-            this.resizeSubscription.unsubscribe();
-        }
-        this.resizeSubject.complete();
     }
 
     /**
@@ -181,6 +186,8 @@ export class BoardDisplayService {
      * Calcule l'échelle de l'échiquier en fonction des dimensions du conteneur
      */
     private calculateBoardScale(boardSection: ElementRef<HTMLElement>): void {
+        console.log('🎯 BoardDisplay: calculateBoardScale called');
+
         if (!boardSection) {
             console.log('🎯 BoardDisplay: No boardSection provided');
             return;
@@ -204,7 +211,8 @@ export class BoardDisplayService {
         const scaleY = availableHeight / 484; // Hauteur réelle
 
         // Prendre la plus petite échelle (la plus contraignante)
-        const scale = Math.max(0.5, Math.min(2.5, Math.min(scaleX, scaleY)));
+        let scale = Math.min(scaleX, scaleY);
+        // scale = Math.max(0.5, Math.min(2.5, scale));
 
         console.log('🎯 BoardDisplay: Scale calculation:', {
             availableWidth,

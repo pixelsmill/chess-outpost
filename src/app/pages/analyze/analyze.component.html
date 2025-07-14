@@ -4,132 +4,183 @@
     <div class="side-panel left-panel">
       <div class="panel-content">
         <div class="sidebar-body">
-          <!-- Bilan stratégique -->
-          <div class="strategic-balance-section">
-            <div class="balance-content">
-              <!-- Onglets pour choisir la couleur -->
-              <div class="color-tabs">
-                <button
-                  class="tab-btn"
-                  [class.active]="selectedColorTab() === 'white'"
-                  (click)="setSelectedColorTab('white')"
-                >
-                  Blancs
-                </button>
-                <button
-                  class="tab-btn"
-                  [class.active]="selectedColorTab() === 'black'"
-                  (click)="setSelectedColorTab('black')"
-                >
-                  Noirs
-                </button>
-              </div>
-
-              <div class="advice-content">
-                <div
-                  *ngIf="getAdviceForSelectedColor(); else noAdvice"
-                  class="advice-with-icon"
-                  [class.no-icon]="!getAdviceIconForSelectedColor()"
-                >
-                  <div
-                    class="advice-icon"
-                    *ngIf="getAdviceIconForSelectedColor()"
-                  >
-                    {{ getAdviceIconForSelectedColor() }}
-                  </div>
-                  <div class="advice-text">
-                    {{ getAdviceForSelectedColor() }}
-                  </div>
-                </div>
-                <ng-template #noAdvice>
-                  <div class="no-advice-text">
-                    Aucun conseil stratégique disponible pour cette position.
-                  </div>
-                </ng-template>
-              </div>
-
-              <div *ngIf="whiteAdvantages() || blackAdvantages()">
-                <div class="advantage-tags">
-                  <!-- Tags des avantages blancs -->
-                  <span
-                    *ngFor="let advantage of getWhiteAdvantageTagsList()"
-                    class="advantage-tag white-tag"
-                  >
-                    {{ getDisplayName(advantage) }}
-                  </span>
-                  <!-- Tags des avantages noirs -->
-                  <span
-                    *ngFor="let advantage of getBlackAdvantageTagsList()"
-                    class="advantage-tag black-tag"
-                  >
-                    {{ getDisplayName(advantage) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Boussole stratégique -->
           <div class="strategic-compass-section">
             <div class="compass-container">
-              <div class="compass-circle">
+              <div
+                class="compass-circle"
+                [class]="'active-' + getAdviceDirectionForSelectedColor()"
+              >
                 <!-- Image de fond de la boussole -->
                 <div class="compass-background"></div>
 
+                <!-- Aiguille pointant vers la direction stratégique -->
+                <div
+                  class="compass-needle"
+                  [class]="'direction-' + getAdviceDirectionForSelectedColor()"
+                >
+                  <svg
+                    class="needle-svg"
+                    width="20"
+                    height="80"
+                    viewBox="0 0 20 80"
+                  >
+                    <!-- Partie avant (60px) -->
+                    <!-- Triangle rectangle gauche (fond noir) -->
+                    <polygon
+                      points="10,0 0,60 10,60"
+                      fill="black"
+                      stroke="white"
+                      stroke-width="1"
+                    />
+                    <!-- Triangle rectangle droit (fond rouge) -->
+                    <polygon
+                      points="10,0 20,60 10,60"
+                      fill="white"
+                      stroke="white"
+                      stroke-width="1"
+                    />
+
+                    <!-- Partie arrière (20px) - triangles inversés et tournés de 180° -->
+                    <!-- Triangle rectangle gauche arrière (fond rouge) -->
+                    <polygon
+                      points="10,80 0,60 10,60"
+                      fill="white"
+                      stroke="white"
+                      stroke-width="1"
+                    />
+                    <!-- Triangle rectangle droit arrière (fond noir) -->
+                    <polygon
+                      points="10,80 20,60 10,60"
+                      fill="black"
+                      stroke="white"
+                      stroke-width="1"
+                    />
+                  </svg>
+                </div>
+
                 <!-- Pictos stratégiques positionnés autour -->
-                <div class="compass-direction north" title="Attaque du roi">
-                  <div class="direction-icon">🔥</div>
+                <div
+                  class="compass-direction north"
+                  title="Attaque du roi"
+                  [style.background]="getDirectionColor('attack')"
+                  [style.--hover-color]="
+                    getDirectionColor('attack').replace('0.9', '1')
+                  "
+                >
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("attack") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction northeast"
                   title="Activer les pièces / ouvrir"
+                  [style.background]="getDirectionColor('activation')"
+                  [style.--hover-color]="
+                    getDirectionColor('activation').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">🚀</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("activation") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction east"
                   title="Créer du déséquilibre"
+                  [style.background]="getDirectionColor('imbalance')"
+                  [style.--hover-color]="
+                    getDirectionColor('imbalance').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">⚡</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("imbalance") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction southeast"
                   title="Réorganiser / préparer un plan"
+                  [style.background]="getDirectionColor('reorganization')"
+                  [style.--hover-color]="
+                    getDirectionColor('reorganization').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">♻️</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("reorganization") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction south"
                   title="Consolidation / Défense"
+                  [style.background]="getDirectionColor('defense')"
+                  [style.--hover-color]="
+                    getDirectionColor('defense').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">🛡️</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("defense") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction southwest"
                   title="Fermer / Neutraliser l'adversaire"
+                  [style.background]="getDirectionColor('blocking')"
+                  [style.--hover-color]="
+                    getDirectionColor('blocking').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">🔒</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("blocking") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction west"
                   title="Simplification / Transition vers finale"
+                  [style.background]="getDirectionColor('simplification')"
+                  [style.--hover-color]="
+                    getDirectionColor('simplification').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">⏳</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("simplification") }}
+                  </div>
                 </div>
 
                 <div
                   class="compass-direction northwest"
                   title="Maintenir la pression / exploiter faiblesse"
+                  [style.background]="getDirectionColor('pressure')"
+                  [style.--hover-color]="
+                    getDirectionColor('pressure').replace('0.9', '1')
+                  "
                 >
-                  <div class="direction-icon">🎯</div>
+                  <div class="direction-icon">
+                    {{ getDirectionIcon("pressure") }}
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Bilan stratégique -->
+          <div class="strategic-balance-section">
+            <div class="balance-content">
+              <!-- Indicateur de couleur analysée -->
+              <app-advice-content
+                [advice]="getAdviceForSelectedColor()"
+                [adviceIcon]="getAdviceIconForSelectedColor()"
+                [adviceIconColor]="
+                  getDirectionColor(getAdviceDirectionForSelectedColor())
+                "
+                [whiteAdvantages]="getWhiteAdvantagesForDisplay()"
+                [blackAdvantages]="getBlackAdvantagesForDisplay()"
+              >
+              </app-advice-content>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { PositionEvaluatorService, PositionEvaluation } from './position-evaluator.service';
 import { PositionAdviceService } from './position-advice.service';
 import { GameAnalysisService, GameAnalysisResult } from './game-analysis.service';
+import { getDirectionIcon } from '../data/position-comments-base';
 
 export interface CachedMoveAnalysis {
     moveNumber: number;
@@ -17,6 +18,8 @@ export interface CachedMoveAnalysis {
     blackAdvice: string;
     whiteAdviceIcon: string;
     blackAdviceIcon: string;
+    whiteDirection: string;
+    blackDirection: string;
     whiteAdvantages: string;
     blackAdvantages: string;
 
@@ -122,8 +125,10 @@ export class GameAnalysisCacheService {
 
                     whiteAdvice: whiteFullAdvice,
                     blackAdvice: blackFullAdvice,
-                    whiteAdviceIcon: whiteAdviceDetail?.icon || '',
-                    blackAdviceIcon: blackAdviceDetail?.icon || '',
+                    whiteAdviceIcon: whiteAdviceDetail?.direction ? getDirectionIcon(whiteAdviceDetail.direction) : '',
+                    blackAdviceIcon: blackAdviceDetail?.direction ? getDirectionIcon(blackAdviceDetail.direction) : '',
+                    whiteDirection: whiteAdviceDetail?.direction || '',
+                    blackDirection: blackAdviceDetail?.direction || '',
                     whiteAdvantages: whiteAdvantagesList.join(', '),
                     blackAdvantages: blackAdvantagesList.join(', '),
 
